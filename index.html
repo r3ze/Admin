@@ -7,22 +7,33 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!--Leaflet-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
 </head>
 <body>
 
+   
+
+<div class="container-fluid">
     
-    <nav class="navbar navbar-expand-lg ">
+
+    <nav class="navbar fixed-top">
         <div class="container-fluid">
             <div class="">
 
-            
+                
             <img src="/img/FLECO logo.png" class="img-thumbnail" alt="..." width="50">
             <a class="navbar-brand" href="#">FLECO</a>
         </div>
        
         </div>
       </nav>
-        <div class="col-lg-2 mt-3" style="height: 300px;">
+      <div class="row">
+
+      
+        <div class="col-lg-2 position-fixed" style="height: 300px; margin-top: 80px;">
             <div class="list-group">
                 <button type="button" class="list-group-item list-group-item-action active" aria-current="true">
                   Dashboard
@@ -34,10 +45,62 @@
               </div>
 
         </div>
-      
- 
 
+        <div class="col-lg-10 offset-lg-2 ">
+   
+
+           
+            <div class="row">
+                <div class="card col-lg-3">
+                    <div class="card-body">
+                      Complaints Today
+                    </div>
+                  </div>
+                  <div class="card col-lg-3">
+                    <div class="card-body">
+                      Complaints Today
+                    </div>
+                  </div>
+                  <div class="card col-lg-3 ">
+                    <div class="card-body">
+                      Complaints Today
+                    </div>
+                  </div>
+                  <div class="card col-lg-3 ">
+                    <div class="card-body">
+                      Complaints Today
+                    </div>
+                  </div>
+                  
+
+            </div>
+            <div class="row mt-5">
+                <div id="map"></div>
+             
+            </div>
+  
+        
+        </div>
+    </div>
+</div>
+
+  
+ 
+<!--bootstrap-->
     <script src="/js/bootstrap.min.js"></script>
+    <!--Leaflet-->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     <script>
+        var map = L.map('map').setView([14.2731, 121.4216], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+      
+        </script>
+
 </body>
 
 </html>
