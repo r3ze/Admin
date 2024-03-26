@@ -1,0 +1,15 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+.list-group{
+
+border-radius: 0px;
+}
+.list-group-item {
+    height: 50px; /* Adjust this value to your desired height */
+}
+.last-button {
+    height: 65vh;
+  
+  }
