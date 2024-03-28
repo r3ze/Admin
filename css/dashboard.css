@@ -13,4 +13,7 @@ border-radius: 0px;
     height: 65vh;
   
   }
-  #map { height: 300px; }
+  #map { 
+    height: 400px;
+   
+ }
