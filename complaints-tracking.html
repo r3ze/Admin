@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    
+    <title>Document</title>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+               <!--sidebar-->
+        <div class="col-lg-2 position-fixed ">
+            <div class="list-group">
+              <div class="list-group-item" style="border-bottom: none;">
+
+                
+                <img src="/img/FLECO logo.png" class="img-thumbnail" alt="..." width="50">
+                <a class="navbar-brand" href="#">FLECO</a>
+            </div>
+                <button type="button" class="list-group-item list-group-item-action mt-5" aria-current="true">
+                  Dashboard
+                </button>
+                <button type="button" class="list-group-item list-group-item-action position-relative "> Complaints
+                   <span class="p-1 bg-primary border border-light rounded-circle " style="color: white;">
+                    10+
+    <span class="visually-hidden">New complaints</span>
+  </span>
+                </button>
+                
+                <button type="button" class="list-group-item list-group-item-action ">Complaints History</button>
+                <button type="button" class="list-group-item list-group-item-action ">Crews</button>
+                <button type="button" class="list-group-item list-group-item-action last-button "></button>
+              </div>
+
+        </div>
+
+        <div class="col-lg-10 offset-lg-2 mt-2">
+            <div class="input-group mb-3">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Filter</button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="#">Separated link</a></li>
+                </ul>
+               
+              </div>
+            <table class="table table-bordered border-primary">
+                <thead>
+  <tr>
+    <th scope="col">Complaint ID</th>
+    <th scope="col">Consumer</th>
+    <th scope="col">Description</th>
+    <th scope="col">Location</th>
+
+    <th scope="col">Assigned crew</th>
+    <th scope="col">Date Reported</th>
+    <th scope="col">Date Completed</th>
+    <th scope="col">Status</th>
+
+    
+  </tr>
+</thead>
+  <tbody class="table-group-divider">
+  <tr>
+
+    <td>01</td>
+    <td>Danzel</td>
+    <td>Defective Meter</td>
+    <td>San Isidro</td>
+  
+
+      <td>name ng crew</td>
+      <td>03-29-2024</td>
+      <td>03-29-2024</td>
+      <td> Completed </td>
+  </tr>
+  
+
+</tbody>
+
+          </table>
+
+         
+
+        </div>
+
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    
+</body>
+</html>
