@@ -8,6 +8,8 @@ border-radius: 0px;
 }
 .list-group-item {
     height: 50px; /* Adjust this value to your desired height */
+    border-left: none !important;
+    border-bottom: none;
 }
 .last-button {
     height: 65vh;
