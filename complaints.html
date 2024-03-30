@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--Bootstrap-->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <title>Document</title>
 </head>
@@ -16,29 +17,33 @@
         
         <!--sidebar-->
         <div class="col-lg-2 position-fixed ">
-            <div class="list-group">
-              <div class="list-group-item" style="border-bottom: none;">
+          <div class="list-group">
+            <div class="list-group-item" style="border-bottom: none;">
 
-                
-                <img src="/img/FLECO logo.png" class="img-thumbnail" alt="..." width="50">
-                <a class="navbar-brand" href="#">FLECO</a>
+              
+              <img src="/img/FLECO logo.png" class="img-thumbnail" alt="..." width="50">
+              <a class="navbar-brand" href="#">FLECO</a>
+          </div>
+              <button type="button" style="color: white;" class="list-group-item list-group-item-action mt-4 bg-primary" aria-current="true">
+               <span class="fa fa-dashboard" style="margin-right: 8px; font-size: 20px;"></span>
+           Dashboard
+              </button>
+              
+              <button type="button" class="list-group-item list-group-item-action position-relative mt-3 ">
+                 <span class="fa fa-list" style="margin-right: 8px; font-size: 20px ;"></span> Complaints
+                 <span class="p-1 bg-primary border border-light rounded-circle " style="color: white;">
+                  10+
+  <span class="visually-hidden">New complaints</span>
+</span>
+              </button>
+              
+              <button type="button" class="list-group-item list-group-item-action mt-3   ">
+                <span class="fa fa-history" style="margin-right: 10px; font-size: 22px;"></span> Complaints Tracking
+              </button>
+             
             </div>
-                <button type="button" class="list-group-item list-group-item-action mt-5" aria-current="true">
-                  Dashboard
-                </button>
-                <button type="button" class="list-group-item list-group-item-action position-relative "> Complaints
-                   <span class="p-1 bg-primary border border-light rounded-circle " style="color: white;">
-                    10+
-    <span class="visually-hidden">New complaints</span>
-  </span>
-                </button>
-                
-                <button type="button" class="list-group-item list-group-item-action ">Complaints Tracking</button>
-                <button type="button" class="list-group-item list-group-item-action ">Crews</button>
-                <button type="button" class="list-group-item list-group-item-action last-button "></button>
-              </div>
 
-        </div>
+      </div>
         <div class="col-lg-10 offset-lg-2 mt-2">
             <table class="table table-bordered border-primary">
                 <thead>
@@ -56,17 +61,17 @@
   <tbody class="table-group-divider">
   <tr>
 
-    <td>01</td>
-    <td>Danzel</td>
-    <td>Defective Meter</td>
-    <td>San Isidro</td>
+    <td style="vertical-align: middle;">01</td>
+    <td style="vertical-align: middle;">Danzel</td>
+    <td style="vertical-align: middle;"> Defective Meter</td>
+    <td style="vertical-align: middle;">San Isidro</td>
   
-    <td><div class="progress" role="progressbar" aria-label="Danger example" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+    <td style="vertical-align: middle;"><div class="progress" role="progressbar" aria-label="Danger example" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
         <div class="progress-bar bg-danger" style="width: 100%"></div>
       </div></td>
-      <td>03-29-2024</td>
+      <td style="vertical-align: middle;">03-29-2024</td>
       <td>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        <button type="button" class="btn btn-primary" style="width: 100%;" data-bs-toggle="modal" data-bs-target="#exampleModal">
             Assign Crew
           </button>
           <!--Modal-->
