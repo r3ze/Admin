@@ -140,25 +140,30 @@
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
      <script>
-           var map = L.map('map').setView([14.2811, 121.4575], 15); // Center the map at San Isidro, Pagsanjan and zoom in
+      var map = L.map('map').setView([14.2811, 121.4575], 15); // Center the map at San Isidro, Pagsanjan and zoom in
 
-        // Add OpenStreetMap tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+      // Add OpenStreetMap tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
 
-        // Add a marker for San Isidro
-        var sanIsidroMarker = L.marker([14.2811, 121.4575]).addTo(map);
-
-        // Customize the marker's appearance
-        sanIsidroMarker.setIcon(L.divIcon({
-            className: 'custom-marker',
-            html: '<div style="background-color: red; border-radius: 50%; width: 20px; height: 20px;"></div>',
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        }));
-        </script>
+      // Use AJAX to fetch complaints data from Flask route
+      fetch('/complaints_data')
+          .then(response => response.json())
+          .then(data => {
+            console.log('Complaints data:', data); // Log the fetched data
+              data.forEach(complaint => {
+              
+                  if (complaint.latitude !== null && complaint.longitude !== null) {
+                      // Add marker for the complaint location
+                      var marker = L.marker([complaint.latitude, complaint.longitude]).addTo(map);
+                      // Bind popup with complaint description
+                      marker.bindPopup(complaint.complaint_description);
+                  }
+              });
+          });
+  </script>
 
       <!--Chart js--> <script src="/static/js/charts.js"></script>
 
