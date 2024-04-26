@@ -1,0 +1,4 @@
+client = Client()
+client.set_endpoint('https://cloud.appwrite.io/v1')
+client.set_project('662248657f5bd3dd103c')
+client.set_key('207cd5fd8dc09632737a600005a611e179f5b0ed8d8049b385f4f396c97581599ee63732daca48d79ec51029363c8225280013a93e7509061c4adeddc8dfc7cf081a521301153811fc6625d57077dbcc7b8a0e048ce8d5ab0137000cd4af98155a1779fad9bed80c9714ee3bdced5a97b5c3ea5b3349f54abf3871ff10f70e0b')

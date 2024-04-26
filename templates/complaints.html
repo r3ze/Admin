@@ -64,14 +64,14 @@
     {% for complaint in complaints %}
   <tr>
    
-    <td>{{ complaint[0] }}</td>
-    <td>{{ complaint[8] }}</td> <!-- Assuming consumer name is in the 8th column -->
-    <td>{{ complaint[2] }}</td> <!-- Description -->
-    <td>{{ complaint[3] }}</td> <!-- City -->
-    <td>{{ complaint[4] }}</td> <!-- Street -->
-    <td>{{ complaint[5] }}</td> <!-- Barangay -->
-    <td>{{ complaint[7] }}</td> <!-- Level of Prioritization -->
-    <td>{{ complaint[6] }}</td> <!-- Date Reported -->
+    <td></td>
+    <td>{{ complaint[''] }}</td> <!-- Assuming consumer name is in the 8th column -->
+    <td>{{ complaint['description'] }}</td> <!-- Description -->
+    <td>{{ complaint['city'] }}</td> <!-- City -->
+    <td>NA</td> <!-- Street -->
+    <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
+    <td>NA</td> <!-- Level of Prioritization -->
+    <td>{{ complaint['createdAt'] }}</td> <!-- Date Reported -->
   
 
       <td>
