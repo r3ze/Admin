@@ -33,6 +33,7 @@ def get_complaints_data():
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
+        
         )
         complaints_data = response['documents']
 
@@ -40,6 +41,7 @@ def get_complaints_data():
         for complaint in complaints_data:
             latitude = None
             longitude = None
+
             
             if complaint['city'] == 'Pagsanjan' and complaint['barangay'] =='dos':
                 latitude = 14.2811
@@ -50,8 +52,8 @@ def get_complaints_data():
 
             complaint_dict = {
                
-                'complaint_description': complaint['description'],
-                'consumer': complaint['consumers'],
+            
+      
                 'city': complaint['city'],
                 'barangay': complaint['barangay'],
                 'date_reported': complaint['createdAt'],

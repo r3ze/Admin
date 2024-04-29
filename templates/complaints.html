@@ -16,7 +16,7 @@
        
         
         <!--sidebar-->
-        <div class="col-lg-2 position-fixed ">
+        <div class="col-lg-2 position-fixed  " style="  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #FFFFFF;">
           <div class="list-group">
             <div class="list-group-item" style="border-bottom: none;">
 
@@ -44,18 +44,19 @@
             </div>
 
       </div>
-        <div class="col-lg-10 offset-lg-2 mt-2">
-            <table class="table table-bordered border-primary">
+        <div class="col-lg-10 offset-lg-2" style="background-color: #F4F7FE; height: 100vh;">
+          
+            <table class="complaints-table table mt-4" style="   border-collapse: separate;
+            border-spacing: 0; border-radius: 10px; overflow: hidden; background-color: #EDEDED;">
                 <thead>
   <tr>
     <th scope="col">Complaint ID</th>
     <th scope="col">Consumer</th>
     <th scope="col">Description</th>
     <th scope="col">City</th>
-    <th scope="col">Street</th>
     <th scope="col">Barangay</th>
-    <th scope="col">Level of Prioritization</th>
     <th scope="col">Date Reported</th>
+    <th scope="col">Action</th>
 
     
   </tr>
@@ -64,13 +65,13 @@
     {% for complaint in complaints %}
   <tr>
    
-    <td></td>
-    <td>{{ complaint[''] }}</td> <!-- Assuming consumer name is in the 8th column -->
+    <td>{{ complaint['$id'] }}</td>
+    <td>{{ complaint['consumer_name'] }}</td> <!-- consumer name -->
     <td>{{ complaint['description'] }}</td> <!-- Description -->
     <td>{{ complaint['city'] }}</td> <!-- City -->
-    <td>NA</td> <!-- Street -->
+
     <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
-    <td>NA</td> <!-- Level of Prioritization -->
+ 
     <td>{{ complaint['createdAt'] }}</td> <!-- Date Reported -->
   
 

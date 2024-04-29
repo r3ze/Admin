@@ -1,6 +1,7 @@
 *{
     margin: 0;
     padding: 0;
+    font-family: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .list-group{
 
@@ -10,6 +11,7 @@ border-radius: 0px;
     height: 50px; /* Adjust this value to your desired height */
     border-left: none !important;
     border-bottom: none;
+    border-right: none !important;
 }
 .last-button {
     height: 65vh;
@@ -19,3 +21,12 @@ border-radius: 0px;
     height: 400px;
    
  }
+ .complaints-table th, .complaints-table td {
+    border-right: none !important;
+ 
+    background-color: white; /* Set background to white */
+}
+
+.complaints-table th {
+    color: #949cb1; /* Set th color */
+}
