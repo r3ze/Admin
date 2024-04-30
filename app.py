@@ -21,7 +21,7 @@ COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
 
 @app.route('/')
 def dashboard():
-
+    
     return render_template("index.html")
 
 
