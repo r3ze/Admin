@@ -6,7 +6,10 @@
     <!--Bootstrap-->
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css">
+    <link rel="stylesheet" href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css">
     <title>Document</title>
 </head>
 <body>
@@ -22,7 +25,7 @@
 
               
               <img src="/static/img/FLECO logo.png" class="img-thumbnail" alt="..." width="50">
-              <a class="navbar-brand" href="#">FLECO</a>
+          
           </div>
               <button type="button" style="color: white;" class="list-group-item list-group-item-action mt-4 bg-primary" aria-current="true">
                <span class="fa fa-dashboard" style="margin-right: 8px; font-size: 20px;"></span>
@@ -46,7 +49,7 @@
       </div>
         <div class="col-lg-10 offset-lg-2" style="background-color: #F4F7FE; height: 100vh;">
           
-            <table class="complaints-table table mt-4" style="   border-collapse: separate;
+            <table id="example" class="complaints-table table table-striped" style="   border-collapse: separate;
             border-spacing: 0; border-radius: 10px; overflow: hidden; background-color: #EDEDED;">
                 <thead>
   <tr>
@@ -56,6 +59,7 @@
     <th scope="col">City</th>
     <th scope="col">Barangay</th>
     <th scope="col">Date Reported</th>
+    <th scope="col">Status</th>
     <th scope="col">Action</th>
 
     
@@ -73,6 +77,7 @@
     <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
  
     <td>{{ complaint['createdAt'] }}</td> <!-- Date Reported -->
+    <td>{{ complaint['status'] }}</td> <!--Status-->
   
 
       <td>
@@ -171,5 +176,14 @@
     
     <!--bootstrap-->
     <script src="/static/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!--DataTable-->
+    <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+    <script>
+     let table = new DataTable('#example');
+  </script>
+  
+
 </body>
 </html>

@@ -1,59 +1,117 @@
- //line  graph
- // Data for the chart (number of complaints each month)
-   const complaintsData = {
-    labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    datasets: [{
-        label: 'Number of Complaints',
-        data: [20, 15, 30, 25, 40, 35, 45, 50, 55, 60, 40, 30], // Example data, replace with your actual data
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 2
-    }]
-};
 
-// Configuration for the chart
-const chartConfig = {
-    type: 'line',
-    data: complaintsData,
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
-        }
-    }
-};
 
-// Create the chart
-const complaintsChartCanvas = document.getElementById('complaintsChart').getContext('2d');
-const myChart = new Chart(complaintsChartCanvas, chartConfig);
-
-//doughnut chart
-var xValues = ["Italy", "France", "Spain", "USA", "Argentina"];
-var yValues = [55, 49, 44, 24, 15];
-var barColors = [
-  "#b91d47",
-  "#00aba9",
-  "#2b5797",
-  "#e8c3b9",
-  "#1e7145"
-];
-
-new Chart("myChart", {
-  type: "bar",
-  data: {
-    labels: xValues,
-    datasets: [{
-      backgroundColor: barColors,
-      data: yValues
-    }]
+var options1 = {
+  series: [{
+  name: 'series1',
+  data: [31, 40, 28, 51, 42, 109, 100]
+}, {
+  name: 'series2',
+  data: [11, 32, 45, 32, 34, 52, 41]
+}],
+  chart: {
+  height: 350,
+  type: 'area'
+},
+dataLabels: {
+  enabled: false
+},
+stroke: {
+  curve: 'smooth'
+},
+xaxis: {
+  type: 'datetime',
+  categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+},
+tooltip: {
+  x: {
+    format: 'dd/MM/yy HH:mm'
   },
-  options: {
-    title: {
-      display: true,
-      text: "Areas With Highest Number of Complaints"
+},
+};
+
+var chart = new ApexCharts(document.querySelector("#lineChart"), options1);
+chart.render();
+
+//bar
+var options = {
+  series: [{
+  name: 'Inflation',
+  data: [2.3, 3.1, 4.0, 10.1, 4.0, 3.6, 3.2, 2.3, 1.4, 0.8, 0.5, 0.2]
+}],
+  chart: {
+  height: 350,
+  type: 'bar',
+},
+plotOptions: {
+  bar: {
+    borderRadius: 10,
+    dataLabels: {
+      position: 'top', // top, center, bottom
+    },
+  }
+},
+dataLabels: {
+  enabled: true,
+  formatter: function (val) {
+    return val + "%";
+  },
+  offsetY: -20,
+  style: {
+    fontSize: '12px',
+    colors: ["#304758"]
+  }
+},
+
+xaxis: {
+  categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  position: 'top',
+  axisBorder: {
+    show: false
+  },
+  axisTicks: {
+    show: false
+  },
+  crosshairs: {
+    fill: {
+      type: 'gradient',
+      gradient: {
+        colorFrom: '#D8E3F0',
+        colorTo: '#BED1E6',
+        stops: [0, 100],
+        opacityFrom: 0.4,
+        opacityTo: 0.5,
+      }
+    }
+  },
+  tooltip: {
+    enabled: true,
+  }
+},
+yaxis: {
+  axisBorder: {
+    show: false
+  },
+  axisTicks: {
+    show: false,
+  },
+  labels: {
+    show: false,
+    formatter: function (val) {
+      return val + "%";
     }
   }
-});
+
+},
+title: {
+  text: 'Monthly Inflation in Argentina, 2002',
+  floating: true,
+  offsetY: 330,
+  align: 'center',
+  style: {
+    color: '#444'
+  }
+}
+};
+
+var chart = new ApexCharts(document.querySelector("#barChart"), options);
+chart.render();

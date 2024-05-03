@@ -91,6 +91,11 @@ def complaintsTracking():
 def userRegistration():
     
     return render_template("user-registration.html")
+    
+@app.route('/maps')
+def map():
+    
+    return render_template("map.html")
 
 
 
