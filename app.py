@@ -16,13 +16,53 @@ database = Databases(client)
 
 DATABASE_ID = '66224a152d9f9a67af78'  # Replace with your Appwrite database ID
 COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
-
+USER_COLLECTION_ID = '662601d0b9e605665bb4'
 #add registration
+
+
+#count users
+def count_users():
+    try:
+        # Fetch all documents from the 'users' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=USER_COLLECTION_ID
+        )
+        total_users = len(response['documents'])
+        return total_users
+    except Exception as e:
+        print(f"Error counting users: {str(e)}")
+        return 0  # Return 0 if there's an error
+
+#count complaints
+def count_complaints():
+    try:
+        # Fetch all documents from the 'users' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+        total_complaints = len(response['documents'])
+        return total_complaints
+    except Exception as e:
+        print(f"Error counting users: {str(e)}")
+        return 0  # Return 0 if there's an error
 
 @app.route('/')
 def dashboard():
     
-    return render_template("index.html")
+ try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+        total_users = count_users()
+        total_complaints = count_complaints()
+        complaints_data = response['documents'][:7]  # Limiting to the first 5 complaints
+        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints = total_complaints)
+ except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 
@@ -43,7 +83,7 @@ def get_complaints_data():
             longitude = None
 
             
-            if complaint['city'] == 'Pagsanjan' and complaint['barangay'] =='dos':
+            if complaint['city'] == 'Pagsanjan' and complaint['barangay'] =='san isidro':
                 latitude = 14.2811
                 longitude = 121.4575
             elif complaint['city'] == 'Siniloan' and complaint['barangay'] =='ni':

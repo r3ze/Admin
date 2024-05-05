@@ -35,8 +35,8 @@ chart.render();
 //bar
 var options = {
   series: [{
-  name: 'Inflation',
-  data: [2.3, 3.1, 4.0, 10.1, 4.0, 3.6, 3.2, 2.3, 1.4, 0.8, 0.5, 0.2]
+  name: 'Complaints',
+  data: [500, 600, 700, 1001, 233, 543, 666, 246, 155, 776, 2354, 100]
 }],
   chart: {
   height: 350,
@@ -51,10 +51,8 @@ plotOptions: {
   }
 },
 dataLabels: {
-  enabled: true,
-  formatter: function (val) {
-    return val + "%";
-  },
+  enabled: false,
+
   offsetY: -20,
   style: {
     fontSize: '12px',
@@ -96,14 +94,12 @@ yaxis: {
   },
   labels: {
     show: false,
-    formatter: function (val) {
-      return val + "%";
-    }
+
   }
 
 },
 title: {
-  text: 'Monthly Inflation in Argentina, 2002',
+  text: 'Monthly Complaints',
   floating: true,
   offsetY: 330,
   align: 'center',
