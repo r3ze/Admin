@@ -28,34 +28,26 @@
       <div class="row">
 
       
-        <div class="col-lg-2 position-fixed  " style="  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #FFFFFF;">
+        <div class="col-lg-2 position-fixed  " style="  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+        
+
           <div class="list-group">
-              <div class="list-group-item " style="border-bottom: none; display: flex; justify-content: center; height: 100px;">
 
-                
-                <img src="/static/img/FLECO logo.png" class="img-thumbnail" alt="..." width="100">
+            <button type="button" style="color: white; background-color: #1D1D42;" class="list-group-item list-group-item-action mt-4" aria-current="true">
               
-            </div>
-                <button type="button" style="color: white;" class="list-group-item list-group-item-action mt-4 bg-primary" aria-current="true">
+          <h2 >Admin</h2>
+             </button>
+                <button type="button" onclick="redirectToDashboard()" style="  color: #72728A; background-color: #27274F  ;" class="list-group-item list-group-item-action mt-4" aria-current="true">
                  <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
-             Dashboard
+             <span style="font-weight: 600; ">Dashboard</span>
                 </button>
                 
-                <button type="button" class="list-group-item list-group-item-action position-relative mt-3 ">
-                   <span class="fa fa-list" style="margin-right: 8px; font-size: 20px ;"></span> Complaints
-                   <span class="p-1 bg-primary border border-light rounded-circle " style="color: white;">
-                    10+
-    <span class="visually-hidden">New complaints</span>
-  </span>
-                </button>
+                <button type="button" onclick="redirectToTicket()" style="  color: #72728A; background-color: #1D1D42;" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                  <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+              <span style="font-weight: 600; ">Ticket</span>
+                 </button>
                 
-                <button type="button" class="list-group-item list-group-item-action mt-3   ">
-                  <span class="fa fa-history" style="margin-right: 10px; font-size: 22px;"></span> Complaints Tracking
-                </button>
-
-                <button type="button" class="list-group-item list-group-item-action mt-3   ">
-                  <span class="fa fa-map" style="margin-right: 10px; font-size: 22px;"></span> Maps
-                </button>
+         
                
                
               </div>
@@ -78,7 +70,7 @@
                           </div>
                             <div class="number-icon" style="display: flex; justify-content: space-between;">
                                 <h3 style="font-weight:bold; color: #444446;">{{ total_users }}</h3>
-                                <img src="/static/img/consumer-colored.png" alt="" style="height: 50px;" >
+                                <img src="/static/img/BiTicketPerforatedFill.svg" alt="" style="height: 50px;" >
                             </div>
                         
                         </div>
@@ -99,7 +91,7 @@
                         </div>
                           <div class="number-icon" style="display: flex; justify-content: space-between;">
                             <h3 style="font-weight:bold; color: #444446;">{{total_complaints}}</h3>
-                            <img src="/static/img/complain-colored.png" alt="" style="height: 50px;">
+                            <img src="/static/img/CarbonIncompleteError.svg" alt="" style="height: 50px;">
                           </div>
                       
                       </div>
@@ -120,7 +112,7 @@
                       </div>
                         <div class="number-icon" style="display: flex; justify-content: space-between;">
                           <h3 style="font-weight:bold; color: #444446;">{{total_complaints}}</h3>
-                          <img src="/static/img/unresolved-colored.png" alt="" style="height: 50px;">
+                          <img src="/static/img/MaterialSymbolsPending.svg" alt="" style="height: 50px;">
                         </div>
                     
                     </div>
@@ -141,7 +133,7 @@
                     </div>
                       <div class="number-icon" style="display: flex; justify-content: space-between;">
                         <h3 style="font-weight:bold; color: #444446;">0</h3>
-                        <img src="/static/img/resolved-coloredd.png" alt="" style="height: 50px;">
+                        <img src="/static/img/WhhIssueclosed.svg" alt="" style="height: 50px;">
                       </div>
                   
                   </div>
@@ -237,9 +229,15 @@
         </div>
     </div>
 </div>
-
-<!--Charts-->
-
+<!--CHange route-->
+  <script>
+      function redirectToDashboard() {
+      window.location.href = "/"; // Redirect to the Flask route
+    }
+    function redirectToTicket() {
+      window.location.href = "/complaints"; // Redirect to the Flask route
+    }
+  </script>
   
  
 <!--bootstrap-->
