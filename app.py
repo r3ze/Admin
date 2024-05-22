@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 from flask_mysqldb import MySQL 
 from geopy.geocoders import Nominatim
 from appwrite.client import Client
@@ -18,6 +18,17 @@ DATABASE_ID = '66224a152d9f9a67af78'  # Replace with your Appwrite database ID
 COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
 USER_COLLECTION_ID = '662601d0b9e605665bb4'
 #add registration
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == 'admin' and password == 'admin':
+            return redirect(url_for('dashboard'))
+        else:
+            return "Invalid credentials. Please try again."
+    return render_template('login.html')
 
 
 #count users
@@ -50,20 +61,23 @@ def count_complaints():
 
 @app.route('/')
 def dashboard():
-    
- try:
+    try:
         # Fetch all documents from the 'complaints' collection
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
         )
+        # Assuming 'created_at' is a field in the document and sorting by it in descending order
+        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
+        
         total_users = count_users()
         total_complaints = count_complaints()
-        complaints_data = response['documents'][:7]  # Limiting to the first 5 complaints
-        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints = total_complaints)
- except Exception as e:
+        
+        complaints_data = sorted_complaints[:7]  # Limiting to the first 7 complaints after sorting
+        
+        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints)
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/complaints_data')
@@ -73,27 +87,33 @@ def get_complaints_data():
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
-        
         )
         complaints_data = response['documents']
 
+        # Dictionary to map city and barangay to their coordinates
+        location_coordinates = {
+            #Pagsanjan
+            ('Pagsanjan', 'San isidro'): (14.2811, 121.4575),
+            ('Pagsanjan', 'Maulawin'): (14.2669, 121.4528),
+            ('Pagsanjan', 'Barangay I'): (14.2775, 121.4549),
+            ('Pagsanjan', 'Barangay II'): (14.2754, 121.4520),
+            ('Pagsanjan', 'Biñan'): (14.2679, 121.4370),
+            ('Pagsanjan', 'Buboy'): (14.2347, 121.4270),
+            ('Pagsanjan', 'Cabanbanan'): (14.2431, 121.4313),
+            ('Pagsanjan', 'Calusiche'): (14.2527, 121.4442),
+            ('Pagsanjan', 'Dingin'): (14.2397, 121.4542),
+
+
+        }
+
         processed_complaints = []
         for complaint in complaints_data:
-            latitude = None
-            longitude = None
-
-            
-            if complaint['city'] == 'Pagsanjan' and complaint['barangay'] =='san isidro':
-                latitude = 14.2811
-                longitude = 121.4575
-            elif complaint['city'] == 'Siniloan' and complaint['barangay'] =='ni':
-                latitude = 14.2775
-                longitude = 121.4549
+            # Retrieve coordinates based on city and barangay
+            coordinates = location_coordinates.get((complaint['city'], complaint['barangay']))
+            latitude, longitude = coordinates if coordinates else (None, None)
 
             complaint_dict = {
-               
-            
-      
+                'complaint_description': complaint['description'],
                 'city': complaint['city'],
                 'barangay': complaint['barangay'],
                 'date_reported': complaint['createdAt'],
@@ -103,7 +123,7 @@ def get_complaints_data():
             processed_complaints.append(complaint_dict)
 
         return jsonify(processed_complaints)
-    
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -114,12 +134,16 @@ def complaints():
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
-
         )
-        complaints_data = response['documents']
-        return render_template("complaints.html", complaints=complaints_data)
+        # Assuming 'created_at' is a field in the document and sorting by it in descending order
+        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
+        
+        total_complaints = count_complaints()
+        
+        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/complaints-tracking')
 def complaintsTracking():

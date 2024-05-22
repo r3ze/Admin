@@ -26,36 +26,31 @@
 
   
       <div class="row">
+        <div class="col-lg-2 position-fixed  " style="  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+        
 
-      
-        <div class="col-lg-2 position-fixed  " style="  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #FFFFFF;">
           <div class="list-group">
-              <div class="list-group-item " style="border-bottom: none; display: flex; justify-content: center; height: 100px;">
 
-                
-                <img src="/static/img/FLECO logo.png" class="img-thumbnail" alt="..." width="100">
+            <button type="button" style="color: white; background-color: #1D1D42;" class="list-group-item list-group-item-action mt-4" aria-current="true">
               
-            </div>
-                <button type="button" style="color: white;" class="list-group-item list-group-item-action mt-4 bg-primary" aria-current="true">
-                 <span class="fa fa-home" style="margin-right: 8px; font-size: 24px;"></span>
-             Dashboard
+          <h2 >Admin</h2>
+             </button>
+                <button type="button" onclick="redirectToDashboard()" style="  color: #72728A; background-color: #1D1D42  ;" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                 <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
+             <span style="font-weight: 600; ">Dashboard</span>
                 </button>
                 
-                <button type="button" class="list-group-item list-group-item-action position-relative mt-3 ">
-                   <span class="fa fa-list" style="margin-right: 8px; font-size: 20px ;"></span> Complaints
-                   <span class="p-1 bg-primary border border-light rounded-circle " style="color: white;">
-                    10+
-    <span class="visually-hidden">New complaints</span>
-  </span>
-                </button>
+                <button type="button" onclick="redirectToTicket()" style="  color: #72728A; background-color: #1D1D42;" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                  <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+              <span style="font-weight: 600; ">Ticket</span>
+                 </button>
                 
-                <button type="button" class="list-group-item list-group-item-action mt-3   ">
-                  <span class="fa fa-history" style="margin-right: 10px; font-size: 22px;"></span> Complaints Tracking
-                </button>
-
-                <button type="button" class="list-group-item list-group-item-action mt-3   ">
-                  <span class="fa fa-map" style="margin-right: 10px; font-size: 22px;"></span> Maps
-                </button>
+                 <button type="button" onclick="redirectToMap()" style=" background-color: #27274F;  color: #72728A; " class="list-group-item list-group-item-action mt-4" aria-current="true">
+                  <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+              <span style="font-weight: 600; ">Map</span>
+                 </button>
+                
+         
                
                
               </div>
@@ -74,23 +69,14 @@
 
                
               
-                <div class="col-lg-4 mb-3">
+                <div class="col-lg-12 mb-3">
 
-                  <h3>Pagsanjan</h3>
-                <!--Map-->   <div  style=" border-radius: 10px; height: 50vh; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); " id="mapPagsanjan">
+             
+                <!--Map-->   <div  style=" border-radius: 10px; height: 94vh; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); " id="mapPagsanjan">
                 </div>
               </div>
-                <div class="col-lg-4 mb-3">
-                  <h3>Lumban</h3>
-                  <div style=" border-radius: 10px; height: 50vh; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); " id="mapLumban">
-                  </div>
-                </div>
-                
-                <div class="col-lg-4 mb-3">
-                  <h3>Cavinti </h3>
-                  <div style=" border-radius: 10px; height: 50vh; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); " id="mapLumban">
-                  </div>
-                </div>
+             
+              
               </div>
               </div>
              
@@ -105,9 +91,21 @@
     </div>
 </div>
 
-<!--Charts-->
 
-  
+
+  <!--Change Route-->
+  <script>
+    function redirectToDashboard() {
+    window.location.href = "/"; // Redirect to the Flask route
+  }
+  function redirectToTicket() {
+    window.location.href = "/complaints"; // Redirect to the Flask route
+  }
+
+  function redirectToMap() {
+    window.location.href = "/maps"; // Redirect to the Flask route
+  }
+</script>
  
 <!--bootstrap-->
     <script src="/static/js/bootstrap.min.js"></script>

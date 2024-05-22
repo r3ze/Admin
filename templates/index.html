@@ -47,6 +47,11 @@
               <span style="font-weight: 600; ">Ticket</span>
                  </button>
                 
+                 <button type="button" onclick="redirectToMap()" style=" background-color: #1D1D42;  color: #72728A; " class="list-group-item list-group-item-action mt-4" aria-current="true">
+                  <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+              <span style="font-weight: 600; ">Map</span>
+                 </button>
+                
          
                
                
@@ -69,7 +74,7 @@
                             <h5 class="card-title" style="font-weight: bold;">Open</h5>
                           </div>
                             <div class="number-icon" style="display: flex; justify-content: space-between;">
-                                <h3 style="font-weight:bold; color: #444446;">{{ total_users }}</h3>
+                                <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
                                 <img src="/static/img/BiTicketPerforatedFill.svg" alt="" style="height: 50px;" >
                             </div>
                         
@@ -152,7 +157,7 @@
                   <div class="col-lg-7 mb-3">
           
               
-                      <div id="lineChart" style="background-color: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+                      <div id="pieChart" style="max-height: 300px; height: 300px; background-color: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
                       </div>
                       
                  
@@ -162,7 +167,7 @@
                   <div class="col-lg-5 mb-3">
           
          
-                      <div id="barChart" style="background-color: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+                      <div id="barChart" style=" height: 100%; max-height: 330px; background-color: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
                    
                       
                     </div>
@@ -206,7 +211,7 @@
     
         <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
      
-        <td>{{ complaint['createdAt'] }}</td> <!-- Date Reported -->
+        <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td> <!-- Date Reported -->
         <td>{{ complaint['status'] }}</td> <!--Status-->
       
       
@@ -236,6 +241,10 @@
     }
     function redirectToTicket() {
       window.location.href = "/complaints"; // Redirect to the Flask route
+    }
+
+    function redirectToMap() {
+      window.location.href = "/maps"; // Redirect to the Flask route
     }
   </script>
   

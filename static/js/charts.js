@@ -1,37 +1,40 @@
 
-
 var options1 = {
-  series: [{
-  name: 'series1',
-  data: [31, 40, 28, 51, 42, 109, 100]
-}, {
-  name: 'series2',
-  data: [11, 32, 45, 32, 34, 52, 41]
-}],
+  series: [44, 55, 41, 17, 15, 25, 30, 20, 10, 15, 12],
   chart: {
-  height: 350,
-  type: 'area'
+  type: 'donut',
+  height: 350 
 },
-dataLabels: {
-  enabled: false
+labels: ['Cavinti', 'Pagsanjan', 'Lumban', 'Kalayaan', 'Paete', 'Pakil', 'Pangil', 'Siniloan', 'Mabitac', 'Famy', 'Sta. Maria'],
+title: {
+  text: 'Number of Complaints per Area', // Your chart title// Alignment of the title (options: 'left', 'center', 'right')
+  offsetY: 10, // Offset for the title position
+  style: {
+    fontSize: '16px', // Title font size
+    fontWeight: 'bold', // Title font weight
+    color: '#263238' // Title font color
+  }
 },
-stroke: {
-  curve: 'smooth'
-},
-xaxis: {
-  type: 'datetime',
-  categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
-},
-tooltip: {
-  x: {
-    format: 'dd/MM/yy HH:mm'
-  },
-},
+responsive: [{
+  breakpoint: 480,
+  options: {
+    chart: {
+      width: 200
+    },
+    
+    
+    legend: {
+      position: 'bottom'
+    }
+    
+  }
+}]
 };
 
-var chart = new ApexCharts(document.querySelector("#lineChart"), options1);
+var chart = new ApexCharts(document.querySelector("#pieChart"), options1);
 chart.render();
 
+      
 //bar
 var options = {
   series: [{
@@ -39,8 +42,9 @@ var options = {
   data: [500, 600, 700, 1001, 233, 543, 666, 246, 155, 776, 2354, 100]
 }],
   chart: {
-  height: 350,
+  height: 335,
   type: 'bar',
+  
 },
 plotOptions: {
   bar: {
@@ -101,7 +105,7 @@ yaxis: {
 title: {
   text: 'Monthly Complaints',
   floating: true,
-  offsetY: 330,
+  offsetY: 315,
   align: 'center',
   style: {
     color: '#444'
