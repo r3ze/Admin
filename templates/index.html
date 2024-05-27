@@ -185,16 +185,19 @@
                   <a class="mt-3 text-primary" style="  text-decoration: none;" href="/complaints">View All</a>
                 </div>
                
-                <table id="" class="complaints-table table table-striped" style="   border-collapse: separate;
+                <table id="complaints-table" class="complaints-table table table-striped" style="   border-collapse: separate;
                 border-spacing: 0; border-radius: 10px; overflow: hidden; background-color: #EDEDED;">
                     <thead>
       <tr>
-        <th scope="col">Ticket ID</th>
+     
         <th scope="col">Consumer</th>
+        <th scope="col">Complaint Type</th>
         <th scope="col">Description</th>
         <th scope="col">Municipality</th>
         <th scope="col">Barangay</th>
+        <th scope="col">Priority</th>
         <th scope="col">Date Reported</th>
+        <th scope="col">Image</th>
         <th scope="col">Status</th>
     
         
@@ -204,14 +207,16 @@
         {% for complaint in complaints %}
       <tr>
     
-        <td>{{ complaint['$id'] }}</td>
+      
         <td>{{ complaint['consumer_name'] }}</td> <!-- consumer name -->
         <td>{{ complaint['description'] }}</td> <!-- Description -->
+        <td>{{ complaint['additionalDetails'] }}</td> <!-- Description -->
         <td>{{ complaint['city'] }}</td> <!-- City -->
     
         <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
-     
+        <td><span class="badge bg-primary">Medium</span></td>
         <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td> <!-- Date Reported -->
+        <td><a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
         <td>{{ complaint['status'] }}</td> <!--Status-->
       
       
@@ -233,7 +238,28 @@
         
         </div>
     </div>
+       
+<!-- Modal for displaying the image -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="col-lg-12">
+                  <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+      </div>
+  </div>
 </div>
+</div>
+
 <!--CHange route-->
   <script>
       function redirectToDashboard() {
@@ -288,6 +314,15 @@
                   }
               });
           });
+          
+    
+
+  </script>
+  <script>      $('#complaints-table').on('click', '.view-image', function(event) {
+    event.preventDefault();
+    var imageUrl = $(this).data('image');
+    $('#modalImage').attr('src', imageUrl);
+});
   </script>
 
       <!--Chart js--> <script src="/static/js/charts.js"></script>

@@ -143,6 +143,27 @@ def complaints():
         return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/update-status', methods=['POST'])
+def update_status():
+    data = request.get_json()
+    complaint_id = data.get('complaintId')
+    new_status = data.get('status')
+
+    try:
+        database.update_document(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID,
+            document_id=complaint_id,
+            data={
+                'status': new_status
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error updating status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/complaints-tracking')

@@ -10,10 +10,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="/static/css/sidebar.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"
-    />
+   
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
@@ -235,8 +232,9 @@
           >
             <thead>
               <tr>
-                <th scope="col">Ticket ID</th>
+                
                 <th scope="col">Consumer</th>
+                <th scope="col">Complaint Type</th>
                 <th scope="col">Description</th>
                 <th scope="col">Municipality</th>
                 <th scope="col">Barangay</th>
@@ -250,10 +248,11 @@
             <tbody class="table-group-divider">
               {% for complaint in complaints %}
               <tr>
-                <td style="color: #72728a">{{ complaint['$id'] }}</td>
+                
                 <td>{{ complaint['consumer_name'] }}</td>
                 <!-- consumer name -->
                 <td>{{ complaint['description'] }}</td>
+                <td>{{ complaint['additionalDetails'] }}</td>
                 <!-- Description -->
                 <td>{{ complaint['city'] }}</td>
                 <!-- City -->
@@ -267,7 +266,15 @@
                   complaint['createdAt'][11:16] }}
                 </td>
                 <!-- Date Reported -->
-                <td class="">{{ complaint['status'] }}</td>
+                <td>
+                  <select style="background-color: transparent; border: none; " class="status-dropdown" data-complaint-id="{{ complaint['$id'] }}">
+                    <option value="New" {% if complaint['status'] == 'New' %}selected{% endif %}>New</option>
+                    <option value="Open" {% if complaint['status'] == 'Open' %}selected{% endif %}>Open</option>
+                    <option value="Pending" {% if complaint['status'] == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Resolved" {% if complaint['status'] == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="Closed" {% if status == 'Closed' %}selected {% endif %}>Closed</option>
+                  </select>
+              </td>
                 <td><a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
 
                 <td>
@@ -455,8 +462,9 @@
       }
     </script>
     <!--bootstrap-->
-    <script src="/static/js/bootstrap.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+   
     <!--DataTable-->
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
@@ -485,6 +493,31 @@
             $('#modalImage').attr('src', imageUrl);
         });
     </script>
+  <script>
+    $(document).ready(function() {
+        $('.status-dropdown').change(function() {
+            var complaintId = $(this).data('complaint-id');
+            var newStatus = $(this).val();
+            
+            $.ajax({
+                url: '/update-status',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Status updated successfully!');
+                    } else {
+                        alert('Error updating status: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('AJAX error: ' + error);
+                }
+            });
+        });
+    });
+</script>
 
   </body>
 </html>
