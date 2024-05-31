@@ -20,6 +20,34 @@
     href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
   />  
     <title>User Management</title>
+    <style>
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        .card-title i {
+            margin-right: 10px;
+            color: #007bff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+    </style>
 </head>
 <body>
 <div class="container-fluid">
@@ -59,8 +87,10 @@
                         <div class="col-md-4 col-lg-4 mb-3">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ place }}</h5>
-                                    <button onclick="showUsers('{{ place }}')" class="btn btn-primary">View Users</button>
+                                    <h5 class="card-title"><i class="fas fa-map-marker-alt"></i>{{ place }}</h5>
+                                    <button onclick="showUsers('{{ place }}')" class="btn btn-primary">
+                                        <i class="fa fa-users"></i> View Users
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -150,7 +180,7 @@
 
     $(document).ready(function () {
         $("#example").DataTable({
-            // Add custom pagination button styling
+     
             buttons: [
                 {
                     extend: "previous",
@@ -160,12 +190,12 @@
                     extend: "next",
                     className: "btn-secondary",
                 },
-                // Add more customization options as needed
+     
             ],
             "order": [[6, "desc"]]
         });
 
-        // Initially hide all rows
+       
         $('#example tbody tr').hide();
     });
 </script>
