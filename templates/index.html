@@ -21,7 +21,7 @@
   <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
    
 
-<div class="container-fluid">
+  <div class="container-fluid">
     
 
   
@@ -51,7 +51,23 @@
                   <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
               <span style="font-weight: 600; ">Map</span>
                  </button>
-                
+                 <button
+                 type="button"
+                 onclick="redirectToLog()"
+                 style="background-color: #1d1d42; color: #72728a"
+                 class="list-group-item list-group-item-action mt-4"
+                 aria-current="true"
+               >
+                 <span
+                   class="fa fa-history"
+                   style="margin-right: 8px; font-size: 20px"
+                 ></span>
+                 <span style="font-weight: 600">History Log</span>
+               </button>
+               <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
+                <span style="font-weight: 600">Users</span>
+            </button>
          
                
                
@@ -95,7 +111,7 @@
                           <h5 class="card-title" style="font-weight: bold;" >Unresolved</h5>
                         </div>
                           <div class="number-icon" style="display: flex; justify-content: space-between;">
-                            <h3 style="font-weight:bold; color: #444446;">{{total_complaints}}</h3>
+                            <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
                             <img src="/static/img/CarbonIncompleteError.svg" alt="" style="height: 50px;">
                           </div>
                       
@@ -116,7 +132,7 @@
                         <h5 class="card-title" style="font-weight: bold;">Unassigned</h5>
                       </div>
                         <div class="number-icon" style="display: flex; justify-content: space-between;">
-                          <h3 style="font-weight:bold; color: #444446;">{{total_complaints}}</h3>
+                          <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
                           <img src="/static/img/MaterialSymbolsPending.svg" alt="" style="height: 50px;">
                         </div>
                     
@@ -134,10 +150,10 @@
               <div class="card-body ">
                   <div class="icon-number">
                     <div class="text-title">
-                      <h5 class="card-title" style="font-weight: bold;">Resolved(Today)</h5>
+                      <h5 class="card-title" style="font-weight: bold;">Resolved</h5>
                     </div>
                       <div class="number-icon" style="display: flex; justify-content: space-between;">
-                        <h3 style="font-weight:bold; color: #444446;">0</h3>
+                        <h3 style="font-weight:bold; color: #444446;">4</h3>
                         <img src="/static/img/WhhIssueclosed.svg" alt="" style="height: 50px;">
                       </div>
                   
@@ -192,7 +208,7 @@
      
         <th scope="col">Consumer</th>
         <th scope="col">Complaint Type</th>
-        <th scope="col">Description</th>
+        
         <th scope="col">Municipality</th>
         <th scope="col">Barangay</th>
         <th scope="col">Priority</th>
@@ -210,7 +226,7 @@
       
         <td>{{ complaint['consumer_name'] }}</td> <!-- consumer name -->
         <td>{{ complaint['description'] }}</td> <!-- Description -->
-        <td>{{ complaint['additionalDetails'] }}</td> <!-- Description -->
+
         <td>{{ complaint['city'] }}</td> <!-- City -->
     
         <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
@@ -271,6 +287,12 @@
 
     function redirectToMap() {
       window.location.href = "/maps"; // Redirect to the Flask route
+    }
+    function redirectToLog() {
+      window.location.href = "/log-history"; // Redirect to the Flask route
+    }
+    function redirectUserManagement() {
+        window.location.href = "/user-management";
     }
   </script>
   

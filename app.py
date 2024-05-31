@@ -17,6 +17,7 @@ database = Databases(client)
 DATABASE_ID = '66224a152d9f9a67af78'  # Replace with your Appwrite database ID
 COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
 USER_COLLECTION_ID = '662601d0b9e605665bb4'
+LOG_COLLECTION_ID = '6657285700348815c3aa'
 #add registration
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -93,7 +94,7 @@ def get_complaints_data():
         # Dictionary to map city and barangay to their coordinates
         location_coordinates = {
             #Pagsanjan
-            ('Pagsanjan', 'San isidro'): (14.2811, 121.4575),
+            ('Pagsanjan', 'San Isidro'): (14.2811, 121.4575),
             ('Pagsanjan', 'Maulawin'): (14.2669, 121.4528),
             ('Pagsanjan', 'Barangay I'): (14.2775, 121.4549),
             ('Pagsanjan', 'Barangay II'): (14.2754, 121.4520),
@@ -103,6 +104,16 @@ def get_complaints_data():
             ('Pagsanjan', 'Calusiche'): (14.2527, 121.4442),
             ('Pagsanjan', 'Dingin'): (14.2397, 121.4542),
 
+            #Lumban
+            ('Lumban', 'Bagong Silang'): (14.2928, 121.4627),
+            ('Lumban', 'Balubad'): (14.2835, 121.4713),
+
+            #Cavinti
+            ('Cavinti', 'Anglas'): (14.2835, 121.4713),
+            #Paete
+             ('Paete', 'Maytoong'): (14.3632, 121.4824),
+             #Pakil
+              ('Pakil', 'Dorado'): (14.3895, 121.3799),
 
         }
 
@@ -166,16 +177,37 @@ def update_status():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@app.route('/complaints-tracking')
-def complaintsTracking():
-  
-    return render_template(
-        "complaints-tracking.html"
-    )
-@app.route('/user-registration')
-def userRegistration():
+@app.route('/log-history')
+def log_history():
+    try:
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=LOG_COLLECTION_ID
+        )
+        sorted_logs = sorted(response['documents'], key=lambda x: x['time_stamp'], reverse=True)
+        
+        return render_template("log-history.html", logs=sorted_logs)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
-    return render_template("user-registration.html")
+@app.route('/user-management')
+def userManagement():
+    municipality = request.args.get('municipality')
+    try:
+        result = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=USER_COLLECTION_ID
+        )
+        users_list = result['documents']
+
+        if municipality:
+            users_list = [user for user in users_list if user.get('city') == municipality]
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        users_list = []
+
+    return render_template("user-management.html", users=users_list, municipality=municipality)
+
     
 @app.route('/maps')
 def map():

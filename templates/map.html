@@ -49,7 +49,23 @@
                   <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
               <span style="font-weight: 600; ">Map</span>
                  </button>
-                
+                 <button
+                 type="button"
+                 onclick="redirectToLog()"
+                 style="background-color: #1d1d42; color: #72728a"
+                 class="list-group-item list-group-item-action mt-4"
+                 aria-current="true"
+               >
+                 <span
+                   class="fa fa-history"
+                   style="margin-right: 8px; font-size: 20px"
+                 ></span>
+                 <span style="font-weight: 600">History Log</span>
+               </button>
+               <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
+                <span style="font-weight: 600">Users</span>
+            </button>
          
                
                
@@ -105,6 +121,12 @@
   function redirectToMap() {
     window.location.href = "/maps"; // Redirect to the Flask route
   }
+  function redirectToLog() {
+      window.location.href = "/log-history"; // Redirect to the Flask route
+    }
+    function redirectUserManagement() {
+        window.location.href = "/user-management";
+    }
 </script>
  
 <!--bootstrap-->

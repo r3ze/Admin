@@ -19,6 +19,7 @@
       rel="stylesheet"
       href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
     />
+    <link rel="stylesheet" href="/static/css/complaint.css">
     <title>Document</title>
   </head>
   <body>
@@ -70,6 +71,7 @@
               <span style="font-weight: 600">Ticket</span>
             </button>
 
+            
             <button
               type="button"
               onclick="redirectToMap()"
@@ -83,19 +85,37 @@
               ></span>
               <span style="font-weight: 600">Map</span>
             </button>
+            <button
+            type="button"
+            onclick="redirectToLog()"
+            style="background-color: #1d1d42; color: #72728a"
+            class="list-group-item list-group-item-action mt-4"
+            aria-current="true"
+          >
+            <span
+
+              class="fa fa-history"
+              style="margin-right: 8px; font-size: 20px"
+            ></span>
+            <span style="font-weight: 600">History Log</span>
+          </button>
+          <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
+            <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
+            <span style="font-weight: 600">Users</span>
+        </button>
           </div>
         </div>
         <div
           class="col-lg-10 offset-lg-2"
           style="background-color: #f4f7fe; height: 100vh"
         >
-          <div class="mt-2">
+          <div id="ticket" class=" mt-2">
             <h3 style="font-weight: 600">Tickets</h3>
           </div>
           <div class="mt-3"></div>
 
-          <!--Unresolved-->
-          <div class="row mt-3">
+       
+          <div id="cards" class="  row mt-3">
             <div class="col-lg-3">
               <div
                 class="card"
@@ -143,7 +163,7 @@
                       style="display: flex; justify-content: space-between"
                     >
                       <h3 style="font-weight: bold; color: #444446">
-                        {{total_complaints}}
+                        {{ total_complaints}}
                       </h3>
                       <img
                         src="/static/img/CarbonIncompleteError.svg"
@@ -174,7 +194,7 @@
                       style="display: flex; justify-content: space-between"
                     >
                       <h3 style="font-weight: bold; color: #444446">
-                        {{total_complaints}}
+                        {{ total_complaints}}
                       </h3>
                       <img
                         src="/static/img/MaterialSymbolsPending.svg"
@@ -197,14 +217,14 @@
                   <div class="icon-number">
                     <div class="text-title">
                       <h5 class="card-title" style="font-weight: bold">
-                        Resolved(Today)
+                        Resolved
                       </h5>
                     </div>
                     <div
                       class="number-icon"
                       style="display: flex; justify-content: space-between"
                     >
-                      <h3 style="font-weight: bold; color: #444446">0</h3>
+                      <h3 style="font-weight: bold; color: #444446">4</h3>
                       <img
                         src="/static/img/WhhIssueclosed.svg"
                         alt=""
@@ -216,8 +236,14 @@
               </div>
             </div>
           </div>
-
+          <div id="complaint-details" class="card-view">
+            <button id="back-button" style="display: none;" class="btn btn-primary">Back</button>
+            <div id="details-content">
+              <!-- Details will be populated here -->
+            </div>
+          </div>
           <div class="mt-3"></div>
+          <div id="tableContainer">
           <table
             id="example"
             class="mt-3 complaints-table table table-striped"
@@ -252,8 +278,7 @@
                 <td>{{ complaint['consumer_name'] }}</td>
                 <!-- consumer name -->
                 <td>{{ complaint['description'] }}</td>
-                <td>{{ complaint['additionalDetails'] }}</td>
-                <!-- Description -->
+                <td class="truncate" data-full-text="{{ complaint['additionalDetails'] }}">{{ complaint['additionalDetails'][:10] }}...</td> <!-- Truncated additional details -->               <!-- Description -->
                 <td>{{ complaint['city'] }}</td>
                 <!-- City -->
 
@@ -262,13 +287,12 @@
                 <td><span class="badge bg-primary">Medium</span></td>
 
                 <td>
-                  {{ complaint['createdAt'][:10] }} {{
-                  complaint['createdAt'][11:16] }}
+                  {{ complaint['createdAt'][:10] }} 
                 </td>
                 <!-- Date Reported -->
                 <td>
                   <select style="background-color: transparent; border: none; " class="status-dropdown" data-complaint-id="{{ complaint['$id'] }}">
-                    <option value="New" {% if complaint['status'] == 'New' %}selected{% endif %}>New</option>
+                   
                     <option value="Open" {% if complaint['status'] == 'Open' %}selected{% endif %}>Open</option>
                     <option value="Pending" {% if complaint['status'] == 'Pending' %}selected{% endif %}>Pending</option>
                     <option value="Resolved" {% if complaint['status'] == 'Resolved' %}selected{% endif %}>Resolved</option>
@@ -423,6 +447,7 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
           <div class="mb-3"></div>
         </div>
       </div>
@@ -449,6 +474,7 @@
   </div>
 </div>
 
+
     <!--CHange route-->
     <script>
       function redirectToDashboard() {
@@ -460,6 +486,12 @@
       function redirectToMap() {
         window.location.href = "/maps"; // Redirect to the Flask route
       }
+      function redirectToLog() {
+      window.location.href = "/log-history"; // Redirect to the Flask route
+    }
+    function redirectUserManagement() {
+        window.location.href = "/user-management";
+    }
     </script>
     <!--bootstrap-->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -517,6 +549,119 @@
             });
         });
     });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  const ticket = document.querySelector('#ticket');
+  const table = document.querySelector('#example');
+  const cards = document.querySelector('#cards');
+  const tableContainer = document.querySelector('#tableContainer');
+  const complaintDetails = document.querySelector('#complaint-details');
+  const backButton = document.querySelector('#back-button');
+  const detailsContent = document.querySelector('#details-content');
+
+  table.addEventListener('click', function(event) {
+    if (event.target.tagName === 'TD' || event.target.tagName === 'TR') {
+      const row = event.target.closest('tr');
+      if (row) {
+        // Populate complaint details
+        const complaintData = {
+          consumer: row.cells[0].innerText,
+          type: row.cells[1].innerText,
+          description: row.cells[2].getAttribute('data-full-text'),
+          municipality: row.cells[3].innerText,
+          barangay: row.cells[4].innerText,
+          priority: row.cells[5].innerText,
+          dateReported: row.cells[6].innerText,
+          status: row.cells[7].querySelector('select').value,
+          image: row.cells[8].querySelector('a').dataset.image
+        };
+
+        detailsContent.innerHTML = `
+        
+          <div class="card" style="border: 1px solid #ddd; border-radius: 10px; padding: 20px; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-lg-9">
+                  <div style="display: flex; justify-content: space-between">
+                    <div>
+                      <h3 class="" style="font-weight: bold"> ${complaintData.type}</h3>
+                      <p style="color:rgb(158, 158, 167); font-size: 18px; font-weight: 500"> ${complaintData.dateReported}</p>
+                      <p style="color:rgb(158, 158, 167); font-size: 18px; font-weight: 500"> ${complaintData.municipality}, ${complaintData.barangay} </p>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center;">
+                    <img class="mr-2" src="/static/img/SolarUserCircleBoldDuotone.svg" style="height: 50px;" alt="">
+                    <span class="mt-2" style="font-size: 20px; font-weight: bold; margin-left: 5px; color: #1d1d42"> ${complaintData.consumer}</span>
+                  </div>
+                  <h3 class="mt-3"> ${complaintData.description}</h3>
+                  <p><strong>Image:</strong><br><img src="${complaintData.image}" alt="Complaint Image" style="height: 300px" class="img-fluid"></p>
+                </div>
+                <div class="col-lg-3">
+                  <div id="properties-section">
+                    <h4>Properties</h4>
+                    <div class="form-group">
+                      <label for="complaint-status">Status</label>
+                      <select id="complaint-status" class="form-control" required>
+                
+                        <option value="Open">Open</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="complaint-priority">Priority</label>
+                      <select id="complaint-priority" class="form-control">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>Urgent</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="complaint-agent">Crew</label>
+                      <select id="complaint-agent" class="form-control">
+                        <option>Any</option>
+                        <option>Resolution Team 1</option>
+                        <option>Resolution Team 2</option>
+                      </select>
+                    </div>
+                    <button id="update-button" class="btn btn-primary">Update</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Set default values in the properties section
+        document.querySelector('#complaint-status').value = complaintData.status;
+        document.querySelector('#complaint-priority').value = complaintData.priority;
+        document.querySelector('#complaint-agent').value = 'Any'; // Set default or dynamic value if needed
+
+        // Hide table and show complaint details
+        tableContainer.style.display = 'none';
+        complaintDetails.classList.add('active');
+        complaintDetails.style.display ='block';
+        cards.style.display = 'none';
+        ticket.style.display = 'none';
+        backButton.style.display='block';
+      }
+    }
+  });
+
+  backButton.addEventListener('click', function() {
+    // Show table and hide complaint details
+    complaintDetails.classList.remove('active');
+    complaintDetails.style.display='none'
+    tableContainer.style.display = 'block';
+    cards.style.display = 'flex';
+    ticket.style.display = 'block';
+    backButton.style.display='none';
+  });
+});
+
 </script>
 
   </body>
