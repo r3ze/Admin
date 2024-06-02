@@ -1,6 +1,5 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
-from flask_mysqldb import MySQL 
-from geopy.geocoders import Nominatim
+
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 
