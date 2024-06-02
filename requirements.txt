@@ -2,3 +2,4 @@ Flask==2.3.2
 gunicorn==22.0.0
 portalocker==2.8.2
 waitress==3.0.0
+appwrite==5.0.2
