@@ -101,7 +101,7 @@
           </button>
           <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
             <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
-            <span style="font-weight: 600">Users</span>
+            <span style="font-weight: 600">User Management</span>
         </button>
           </div>
         </div>
@@ -224,7 +224,7 @@
                       class="number-icon"
                       style="display: flex; justify-content: space-between"
                     >
-                      <h3 style="font-weight: bold; color: #444446">4</h3>
+                      <h3 style="font-weight: bold; color: #444446">0</h3>
                       <img
                         src="/static/img/WhhIssueclosed.svg"
                         alt=""
@@ -258,13 +258,13 @@
           >
             <thead>
               <tr>
-                
+                <th scope="col">Ticket ID</th>
                 <th scope="col">Consumer</th>
                 <th scope="col">Complaint Type</th>
                 <th scope="col">Description</th>
                 <th scope="col">Municipality</th>
                 <th scope="col">Barangay</th>
-                <th scope="col">Priority</th>
+                  <th scope="col">Priority</th>
                 <th scope="col">Date Reported</th>
                 <th scope="col">Status</th>
                 <th scope="col">Image</th>
@@ -274,7 +274,7 @@
             <tbody class="table-group-divider">
               {% for complaint in complaints %}
               <tr>
-                
+                <td>{{ complaint['$id'] }}</td>
                 <td>{{ complaint['consumer_name'] }}</td>
                 <!-- consumer name -->
                 <td>{{ complaint['description'] }}</td>
@@ -567,15 +567,16 @@
       if (row) {
         // Populate complaint details
         const complaintData = {
-          consumer: row.cells[0].innerText,
-          type: row.cells[1].innerText,
-          description: row.cells[2].getAttribute('data-full-text'),
-          municipality: row.cells[3].innerText,
-          barangay: row.cells[4].innerText,
-          priority: row.cells[5].innerText,
-          dateReported: row.cells[6].innerText,
-          status: row.cells[7].querySelector('select').value,
-          image: row.cells[8].querySelector('a').dataset.image
+          ticketID: row.cells[0].innerText,
+          consumer: row.cells[1].innerText,
+          type: row.cells[2].innerText,
+          description: row.cells[3].getAttribute('data-full-text'),
+          municipality: row.cells[4].innerText,
+          barangay: row.cells[5].innerText,
+          priority: row.cells[6].innerText,
+          dateReported: row.cells[7].innerText,
+          status: row.cells[8].querySelector('select').value,
+          image: row.cells[9].querySelector('a').dataset.image
         };
 
         detailsContent.innerHTML = `

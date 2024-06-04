@@ -190,7 +190,7 @@ def log_history():
         return jsonify({'error': str(e)}), 500
     
 @app.route('/user-management')
-def userManagement():
+def user_management():
     municipality = request.args.get('municipality')
     try:
         result = database.list_documents(

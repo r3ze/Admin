@@ -115,3 +115,63 @@ title: {
 
 var chart = new ApexCharts(document.querySelector("#barChart"), options);
 chart.render();
+
+
+var options2 = {
+  series: [0, 0, 0, 0, 0, 0],
+  chart: {
+    type: 'donut',
+    height: 400
+  },
+  labels: ['Power outage', 'Defective Meter', 'Detached Meter', 'Loose Connection/Sparkling of Wire', 'Low Voltage', 'No Reading'],
+  title: {
+    text: '',
+    offsetY: 10,
+    style: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      color: '#263238'
+    }
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: function (val, opts) {
+      return opts.w.config.series[opts.seriesIndex];
+    }
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        labels: {
+          show: true,
+          fontSize: '15px', // Change the font size here for donut labels
+        }
+      }
+    }
+  },
+  legend: {
+    position: 'bottom',
+    floating: false,
+    fontSize: '16px', 
+    marginBottom: '10px',
+    fontWeight: 'bold', 
+    labels: {
+      colors: ['#263238'],
+      useSeriesColors: false
+    }
+  },
+  responsive: [{
+    breakpoint: 480,
+    options: {
+      chart: {
+        width: 100
+      },
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }]
+};
+
+var chart = new ApexCharts(document.querySelector("#pieChart1"), options2);
+chart.render();
