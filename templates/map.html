@@ -83,6 +83,19 @@
               <span style="font-weight: 600; ">Ticket</span>
                  </button>
                 
+                 <button
+                 type="button"
+                 onclick="redirectToTicketHistory()"
+                 style="background-color: #1d1d42; color: #72728a"
+                 class="list-group-item list-group-item-action mt-4"
+                 aria-current="true"
+               >
+                 <span
+                   class="fa fa-history"
+                   style="margin-right: 8px; font-size: 20px"
+                 ></span>
+                 <span style="font-weight: 600">Ticket History</span>
+               </button>
                  <button type="button" onclick="redirectToMap()" style=" background-color: #27274F;  color: #72728A; " class="list-group-item list-group-item-action mt-4" aria-current="true">
                   <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
               <span style="font-weight: 600; ">Map</span>
@@ -163,6 +176,9 @@
     function redirectUserManagement() {
         window.location.href = "/user-management";
     }
+    function redirectToTicketHistory() {
+        window.location.href = "/ticket-history";
+    }
 </script>
  
 <!--bootstrap-->
@@ -213,7 +229,7 @@
              marginBottom: '10px',
              fontWeight: 'bold',
              labels: {
-                 useSeriesColors: true
+                 useSeriesColors: false
              }
          }
      };

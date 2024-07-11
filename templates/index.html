@@ -41,12 +41,25 @@
                  <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
              <span style="font-weight: 600; ">Dashboard</span>
                 </button>
+           
                 
                 <button type="button" onclick="redirectToTicket()" style="  color: #72728A; background-color: #1D1D42;" class="list-group-item list-group-item-action mt-4" aria-current="true">
                   <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
               <span style="font-weight: 600; ">Ticket</span>
                  </button>
-                
+                 <button
+                 type="button"
+                 onclick="redirectToTicketHistory()"
+                 style="background-color: #1d1d42; color: #72728a"
+                 class="list-group-item list-group-item-action mt-4"
+                 aria-current="true"
+               >
+                 <span
+                   class="fa fa-history"
+                   style="margin-right: 8px; font-size: 20px"
+                 ></span>
+                 <span style="font-weight: 600">Ticket History</span>
+               </button>
                  <button type="button" onclick="redirectToMap()" style=" background-color: #1D1D42;  color: #72728A; " class="list-group-item list-group-item-action mt-4" aria-current="true">
                   <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
               <span style="font-weight: 600; ">Map</span>
@@ -293,6 +306,9 @@
     }
     function redirectUserManagement() {
         window.location.href = "/user-management";
+    }
+    function redirectToTicketHistory() {
+        window.location.href = "/ticket-history";
     }
   </script>
   

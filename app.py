@@ -17,6 +17,8 @@ DATABASE_ID = '66224a152d9f9a67af78'  # Replace with your Appwrite database ID
 COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
 USER_COLLECTION_ID = '662601d0b9e605665bb4'
 LOG_COLLECTION_ID = '6657285700348815c3aa'
+CREW_COLLECTION_ID = '66224a326e2395bfb265'
+CREW_TASK_COLLECTION_ID = '666e7ae0000bcb6167a4'
 #add registration
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -145,12 +147,17 @@ def complaints():
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
         )
+
+        user_response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID
+        )
         # Assuming 'created_at' is a field in the document and sorting by it in descending order
         sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
-        
+        users = user_response['documents']
         total_complaints = count_complaints()
         
-        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints)
+        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
@@ -174,6 +181,29 @@ def update_status():
     except Exception as e:
         print(f"Error updating status: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/update-crew', methods=['POST'])
+def update_crew():
+    data = request.get_json()
+    complaint_id = data.get('complaintId')
+    assigned_crew = data.get('assigned_crew')
+    crew_name = data.get('crew_name')
+    try:
+        database.update_document(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID,
+            document_id=complaint_id,
+            data={
+                'crews': assigned_crew,
+                'crew_name': crew_name
+                
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error updating status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500        
+
 
 
 @app.route('/log-history')
@@ -207,7 +237,19 @@ def user_management():
 
     return render_template("user-management.html", users=users_list, municipality=municipality)
 
-    
+@app.route('/ticket-history')
+def ticket_history():
+    try:
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        resolved_tickets = [doc for doc in response['documents'] if doc['status'] == 'Resolved']
+        
+        return render_template("ticket_history.html", tickets=resolved_tickets)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 @app.route('/maps')
 def map():
     

@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/sidebar.css" />
    
     <link
@@ -20,6 +21,14 @@
       href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
     />
     <link rel="stylesheet" href="/static/css/complaint.css">
+    <style>
+      .filter-dropdown .dropdown-menu {
+          min-width: 200px;
+      }
+      .filter-dropdown .dropdown-item i {
+          margin-right: 10px;
+      }
+  </style>
     <title>Document</title>
   </head>
   <body>
@@ -70,6 +79,21 @@
               ></span>
               <span style="font-weight: 600">Ticket</span>
             </button>
+
+            <button
+            type="button"
+            onclick="redirectToTicketHistory()"
+            style="background-color: #1d1d42; color: #72728a"
+            class="list-group-item list-group-item-action mt-4"
+            aria-current="true"
+          >
+            <span
+
+              class="fa fa-history"
+              style="margin-right: 8px; font-size: 20px"
+            ></span>
+            <span style="font-weight: 600">Ticket History</span>
+          </button>
 
             
             <button
@@ -236,6 +260,24 @@
               </div>
             </div>
           </div>
+
+       
+            <div class="mt-4">
+                <div class="filter-dropdown dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-filter"></i> Filter Tickets
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="filterTickets('all')"><i class="fa fa-list"></i> All Tickets</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterTickets('assigned')"><i class="fas fa-user-check"></i> Assigned</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterTickets('scheduled')"><i class="fas fa-calendar-check"></i> Scheduled for Resolution</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterTickets('resolved')"><i class="fa fa-check"></i> Resolved</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterTickets('resolved')"><i class="fas fa-lock"></i> Closed</a></li>
+                    </ul>
+                </div>
+            </div>
+       
+
           <div id="complaint-details" class="card-view">
             <button id="back-button" style="display: none;" class="btn btn-primary">Back</button>
             <div id="details-content">
@@ -244,18 +286,18 @@
           </div>
           <div class="mt-3"></div>
           <div id="tableContainer">
-          <table
-            id="example"
-            class="mt-3 complaints-table table table-striped"
-            style="
-              border-collapse: separate;
-              border-spacing: 0;
-              border-radius: 10px;
-              overflow: hidden;
-              background-color: #ededed;
-              width: 100%;
-            "
-          >
+            <table
+              id="example"
+              class="mt-3 complaints-table table table-striped"
+              style="
+                border-collapse: separate;
+                border-spacing: 0;
+                border-radius: 10px;
+                overflow: hidden;
+                background-color: #ededed;
+                width: 100%;
+              "
+            >
             <thead>
               <tr>
                 <th scope="col">Ticket ID</th>
@@ -286,162 +328,37 @@
                 <!-- Barangay -->
                 <td><span class="badge bg-primary">Medium</span></td>
 
-                <td>
+                <td >
                   {{ complaint['createdAt'][:10] }} 
                 </td>
-                <!-- Date Reported -->
-                <td>
-                  <select style="background-color: transparent; border: none; " class="status-dropdown" data-complaint-id="{{ complaint['$id'] }}">
-                   
-                    <option value="Open" {% if complaint['status'] == 'Open' %}selected{% endif %}>Open</option>
-                    <option value="Pending" {% if complaint['status'] == 'Pending' %}selected{% endif %}>Pending</option>
-                    <option value="Resolved" {% if complaint['status'] == 'Resolved' %}selected{% endif %}>Resolved</option>
-                    <option value="Closed" {% if status == 'Closed' %}selected {% endif %}>Closed</option>
-                  </select>
+             
+                <td id="status-{{complaint['$id']}}">
+                  {{complaint['status']}}
               </td>
                 <td><a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
 
                 <td>
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    style="
-                      border: none;
-                      background-color: transparent;
-                      width: 100%;
-                    "
-                    data-bs-toggle="modal"
-                    data-bs-target="#exampleModal"
-                  >
-                    <i class="fa fa-ellipsis-h text-secondary"></i>
-                  </button>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                        Assign
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        {% for user in users %}
+                        <li>
+                            <a class="dropdown-item status-dropdown" href="#" data-user-id="{{ user['$id'] }}" data-complaint-id="{{ complaint['$id'] }}"
+                               data-description="{{ complaint['description'] }}" data-additional-details="{{ complaint['additionalDetails'] }}"
+                               data-city="{{ complaint['city'] }}" data-barangay="{{ complaint['barangay'] }}" data-street="{{ complaint['street'] }}"
+                               data-image="{{ complaint['image'] }}" data-created-at="{{ complaint['createdAt'] }}" data-status="{{ complaint['status'] }}"
+                               data-consumer="{{ complaint['consumer_name'] }}" data-user-name="{{ user['name_team'] }}">
+                               {{ user['name_team'] }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
 
-            
-
-
-
-                  <!--Modal-->
-                  <div
-                    class="modal fade"
-                    id="exampleModal"
-                    tabindex="-1"
-                    aria-labelledby="exampleModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div class="modal-dialog modal-xl">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="exampleModalLabel">
-                            Assign Crew
-                          </h1>
-                          <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          ></button>
-                        </div>
-                        <div class="modal-body">
-                          <div class="col-lg-12 bg-primary">
-                     
-                          </div>
-                        </div>
-                        <div class="modal-footer">
-                          <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                          >
-                            Close
-                          </button>
-                       
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!--Second modal for assigning crew-->
-                  <div
-                    class="modal fade"
-                    id="exampleModalToggle2"
-                    aria-hidden="true"
-                    aria-labelledby="exampleModalToggleLabel2"
-                    tabindex="-1"
-                  >
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1
-                            class="modal-title fs-5"
-                            id="exampleModalToggleLabel2"
-                          >
-                            Name of crew/team
-                          </h1>
-                          <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          ></button>
-                        </div>
-                        <div class="modal-body">
-                          <div class="col-lg-12">
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="ID"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="Consumer"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="Description"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="Location"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="Level of prioritization: High"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                            <input
-                              type="text"
-                              class="form-control mt-2"
-                              placeholder="Date reported"
-                              aria-label="Recipient's username"
-                              aria-describedby="basic-addon2"
-                            />
-                          </div>
-                        </div>
-                        <div class="modal-footer">
-                          <button
-                            class="btn btn-primary"
-                            data-bs-target="#exampleModalToggle"
-                            data-bs-toggle="modal"
-                          >
-                            Send
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+ 
                 </td>
               </tr>
               {% endfor %}
@@ -492,64 +409,110 @@
     function redirectUserManagement() {
         window.location.href = "/user-management";
     }
+    function redirectToTicketHistory() {
+        window.location.href = "/ticket-history";
+    }
     </script>
     <!--bootstrap-->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
    
     <!--DataTable-->
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
-    <script>
-      $(document).ready(function () {
-        $("#example").DataTable({
-          // Add custom pagination button styling
-          buttons: [
-            {
-              extend: "previous",
-              className: "btn-secondary",
-            },
-            {
-              extend: "next",
-              className: "btn-secondary",
-            },
-            // Add more customization options as needed
-          ],
-          "order": [[6, "desc"]]
-        });
+   <script>
+    $(document).ready(function () {
+      $("#example").DataTable({
+        // Add custom pagination button styling
+        buttons: [
+          {
+            extend: "previous",
+            className: "btn-secondary",
+          },
+          {
+            extend: "next",
+            className: "btn-secondary",
+          },
+          // Add more customization options as needed
+        ],
+        "order": [[6, "desc"]]
+      });
+    });
+
+    $('#example').on('click', '.view-image', function(event) {
+          event.preventDefault();
+          var imageUrl = $(this).data('image');
+          $('#modalImage').attr('src', imageUrl);
+      });
+  </script>
+
+  
+<script>
+  $(document).ready(function() {
+      $('.dropdown-menu').on('click', '.status-dropdown', function() {
+          var complaintId = $(this).data('complaint-id');
+          var assignedCrew = $(this).data('user-id');
+          var userName = $(this).data('user-name'); // Get the selected crew's name
+          var newClass = "btn-secondary";
+
+          $(this).closest('.dropdown').find('.dropdown-toggle')
+              .removeClass('btn-primary') // Remove the existing class
+              .addClass(newClass) // Add the new class
+              .text("Edit"); // Change text to "Edit"
+
+          $.ajax({
+              url: '/update-crew',
+              method: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+              success: function(response) {
+                  if (response.success) {
+                      alert('Crew assigned successfully!');
+                  } else {
+                      alert('Error assigning crew: ' + response.error);
+                  }
+              },
+              error: function(xhr, status, error) {
+                  alert('AJAX error: ' + error);
+              }
+          });
+
+          var newStatus = "Assigned";
+
+          $.ajax({
+              url: '/update-status',
+              method: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
+              success: function(response) {
+                  if (response.success) {
+                      alert('Status updated successfully!');
+                      $('#status-' + complaintId).text(newStatus);
+                  } else {
+                      alert('Error updating status: ' + response.error);
+                  }
+              },
+              error: function(xhr, status, error) {
+                  alert('AJAX error: ' + error);
+              }
+          });
       });
 
-      $('#example').on('click', '.view-image', function(event) {
-            event.preventDefault();
-            var imageUrl = $(this).data('image');
-            $('#modalImage').attr('src', imageUrl);
-        });
-    </script>
-  <script>
-    $(document).ready(function() {
-        $('.status-dropdown').change(function() {
-            var complaintId = $(this).data('complaint-id');
-            var newStatus = $(this).val();
-            
-            $.ajax({
-                url: '/update-status',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
-                success: function(response) {
-                    if (response.success) {
-                        alert('Status updated successfully!');
-                    } else {
-                        alert('Error updating status: ' + response.error);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert('AJAX error: ' + error);
-                }
-            });
-        });
-    });
+      // Change button text and class for rows with status "Assigned"
+      $('tbody tr').each(function() {
+          var status = $(this).find('td:nth-child(9)').text().trim(); // Get the status text
+          var button = $(this).find('.action-button');
+          
+          if (status.toLowerCase() === 'assigned') {
+              button.text('Edit');
+              button.removeClass('btn-primary').addClass('btn-secondary');
+          }
+      });
+  });
 </script>
+
+
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -575,7 +538,7 @@
           barangay: row.cells[5].innerText,
           priority: row.cells[6].innerText,
           dateReported: row.cells[7].innerText,
-          status: row.cells[8].querySelector('select').value,
+          status: row.cells[8].innerText,
           image: row.cells[9].querySelector('a').dataset.image
         };
 

@@ -37,15 +37,15 @@
               <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px"></span>
               <span style="font-weight: 600">Ticket</span>
             </button>
-            <button type="button" onclick="redirectToTicketHistory()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">Ticket History</span>
-            </button>
+            <button type="button" onclick="redirectToTicketHistory()" style="background-color: #27274f; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
+                <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
+                <span style="font-weight: 600">Ticket History</span>
+              </button>
             <button type="button" onclick="redirectToMap()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
               <span class="fa fa-map" style="margin-right: 8px; font-size: 20px"></span>
               <span style="font-weight: 600">Map</span>
             </button>
-            <button type="button" onclick="redirectToLogHistory()" style="background-color: #27274f; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
+            <button type="button" onclick="redirectToLogHistory()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
               <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
               <span style="font-weight: 600">History Log</span>
             </button>
@@ -57,7 +57,7 @@
         </div>
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
           <div class="mt-3">
-            <h2>History Log</h2>
+            <h2>Ticket History</h2>
             <div id="tableContainer">
               <table
                 id="example"
@@ -74,30 +74,57 @@
                 <thead>
                   <tr>
                     
-                    <th scope="col">ID</th>
+                    <th scope="col">Ticket ID</th>
                     <th scope="col">Consumer</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Timestamp</th>
+                    <th scope="col">Complaint</th>
+                    <th scope="col">Municipality</th>
+                    <th scope="col">Barangay</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Date Created</th>
+                    <th scope="col">Resolution Team</th>
+                   
                   </tr>
                 </thead>
-                <tbody class="table-group-divider">
-                  {% for log in logs %}
-                  <tr>
-                    <td>{{log.consumer_id}}</td>
-                    <td>{{log.consumer_name}}</td>
-                    <td>{{log.Action}}</td>
-                    <td>{{ log['time_stamp'][:10] }} {{
-                      log['time_stamp'][11:16] }}</td>
-                 
-                  </tr>
-                  {% endfor %}
-                </tbody>
+              <tbody class="table-group-divider">
+          {% for ticket in tickets %}
+          <tr>
+            <td>{{ ticket['$id'] }}</td>
+            <td>{{ ticket['consumer_name'] }}</td>
+            <td>{{ ticket['description'] }}</td>
+            <td>{{ ticket['city'] }}</td>
+            <td>{{ ticket['barangay'] }}</td>
+            <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+            <td>{{ ticket['createdAt'][:10] }}</td>
+            <td>{{ ticket['crews'] }}</td>
+        
+          </tr>
+          {% endfor %}
+        </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <!-- Modal for displaying the image -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="col-lg-12">
+                  <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+      </div>
+  </div>
+</div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
     <!--DataTable-->
