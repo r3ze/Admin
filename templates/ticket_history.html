@@ -82,7 +82,7 @@
                     <th scope="col">Image</th>
                     <th scope="col">Date Created</th>
                     <th scope="col">Resolution Team</th>
-                   
+                    <td scope = "col" >Action</td>
                   </tr>
                 </thead>
               <tbody class="table-group-divider">
@@ -96,8 +96,72 @@
             <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
             <td>{{ ticket['createdAt'][:10] }}</td>
             <td>{{ ticket['crews'] }}</td>
+            <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+              View More
+            </button></td>
         
           </tr>
+          <!--Modal for ticket info-->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3 row">
+            <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="ticketID" disabled placeholder="{{ ticket['$id'] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="consumer" disabled placeholder="{{ ticket['consumer_name'] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ ticket['description'] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="image" class="col-sm-3 col-form-label">Image</label>
+            <div class="col-sm-9">
+              <img src="{{ ticket['image'] }}" alt="Complaint Image" class="img-fluid">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="dateCreated" class="col-sm-3 col-form-label">Date Created</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ ticket['createdAt'][:10] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="dateResolved" disabled  >
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="resolutionTeam" disabled placeholder="{{ticket['crews']}}">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Understood</button>
+      </div>
+    </div>
+  </div>
+</div>
           {% endfor %}
         </tbody>
               </table>
@@ -125,11 +189,18 @@
       </div>
   </div>
 </div>
+
+
+
+
+
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
     <!--DataTable-->
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+    <script src="/static/js/ticket-history.js"></script>
     <script>
       function redirectToDashboard() {
         window.location.href = "/";
