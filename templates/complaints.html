@@ -262,20 +262,7 @@
           </div>
 
        
-            <div class="mt-4">
-                <div class="filter-dropdown dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa fa-filter"></i> Filter Tickets
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                        <li><a class="dropdown-item" href="#" onclick="filterTickets('all')"><i class="fa fa-list"></i> All Tickets</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterTickets('assigned')"><i class="fas fa-user-check"></i> Assigned</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterTickets('scheduled')"><i class="fas fa-calendar-check"></i> Scheduled for Resolution</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterTickets('resolved')"><i class="fa fa-check"></i> Resolved</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterTickets('resolved')"><i class="fas fa-lock"></i> Closed</a></li>
-                    </ul>
-                </div>
-            </div>
+    
        
 
           <div id="complaint-details" class="card-view">
@@ -303,13 +290,13 @@
                 <th scope="col">Ticket ID</th>
                 <th scope="col">Consumer</th>
                 <th scope="col">Complaint Type</th>
-                <th scope="col">Description</th>
+              
                 <th scope="col">Municipality</th>
                 <th scope="col">Barangay</th>
                   <th scope="col">Priority</th>
                 <th scope="col">Date Reported</th>
                 <th scope="col">Status</th>
-                <th scope="col">Image</th>
+         
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -320,7 +307,7 @@
                 <td>{{ complaint['consumer_name'] }}</td>
                 <!-- consumer name -->
                 <td>{{ complaint['description'] }}</td>
-                <td class="truncate" data-full-text="{{ complaint['additionalDetails'] }}">{{ complaint['additionalDetails'][:10] }}...</td> <!-- Truncated additional details -->               <!-- Description -->
+                
                 <td>{{ complaint['city'] }}</td>
                 <!-- City -->
 
@@ -335,32 +322,133 @@
                 <td id="status-{{complaint['$id']}}">
                   {{complaint['status']}}
               </td>
-                <td><a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+               
 
-                <td>
-                  <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                        Assign
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        {% for user in users %}
-                        <li>
-                            <a class="dropdown-item status-dropdown" href="#" data-user-id="{{ user['$id'] }}" data-complaint-id="{{ complaint['$id'] }}"
-                               data-description="{{ complaint['description'] }}" data-additional-details="{{ complaint['additionalDetails'] }}"
-                               data-city="{{ complaint['city'] }}" data-barangay="{{ complaint['barangay'] }}" data-street="{{ complaint['street'] }}"
-                               data-image="{{ complaint['image'] }}" data-created-at="{{ complaint['createdAt'] }}" data-status="{{ complaint['status'] }}"
-                               data-consumer="{{ complaint['consumer_name'] }}" data-user-name="{{ user['name_team'] }}">
-                               {{ user['name_team'] }}
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                
-
- 
-                </td>
+                <td >  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{complaint['$id']}}">
+                  View More
+              </button></td>
               </tr>
+
+          <!--Modal for ticket info-->
+          <div class="modal fade ticket-modal" id="modal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{complaint['$id']}}" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form>
+                    <div class="mb-3 row">
+                      <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="ticketID" disabled placeholder="{{ complaint['$id'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="consumer" disabled placeholder="{{ complaint['consumer_name'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['description'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['additionalDetails'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Municipality</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['city'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Barangay</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['barangay'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="image" class="col-sm-3 col-form-label">Image</label>
+                      <div class="col-sm-9">
+                        <a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['createdAt'][:10] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="dateCreated" class="col-sm-3 col-form-label">Priority</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="dateCreated" disabled placeholder="high">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="dateCreated" class="col-sm-3 col-form-label">Status</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['status'] }}">
+                      </div>
+                    </div>
+                  
+                    <div class="mb-3 row">
+                      <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="resolutionTeam" disabled placeholder="{{complaint['crew_name']}}">
+                      </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                      <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
+                      <div class="col-sm-9">
+                        <div class="dropdown">
+                          <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                              Assign
+                          </button>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                              {% for user in users %}
+                              <li>
+                                  <a class="dropdown-item status-dropdown" href="#" data-user-id="{{ user['$id'] }}" data-complaint-id="{{ complaint['$id'] }}"
+                                     data-description="{{ complaint['description'] }}" data-additional-details="{{ complaint['additionalDetails'] }}"
+                                     data-city="{{ complaint['city'] }}" data-barangay="{{ complaint['barangay'] }}" data-street="{{ complaint['street'] }}"
+                                     data-image="{{ complaint['image'] }}" data-created-at="{{ complaint['createdAt'] }}" data-status="{{ complaint['status'] }}"
+                                     data-consumer="{{ complaint['consumer_name'] }}" data-user-name="{{ user['name_team'] }}">
+                                     {{ user['name_team'] }}
+                                  </a>
+                              </li>
+                              {% endfor %}
+                          </ul>
+                          </div>
+                          
+                      </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                      <label for="dateCreated" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['follow-up'] }}">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary">Understood</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
               {% endfor %}
             </tbody>
           </table>
@@ -440,7 +528,9 @@
       });
     });
 
-    $('#example').on('click', '.view-image', function(event) {
+ 
+
+      $('.ticket-modal').on('click', '.view-image', function(event) {
           event.preventDefault();
           var imageUrl = $(this).data('image');
           $('#modalImage').attr('src', imageUrl);
@@ -460,6 +550,9 @@
               .removeClass('btn-primary') // Remove the existing class
               .addClass(newClass) // Add the new class
               .text("Edit"); // Change text to "Edit"
+
+        $("#resolutionTeam").attr('placeholder', userName);
+
 
           $.ajax({
               url: '/update-crew',
