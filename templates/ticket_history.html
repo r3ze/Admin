@@ -45,10 +45,7 @@
               <span class="fa fa-map" style="margin-right: 8px; font-size: 20px"></span>
               <span style="font-weight: 600">Map</span>
             </button>
-            <button type="button" onclick="redirectToLogHistory()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">History Log</span>
-            </button>
+        
             <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
               <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
               <span style="font-weight: 600">User Management</span>
@@ -77,8 +74,7 @@
                     <th scope="col">Ticket ID</th>
                     <th scope="col">Consumer</th>
                     <th scope="col">Complaint</th>
-                    <th scope="col">Municipality</th>
-                    <th scope="col">Barangay</th>
+
                     <th scope="col">Image</th>
                     <th scope="col">Date Created</th>
                     <th scope="col">Resolution Team</th>
@@ -91,18 +87,17 @@
             <td>{{ ticket['$id'] }}</td>
             <td>{{ ticket['consumer_name'] }}</td>
             <td>{{ ticket['description'] }}</td>
-            <td>{{ ticket['city'] }}</td>
-            <td>{{ ticket['barangay'] }}</td>
+
             <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
             <td>{{ ticket['createdAt'][:10] }}</td>
             <td>{{ ticket['crew_name'] }}</td>
-            <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
               View More
             </button></td>
         
           </tr>
           <!--Modal for ticket info-->
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="modal-{{ticket['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">

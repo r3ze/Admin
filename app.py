@@ -13,8 +13,8 @@ client.set_key('207cd5fd8dc09632737a600005a611e179f5b0ed8d8049b385f4f396c9758159
 
 database = Databases(client)
 
-DATABASE_ID = '66224a152d9f9a67af78'  # Replace with your Appwrite database ID
-COLLECTION_ID = '6626029b134a98006f77'  # Replace with your collection ID
+DATABASE_ID = '66224a152d9f9a67af78' 
+COLLECTION_ID = '6626029b134a98006f77'  
 USER_COLLECTION_ID = '662601d0b9e605665bb4'
 LOG_COLLECTION_ID = '6657285700348815c3aa'
 CREW_COLLECTION_ID = '66224a326e2395bfb265'
@@ -245,9 +245,13 @@ def ticket_history():
             collection_id=COLLECTION_ID
         )
 
-        resolved_tickets = [doc for doc in response['documents'] if doc['status'] == 'Resolved']
-        
-        return render_template("ticket_history.html", tickets=resolved_tickets)
+        # Filter complaints to include only those with status 'Resolved' or 'Withdrawn'
+        relevant_tickets = [
+            doc for doc in response['documents'] 
+            if doc['status'] in ['Withdrawn', 'Resolved']
+        ]
+    
+        return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 @app.route('/maps')
