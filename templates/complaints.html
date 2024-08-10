@@ -285,9 +285,9 @@
                     <th scope="col">Action</th>
                   </tr>
                 </thead>
-                <tbody class="table-group-divider">
+                <tbody id="tableBody" class="table-group-divider">
                   {% for complaint in complaints %}
-                  <tr>
+                  <tr id="{{complaint['$id']}}">
                     <td>{{ complaint['$id'] }}</td>
                     <td>{{ complaint['consumer_name'] }}</td>
                     <!-- consumer name -->
@@ -345,17 +345,12 @@
                           </div>
                         </div>
                         <div class="mb-3 row">
-                          <label for="complaintType" class="col-sm-3 col-form-label">Municipality</label>
+                          <label for="address" class="col-sm-3 col-form-label">Address</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['city'] }}">
+                            <input type="text" class="form-control" id="address" disabled placeholder="{{ complaint['locationName'] }}">
                           </div>
                         </div>
-                        <div class="mb-3 row">
-                          <label for="complaintType" class="col-sm-3 col-form-label">Barangay</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ complaint['barangay'] }}">
-                          </div>
-                        </div>
+                
                         <div class="mb-3 row">
                           <label for="image" class="col-sm-3 col-form-label">Image</label>
                           <div class="col-sm-9">
@@ -503,9 +498,9 @@
                 extend: "next",
                 className: "btn-secondary",
               },
-              // Add more customization options as needed
+     
             ],
-            "order": [[6, "desc"]]
+
           });
         });
 
@@ -545,7 +540,7 @@
                         $("#resolutionTeam").attr('placeholder', userName);
                         // After crew assignment, update the status
                         var newStatus = "Assigned";
-
+                     
                         $.ajax({
                             url: '/update-status',
                             method: 'POST',
@@ -586,8 +581,81 @@
         });
     });
     </script>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
+<script>
+  const client = new Appwrite.Client();
+  const collectionId = '6626029b134a98006f77'; // Replace with your collection ID
 
+  // Set up Appwrite client
+  client
+      .setEndpoint('https://cloud.appwrite.io/v1') // Your Appwrite endpoint
+      .setProject('662248657f5bd3dd103c'); // Your Appwrite project ID
 
+  // Listen to real-time events on the collection
+  client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f77.documents', response => {
+      const event = response.events[0];
+      const document = response.payload;
+
+      console.log('Real-time event received:', response);
+      console.log('Event:', event);
+      
+      if (event.includes('create')) {
+          console.log("Create event matched");
+          addRowToTable(document);
+      } else if (event.includes('update')) {
+          console.log("Update event matched");
+          updateRowInTable(document);
+      } else if (event.includes('delete')) {
+    console.log("Delete event received with document ID:", document.$id);
+    deleteRowFromTable(document.$id);
+}
+  });
+
+  // Function to add a row to the table
+  function addRowToTable(doc) {
+      const tableBody = document.getElementById('tableBody');
+      const row = document.createElement('tr');
+      row.id = doc.$id;
+      row.innerHTML = `
+          <td>${doc.$id}</td>
+          <td>${doc.consumer_name}</td>
+          <td>${doc.description}</td>
+          <td><span class="badge bg-primary">Medium</span></td>
+          <td>${doc.createdAt}</td>
+          <td class="status-cell" id="status-${doc.$id}">${doc.status}</td>
+          <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button></td>
+      `;
+      tableBody.appendChild(row);
+  }
+
+  // Function to update a row in the table
+  function updateRowInTable(doc) {
+      const row = document.getElementById(doc.$id);
+      if (row) {
+          row.innerHTML = `
+              <td>${doc.$id}</td>
+              <td>${doc.consumer_name}</td>
+              <td>${doc.description}</td>
+              <td><span class="badge bg-primary">Medium</span></td>
+              <td>${doc.createdAt}</td>
+              <td class="status-cell" id="status-${doc.$id}">${doc.status}</td>
+              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button></td>
+          `;                                                                                    
+      }
+  }
+
+  // Function to delete a row from the table
+  function deleteRowFromTable(docId) {
+    console.log("Attempting to delete row with ID:", docId);
+    const row = document.getElementById(docId);
+    if (row) {
+        row.remove();
+        console.log("Row successfully removed:", row);
+    } else {
+        console.log("No row found with ID:", docId);
+    }
+}
+</script>
 
       </body>
     </html>
