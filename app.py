@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
-
+from datetime import datetime
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 
@@ -189,13 +189,15 @@ def update_crew():
     assigned_crew = data.get('assigned_crew')
     crew_name = data.get('crew_name')
     try:
+        assigned_at = datetime.now().isoformat()
         database.update_document(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID,
             document_id=complaint_id,
             data={
                 'crews': assigned_crew,
-                'crew_name': crew_name
+                'crew_name': crew_name,
+                'assignedAt': assigned_at
                 
             }
         )
