@@ -138,7 +138,6 @@ def get_complaints_data():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 @app.route('/complaints')
 def complaints():
     try:
@@ -152,8 +151,34 @@ def complaints():
             database_id=DATABASE_ID,
             collection_id=CREW_COLLECTION_ID
         )
-        # Assuming 'created_at' is a field in the document and sorting by it in descending order
-        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
+
+        # Parse the createdAt field into datetime objects
+        for complaint in response['documents']:
+            # Check if 'createdAt' and 'assignedAt' are not None before replacing
+            if complaint.get('createdAt'):
+                complaint['createdAt_dt'] = datetime.fromisoformat(complaint['createdAt'].replace('Z', '+00:00'))
+            else:
+                complaint['createdAt_dt'] = None
+
+            if complaint.get('assignedAt'):
+                complaint['assignedAt_dt'] = datetime.fromisoformat(complaint['assignedAt'].replace('Z', '+00:00'))
+            else:
+                complaint['assignedAt_dt'] = None
+
+        # Sort using the datetime objects, handle None values if necessary
+        sorted_complaints = sorted(
+            response['documents'],
+            key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
+            reverse=True
+        )
+        
+        # Format the datetime for display after sorting
+        for complaint in sorted_complaints:
+            if complaint['createdAt_dt']:
+                complaint['createdAt'] = complaint['createdAt_dt'].strftime('%Y/%m/%d %H:%M')
+            if complaint['assignedAt_dt']:
+                complaint['assignedAt'] = complaint['assignedAt_dt'].strftime('%Y/%m/%d %H:%M')
+
         users = user_response['documents']
         total_complaints = count_complaints()
         
@@ -161,7 +186,6 @@ def complaints():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-
 @app.route('/update-status', methods=['POST'])
 def update_status():
     data = request.get_json()
@@ -180,7 +204,8 @@ def update_status():
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error updating status: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500    
+
 
 @app.route('/update-crew', methods=['POST'])
 def update_crew():
@@ -238,7 +263,6 @@ def user_management():
         users_list = []
 
     return render_template("user-management.html", users=users_list, municipality=municipality)
-
 @app.route('/ticket-history')
 def ticket_history():
     try:
@@ -252,10 +276,47 @@ def ticket_history():
             doc for doc in response['documents'] 
             if doc['status'] in ['Withdrawn', 'Resolved']
         ]
-    
-        return render_template("ticket_history.html", tickets=relevant_tickets)
+
+        # Parse the createdAt, assignedAt, and resolvedAt fields into datetime objects
+        for ticket in relevant_tickets:
+            # Check if 'createdAt' is not None before replacing
+            if ticket.get('createdAt'):
+                ticket['createdAt_dt'] = datetime.fromisoformat(ticket['createdAt'].replace('Z', '+00:00'))
+            else:
+                ticket['createdAt_dt'] = None
+
+            # Check if 'assignedAt' is not None before replacing
+            if ticket.get('assignedAt'):
+                ticket['assignedAt_dt'] = datetime.fromisoformat(ticket['assignedAt'].replace('Z', '+00:00'))
+            else:
+                ticket['assignedAt_dt'] = None
+
+            # Check if 'resolvedAt' is not None before replacing
+            if ticket.get('resolvedAt'):
+                ticket['resolvedAt_dt'] = datetime.fromisoformat(ticket['resolvedAt'].replace('Z', '+00:00'))
+            else:
+                ticket['resolvedAt_dt'] = None
+
+        # Sort using the datetime objects, handle None values if necessary
+        sorted_tickets = sorted(
+            relevant_tickets,
+            key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
+            reverse=True
+        )
+        
+        # Format the datetime for display after sorting
+        for ticket in sorted_tickets:
+            if ticket['createdAt_dt']:
+                ticket['createdAt'] = ticket['createdAt_dt'].strftime('%Y/%m/%d %H:%M')
+            if ticket['assignedAt_dt']:
+                ticket['assignedAt'] = ticket['assignedAt_dt'].strftime('%Y/%m/%d %H:%M')
+            if ticket['resolvedAt_dt']:
+                ticket['resolvedAt'] = ticket['resolvedAt_dt'].strftime('%Y/%m/%d %H:%M')
+
+        return render_template("ticket_history.html", tickets=sorted_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 @app.route('/maps')
 def map():
     

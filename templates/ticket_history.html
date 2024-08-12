@@ -76,7 +76,7 @@
                     <th scope="col">Complaint</th>
 
                     <th scope="col">Image</th>
-                    <th scope="col">Date Created</th>
+                    <th scope="col">Date Resolved</th>
                     <th scope="col">Resolution Team</th>
                     <td scope = "col" >Action</td>
                   </tr>
@@ -89,7 +89,7 @@
             <td>{{ ticket['description'] }}</td>
 
             <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-            <td>{{ ticket['createdAt'][:10] }}</td>
+            <td>{{ ticket['resolvedAt'] }}</td>
             <td>{{ ticket['crew_name'] }}</td>
             <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
               View More
@@ -125,27 +125,63 @@
             </div>
           </div>
           <div class="mb-3 row">
+            <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="complaintType" disabled placeholder="{{ ticket['additionalDetails'] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="address" class="col-sm-3 col-form-label">Address</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="address" disabled placeholder="{{ ticket['locationName'] }}">
+            </div>
+          </div>
+  
+          <div class="mb-3 row">
             <label for="image" class="col-sm-3 col-form-label">Image</label>
             <div class="col-sm-9">
-              <img src="{{ ticket['image'] }}" alt="Complaint Image" class="img-fluid">
+              <a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
             </div>
           </div>
           <div class="mb-3 row">
-            <label for="dateCreated" class="col-sm-3 col-form-label">Date Created</label>
+            <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ ticket['createdAt'][:10] }}">
+              <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ ticket['createdAt'] }}">
+            </div>
+          </div>
+
+          <div class="mb-3 row">
+            <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="dateAssigned" disabled placeholder="{{ ticket['assignedAt'] }}">
+            </div>
+          </div>
+
+
+          <div class="mb-3 row">
+            <label for="dateResolved" class="col-sm-3 col-form-label">Date Assigned</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="dateResolved" disabled placeholder="{{ ticket['resolvedAt'] }}">
+            </div>
+          </div>
+
+          <div class="mb-3 row">
+            <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="Priority" disabled placeholder="high">
             </div>
           </div>
           <div class="mb-3 row">
-            <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
+            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" id="dateResolved" disabled  >
+              <input type="text" class="form-control" id="complaintStatus" disabled placeholder="{{ ticket['status'] }}">
             </div>
           </div>
+        
           <div class="mb-3 row">
-            <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
+            <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" id="resolutionTeam" disabled placeholder="{{ticket['crew_name']}}">
+              <input type="text" class="form-control" id="resolutionTeamName" disabled placeholder="{{ticket['crew_name']}}">
             </div>
           </div>
         </form>
@@ -195,6 +231,7 @@
     <!--DataTable-->
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
     <script src="/static/js/ticket-history.js"></script>
     <script>
       function redirectToDashboard() {
@@ -231,7 +268,10 @@
             },
     
           ],
-          "order": [[6, "desc"]]
+          "order": [], // Disables initial ordering
+        "columnDefs": [
+            { "orderable": false, "targets": 0 } // Disables ordering for the first column
+        ]
         });
       });
 
