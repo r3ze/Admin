@@ -80,89 +80,87 @@
        
        <!--Unresolved-->
           <div class="row mt-3 ">
-              <div class=" col-lg-3">
-                <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);"   >
-                    <div class="top">
-                     
-                    </div>
-                    <div class="card-body ">
-                        <div class="icon-number">
-                          <div class="text-title">
-                            <h5 class="card-title" style="font-weight: bold;">New</h5>
-                          </div>
-                            <div class="number-icon" style="display: flex; justify-content: space-between;">
-                                <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
-                                <img src="/static/img/BiTicketPerforatedFill.svg" alt="" style="height: 50px;" >
-                            </div>
-                        
-                        </div>
-                     
-                    </div>
-                </div>
-            </div>
-
-            <div class=" col-lg-3">
-              <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);"  >
-                  <div class="top">
-                   
-                  </div>
-                  <div class="card-body ">
-                      <div class="icon-number">
-                        <div class="text-title">
-                          <h5 class="card-title" style="font-weight: bold;" >Unresolved</h5>
-                        </div>
-                          <div class="number-icon" style="display: flex; justify-content: space-between;">
-                            <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
-                            <img src="/static/img/CarbonIncompleteError.svg" alt="" style="height: 50px;">
-                          </div>
-                      
-                      </div>
-                   
-                  </div>
-              </div>
-          </div>
-
-          <div class=" col-lg-3">
-            <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);"  >
-                <div class="top">
-                   
-                </div>
-                <div class="card-body ">
+             
+            <div id="cards" class="row mt-3">
+              <div class="col-lg-3">
+                <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                  <div class="top"></div>
+                  <div class="card-body">
                     <div class="icon-number">
                       <div class="text-title">
-                        <h5 class="card-title" style="font-weight: bold;">Unassigned</h5>
+                        <h5 class="card-title" style="font-weight: bold">New</h5>
                       </div>
-                        <div class="number-icon" style="display: flex; justify-content: space-between;">
-                          <h3 style="font-weight:bold; color: #444446;">{{ total_complaints}}</h3>
-                          <img src="/static/img/MaterialSymbolsPending.svg" alt="" style="height: 50px;">
-                        </div>
-                    
-                    </div>
-                 
-                </div>
-            </div>
-        </div>
-
-        <div class=" col-lg-3">
-          <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);" >
-              <div class="top">
-                
-              </div>
-              <div class="card-body ">
-                  <div class="icon-number">
-                    <div class="text-title">
-                      <h5 class="card-title" style="font-weight: bold;">Resolved</h5>
-                    </div>
-                      <div class="number-icon" style="display: flex; justify-content: space-between;">
-                        <h3 style="font-weight:bold; color: #444446;">0</h3>
-                        <img src="/static/img/WhhIssueclosed.svg" alt="" style="height: 50px;">
+                      <div class="number-icon" style="display: flex; justify-content: space-between">
+                        <h3 id="new_complaints_card" style="font-weight: bold; color: #444446">{{ count_new_complaints }}</h3>
+                        <i class="fa fa-ticket" style="font-size: 50px; color: #444446;"></i>
                       </div>
-                  
+                    </div>
                   </div>
-               
+                </div>
               </div>
-          </div>
-      </div>  
+            
+              <div class="col-lg-3">
+                <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                  <div class="top"></div>
+                  <div class="card-body">
+                    <div class="icon-number">
+                      <div class="text-title">
+                        <h5 class="card-title" style="font-weight: bold">Assigned</h5>
+                      </div>
+                      <div class="number-icon" style="display: flex; justify-content: space-between">
+                        <h3 style="font-weight: bold; color: #444446" id="assigned_complaints_card">{{ count_assigned_complaints }}</h3>
+                        <i class="fa fa-exclamation-circle" style="font-size: 50px; color: #444446;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="col-lg-3">
+                <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                  <div class="top"></div>
+                  <div class="card-body">
+                    <div class="icon-number">
+                      <div class="text-title">
+                        <h5 class="card-title" style="font-weight: bold">Unassigned</h5>
+                      </div>
+                      <div class="number-icon" style="display: flex; justify-content: space-between">
+                        <h3 style="font-weight: bold; color: #444446" id="unassigned_complaints_card">{{ count_new_complaints }}</h3>
+                        <i class="fa fa-clock-o" style="font-size: 50px; color: #444446;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="col-lg-3">
+                <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); position: relative;">
+                  <div class="top"></div>
+                  <div class="card-body">
+                    <div class="icon-number">
+                      <div class="text-title">
+                        <h5 class="card-title" style="font-weight: bold">Resolved</h5>
+                      </div>
+                      <div class="number-icon" style="display: flex; justify-content: space-between">
+                        <h3 style="font-weight: bold; color: #444446" id="resolved_complaints_card">{{count_resolved_complaints}}</h3>
+                        <i class="fa fa-check-circle" style="font-size: 50px; color: #444446;"></i>
+                      </div>
+                    </div>
+                    <div class="filter-options" style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center;">
+                     
+                      <select id="resolved-filter" class="form-control" style="padding: 5px 10px; background-color: #f5f5f5; border: 1px solid #ccc; font-size: 14px;">
+
+                        <option value="all">All</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                      </select>
+                   
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
         </div>
 <!--Charts-->
@@ -206,35 +204,40 @@
                 border-spacing: 0; border-radius: 10px; overflow: hidden; background-color: #EDEDED;">
                     <thead>
       <tr>
-     
+        <th scope="col">Ticket ID</th>
         <th scope="col">Consumer</th>
         <th scope="col">Complaint Type</th>
-        
-        <th scope="col">Municipality</th>
-        <th scope="col">Barangay</th>
+
         <th scope="col">Priority</th>
         <th scope="col">Date Reported</th>
-        <th scope="col">Image</th>
+
         <th scope="col">Status</th>
     
         
       </tr>
     </thead>
-      <tbody class="table-group-divider">
+      <tbody id="tableBody" class="table-group-divider">
         {% for complaint in complaints %}
-      <tr>
+      <tr id="{{complaint['$id']}}">
     
-      
+        <td>{{complaint['$id']}}</td>
         <td>{{ complaint['consumer_name'] }}</td> <!-- consumer name -->
         <td>{{ complaint['description'] }}</td> <!-- Description -->
 
-        <td>{{ complaint['city'] }}</td> <!-- City -->
-    
-        <td>{{ complaint['barangay'] }}</td> <!-- Barangay -->
         <td><span class="badge bg-primary">Medium</span></td>
         <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td> <!-- Date Reported -->
-        <td><a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-        <td>{{ complaint['status'] }}</td> <!--Status-->
+        
+        <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
+          {% if complaint['status'] == 'New' %}
+            <span class="badge bg-info" style="padding: 5px 10px; border-radius: 20px;">New</span>
+          {% elif complaint['status'] == 'Assigned' %}
+            <span class="badge bg-warning" style="padding: 5px 10px; border-radius: 20px;">Assigned</span>
+          {% elif complaint['status'] == 'Resolved' %}
+            <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
+          {% elif complaint['status'] == 'closed' %}
+            <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Closed</span>
+          {% endif %}
+        </td>
       
       
     
@@ -352,6 +355,8 @@
   </script>
 
       <!--Chart js--> <script src="/static/js/charts.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
+      <script src="/static/js/dashboard-realtime.js"></script>
 
 
 </body>

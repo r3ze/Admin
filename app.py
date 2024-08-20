@@ -60,6 +60,62 @@ def count_complaints():
     except Exception as e:
         print(f"Error counting users: {str(e)}")
         return 0  # Return 0 if there's an error
+    
+# Count new complaints
+def count_new_complaints():
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter and count only complaints with status = 'New'
+        total_new_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'New')
+        
+        return total_new_complaints
+    except Exception as e:
+        print(f"Error counting new complaints: {str(e)}")
+        return 0  # Return 0 if there's an error
+    
+# Count new complaints
+def count_assigned_complaints():
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter and count only complaints with status = 'New'
+        total_assigned_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'Assigned')
+        
+        return total_assigned_complaints
+    except Exception as e:
+        print(f"Error counting new complaints: {str(e)}")
+        return 0  # Return 0 if there's an error
+
+
+
+# Count new complaints
+def count_resolved_complaints():
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter and count only complaints with status = 'New'
+        total_resolved_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'Resolved')
+        
+        return total_resolved_complaints
+    except Exception as e:
+        print(f"Error counting new complaints: {str(e)}")
+        return 0  # Return 0 if there's an error
+
+
+
 
 @app.route('/')
 def dashboard():
@@ -74,10 +130,13 @@ def dashboard():
         
         total_users = count_users()
         total_complaints = count_complaints()
-        
+        total_new_complaints = count_new_complaints()
+        total_assigned_complaints = count_assigned_complaints()
+        total_resolved_complaints = count_resolved_complaints()
         complaints_data = sorted_complaints[:7]  # Limiting to the first 7 complaints after sorting
         
-        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints)
+        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints, count_new_complaints = total_new_complaints,
+                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -141,6 +200,7 @@ def get_complaints_data():
 @app.route('/complaints')
 def complaints():
     try:
+        
         # Fetch all documents from the 'complaints' collection
         response = database.list_documents(
             database_id=DATABASE_ID,
@@ -152,9 +212,14 @@ def complaints():
             collection_id=CREW_COLLECTION_ID
         )
 
-        # Parse the createdAt field into datetime objects
-        for complaint in response['documents']:
-            # Check if 'createdAt' and 'assignedAt' are not None before replacing
+
+        # Filter out complaints with 'resolved' status
+        filtered_complaints = [
+            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved'
+        ]
+
+        # Parse the createdAt and assignedAt fields into datetime objects
+        for complaint in filtered_complaints:
             if complaint.get('createdAt'):
                 complaint['createdAt_dt'] = datetime.fromisoformat(complaint['createdAt'].replace('Z', '+00:00'))
             else:
@@ -167,11 +232,11 @@ def complaints():
 
         # Sort using the datetime objects, handle None values if necessary
         sorted_complaints = sorted(
-            response['documents'],
+            filtered_complaints,
             key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
             reverse=True
         )
-        
+
         # Format the datetime for display after sorting
         for complaint in sorted_complaints:
             if complaint['createdAt_dt']:
@@ -181,10 +246,15 @@ def complaints():
 
         users = user_response['documents']
         total_complaints = count_complaints()
+        total_new_complaints = count_new_complaints()
+        total_assigned_complaints = count_assigned_complaints()
+        total_resolved_complaints = count_resolved_complaints()
         
-        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users)
+        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users, count_new_complaints = total_new_complaints,
+                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
     
 @app.route('/update-status', methods=['POST'])
 def update_status():
