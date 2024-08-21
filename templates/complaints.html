@@ -16,10 +16,7 @@
           rel="stylesheet"
           href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
         />
-        <link
-          rel="stylesheet"
-          href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
-        />
+
         <link rel="stylesheet" href="/static/css/complaint.css">
         <style>
           .filter-dropdown .dropdown-menu {
@@ -237,7 +234,7 @@
                     <th scope="col">Consumer</th>
                     <th scope="col">Complaint Type</th>
                     
-                      <th scope="col">Priority</th>
+                    <th scope="col">Priority</th>
                     <th scope="col">Date Reported</th>
                     <th scope="col">Status</th>
             
@@ -255,8 +252,8 @@
 
                     <td><span class="badge bg-primary">Medium</span></td>
 
-                    <td >
-                      {{ complaint['createdAt'] }} 
+                    <td>
+                      {{- complaint['createdAt'][:10] -}} {{ complaint['createdAt'][11:16] -}}
                     </td>
                 
                     <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
@@ -327,14 +324,19 @@
                         <div class="mb-3 row">
                           <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['createdAt'] }}">
+                            <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}">
                           </div>
                         </div>
 
                         <div class="mb-3 row">
                           <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateAssigned" disabled placeholder="{{ complaint['assignedAt'] }}">
+                            {% if complaint['assignedAt'] %}
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['assignedAt'] }}">
+                          {% else %}
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="">
+                          {% endif %}
+
                           </div>
                         </div>
                         <div class="mb-3 row">
@@ -361,25 +363,14 @@
                           <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
                           <div class="col-sm-9">
                             <div class="dropdown">
-                              <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                  Assign
-                              </button>
-                              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                  {% for user in users %}
-                                  <li>
-                                      <a class="dropdown-item status-dropdown" href="#" data-user-id="{{ user['$id'] }}" data-complaint-id="{{ complaint['$id'] }}"
-                                        data-description="{{ complaint['description'] }}" data-additional-details="{{ complaint['additionalDetails'] }}"
-                                        data-city="{{ complaint['city'] }}" data-barangay="{{ complaint['barangay'] }}" data-street="{{ complaint['street'] }}"
-                                        data-image="{{ complaint['image'] }}" data-created-at="{{ complaint['createdAt'] }}" data-status="{{ complaint['status'] }}"
-                                        data-consumer="{{ complaint['consumer_name'] }}" data-user-name="{{ user['name_team'] }}">
-                                        {{ user['name_team'] }}
-                                      </a>
-                                  </li>
-                                  {% endfor %}
-                              </ul>
-                              </div>
-                              
-                          </div>
+                                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                                    Assign
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
+                                    <!-- Options will be added here dynamically -->
+                                </ul>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="mb-3 row">
@@ -462,6 +453,7 @@
       <script>
         $(document).ready(function () {
           $("#example").DataTable({
+            
             // Add custom pagination button styling
             buttons: [
               {
@@ -492,71 +484,102 @@
 
       
     <script>
-      $(document).ready(function() {
-        $('.dropdown-menu').on('click', '.status-dropdown', function() {
-            var complaintId = $(this).data('complaint-id');
-            var assignedCrew = $(this).data('user-id');
-            var userName = $(this).data('user-name'); // Get the selected crew's name
-            var newClass = "btn-secondary";
+  
+//function to assign crew
+$(document).ready(function() {
 
-            $(this).closest('.dropdown').find('.dropdown-toggle')
-                .removeClass('btn-primary') // Remove the existing class
-                .addClass(newClass) // Add the new class
-                .text("Edit"); // Change text to "Edit"
+// Fetch users when the page loads
+$.ajax({
+ url: '/api/users',
+ method: 'GET',
+ dataType: 'json',
+ success: function(users) {
+     // Populate dropdowns for each complaint
+     $('.dropdown-menu').each(function() {
+         var complaintId = $(this).attr('aria-labelledby').split('-')[1]; // Extract complaint ID
+         var dropdownMenu = $(this);
 
-          
+         users.forEach(function(user) {
+             var listItem = `<li>
+                 <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${complaintId}"
+                   data-user-name="${user['name_team']}">
+                   ${user['name_team']}
+                 </a>
+             </li>`;
+             dropdownMenu.append(listItem);
+         });
+     });
+ },
+ error: function(xhr, status, error) {
+     console.error('Failed to fetch users:', error);
+ }
+});
 
-            $.ajax({
-                url: '/update-crew',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
-                success: function(response) {
-                    if (response.success) {
-                        alert('Crew assigned successfully!');
-                    
-                        // After crew assignment, update the status
-                        var newStatus = "Assigned";
-                     
-                        $.ajax({
-                            url: '/update-status',
-                            method: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
-                            success: function(response) {
-                                if (response.success) {
-                                    alert('Status updated successfully!');
-                               
-                                    // Update with new status
-                                } else {
-                                    alert('Error updating status: ' + response.error);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                alert('AJAX error: ' + error);
-                            }
-                        });
-                    } else {
-                        alert('Error assigning crew: ' + response.error);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert('AJAX error: ' + error);
-                }
-            });
-        });
 
-        // Change button text and class for rows with status "Assigned"
-        $('tbody tr').each(function() {
-            var status = $(this).find('.status-cell').text().trim(); // Get the status text
-            var button = $(this).find('.action-button');
+$('.dropdown-menu').on('click', '.status-dropdown', function() {
+   var complaintId = $(this).data('complaint-id');
+   var assignedCrew = $(this).data('user-id');
+   var userName = $(this).data('user-name'); // Get the selected crew's name
+   var newClass = "btn-secondary";
 
-            if (status.toLowerCase() === 'assigned') {
-                button.text('Edit');
-                button.removeClass('btn-primary').addClass('btn-secondary');
-            }
-        });
-    });
+   $(this).closest('.dropdown').find('.dropdown-toggle')
+       .removeClass('btn-primary') // Remove the existing class
+       .addClass(newClass) // Add the new class
+       .text("Edit"); // Change text to "Edit"
+
+ 
+
+   $.ajax({
+       url: '/update-crew',
+       method: 'POST',
+       contentType: 'application/json',
+       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+       success: function(response) {
+           if (response.success) {
+               alert('Crew assigned successfully!');
+           
+               // After crew assignment, update the status
+               var newStatus = "Assigned";
+            
+               $.ajax({
+                   url: '/update-status',
+                   method: 'POST',
+                   contentType: 'application/json',
+                   data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
+                   success: function(response) {
+                       if (response.success) {
+                           alert('Status updated successfully!');
+                      
+                           // Update with new status
+                       } else {
+                           alert('Error updating status: ' + response.error);
+                       }
+                   },
+                   error: function(xhr, status, error) {
+                       alert('AJAX error: ' + error);
+                   }
+               });
+           } else {
+               alert('Error assigning crew: ' + response.error);
+           }
+       },
+       error: function(xhr, status, error) {
+           alert('AJAX error: ' + error);
+       }
+   });
+});
+
+// Change button text and class for rows with status "Assigned"
+$('tbody tr').each(function() {
+   var status = $(this).find('.status-cell').text().trim(); // Get the status text
+   var button = $(this).find('.action-button');
+
+   if (status.toLowerCase() === 'assigned') {
+       button.text('Edit');
+       button.removeClass('btn-primary').addClass('btn-secondary');
+   }
+});
+});
     </script>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
 <script src="/static/js/complaints-realtime.js"></script>

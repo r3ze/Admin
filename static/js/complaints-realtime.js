@@ -35,12 +35,13 @@ client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f7
     console.log('Real-time event received:', response);
     console.log('Event:', event);
     
+    const table = $('#example').DataTable();
     if (event.includes('create')) {
         console.log("Create event matched");
         addRowToTable(document);
     } else if (event.includes('update')) {
         console.log("Update event matched");
-        updateRowInTable(document);
+        updateRowInTable(document, table);
     } else if (event.includes('delete')) {
   console.log("Delete event received with document ID:", document.$id);
   deleteRowFromTable(document.$id);
@@ -82,65 +83,59 @@ function updateResolvedComplaintsCount() {
 
 // Function to add a row to the table
 function addRowToTable(doc) {
-  const tableBody = document.getElementById('tableBody');
-  const row = document.createElement('tr');
-  row.id = doc.$id;
-  const createdAt = new Date(doc.createdAt);
-  const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-  ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-  createdAt.getUTCFullYear();
+    const table = $('#example').DataTable(); 
+    console.log(table)
+    const createdAt = new Date(doc.createdAt);
+    const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+        ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+        createdAt.getUTCFullYear();
 
-const hours = createdAt.getUTCHours();
-const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+    const hours = createdAt.getUTCHours();
+    const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+    const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes;
 
-const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes;
+    const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+    const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+        ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+        assignedAt.getUTCFullYear() : "Not Assigned";
+    const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
+    const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+    const assignedTime = assignedHours + ':' + assignedMinutes;
 
+    let statusBadgeClass = '';
+    switch (doc.status) {
+        case 'New':
+            statusBadgeClass = 'badge bg-info';
+            break;
+        case 'Assigned':
+            statusBadgeClass = 'badge bg-warning';
+            break;
+        case 'Resolved':
+            statusBadgeClass = 'badge bg-success';
+            break;
+        case 'Closed':
+            statusBadgeClass = 'badge bg-secondary';
+            break;
+        default:
+            statusBadgeClass = 'badge bg-secondary';
+    }
 
+    // Use DataTables API to add a new row
+   // Add the row and assign the ID
+   const newRow = table.row.add([
+    doc.$id,
+    doc.consumer_name,
+    doc.description,
+    '<span class="badge bg-primary">Medium</span>',
+    `${formattedDate} ${formattedTime}`,
+    `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+    `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
+]).draw(false).node();
 
-  // Format assignedAt date
-  const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-  const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-      ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-      assignedAt.getUTCFullYear() : "Not Assigned";
-  const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-  const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-  const assignedTime = assignedHours + ':' + assignedMinutes;
-let statusBadgeClass = '';
-      switch (doc.status) {
-          case 'New':
-              statusBadgeClass = 'badge bg-info';
-              break;
-          case 'Assigned':
-              statusBadgeClass = 'badge bg-warning';
-              break;
-          case 'Resolved':
-              statusBadgeClass = 'badge bg-success';
-              break;
-          case 'Closed':
-              statusBadgeClass = 'badge bg-secondary';
-              break;
-          default:
-              statusBadgeClass = 'badge bg-secondary';
-      }
-
-  row.innerHTML = `
-      <td>${doc.$id}</td>
-      <td>${doc.consumer_name}</td>
-      <td>${doc.description}</td>
-      <td><span class="badge bg-primary">Medium</span></td>
-      <td>${formattedDate} ${formattedTime}</td>
-          <td class="status-cell" id="status-${doc.$id}">
-              <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>
-          </td>
-      <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button></td>
-  `;
-
-  // Append the row to the top of the table
-  if (tableBody.firstChild) {
-      tableBody.insertBefore(row, tableBody.firstChild);
-  } else {
-      tableBody.appendChild(row);
-  }
+// Set the row ID to match the document ID
+$(newRow).attr('id', doc.$id);
+    
+    table.order([0, 'desc']).draw(); 
 
   // Create the modal HTML
   const modalHtml = `
@@ -226,6 +221,21 @@ let statusBadgeClass = '';
                                   <input type="text" class="form-control" id="followUp" disabled value="${doc.followUp}">
                               </div>
                           </div>
+
+                                <div class="mb-3 row">
+                            <label for="resolutionTeamDropdown" class="col-sm-3 col-form-label">Resolution Team</label>
+                            <div class="col-sm-9">
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-${doc.$id}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                                        Assign
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-${doc.$id}" id="dropdownMenu-${doc.$id}">
+                                        <!-- Options will be added dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                       </form>
                   </div>
                   <div class="modal-footer">
@@ -239,99 +249,175 @@ let statusBadgeClass = '';
 
   // Append the modal HTML to the body
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  // Populate dropdowns for the specific complaint
+  populateDropdown(`#dropdownMenu-${doc.$id}`);
+
+  // Event listener for dropdown selection
+$(document).on('click', '.status-dropdown', function() {
+    var complaintId = $(this).data('complaint-id');
+    var assignedCrew = $(this).data('user-id');
+    var userName = $(this).data('user-name');
+    var newClass = "btn-secondary";
+
+    $(this).closest('.dropdown').find('.dropdown-toggle')
+        .removeClass('btn-primary')
+        .addClass(newClass)
+        .text("Edit");
+
+    // Update crew and status via AJAX
+    $.ajax({
+        url: '/update-crew',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+        success: function(response) {
+            if (response.success) {
+                alert('Crew assigned successfully!');
+
+                var newStatus = "Assigned";
+                $.ajax({
+                    url: '/update-status',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Status updated successfully!');
+                        } else {
+                            alert('Error updating status: ' + response.error);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('AJAX error: ' + error);
+                    }
+                });
+            } else {
+                alert('Error assigning crew: ' + response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('AJAX error: ' + error);
+        }
+    });
+});
 }
 
 
-function updateRowInTable(doc) {
-  const row = document.getElementById(doc.$id);
+// Function to populate a specific dropdown
+function populateDropdown(dropdownSelector) {
+    $.ajax({
+        url: '/api/users',
+        method: 'GET',
+        dataType: 'json',
+        success: function(users) {
+            var dropdownMenu = $(dropdownSelector);
 
- // Format the createdAt date
- const createdAt = new Date(doc.createdAt);
-  const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-      ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-      createdAt.getUTCFullYear();
-
-  const hours = ('0' + createdAt.getUTCHours()).slice(-2);
-  const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
-
-  const formattedTime = hours + ':' + minutes;
-
-  // Format assignedAt date
-  const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-  const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-      ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-      assignedAt.getUTCFullYear() : "Not Assigned";
-  const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-  const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-  const assignedTime = assignedHours + ':' + assignedMinutes;
-  if (row) {
+            users.forEach(function(user) {
+                var listItem = `<li>
+                    <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${dropdownMenu.attr('id').split('-')[1]}"
+                       data-user-name="${user['name_team']}">
+                       ${user['name_team']}
+                    </a>
+                </li>`;
+                dropdownMenu.append(listItem);
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to fetch users:', error);
+        }
+    });
+}
 
 
-    let statusBadgeClass = '';
-      switch (doc.status) {
-          case 'New':
-              statusBadgeClass = 'badge bg-info';
-              break;
-          case 'Assigned':
-              statusBadgeClass = 'badge bg-warning';
-              break;
-          case 'Resolved':
-              statusBadgeClass = 'badge bg-success';
-              break;
-          case 'Closed':
-              statusBadgeClass = 'badge bg-secondary';
-              break;
-          default:
-              statusBadgeClass = 'badge bg-secondary';
-      }
-      row.innerHTML = `
-          <td>${doc.$id}</td>
-          <td>${doc.consumer_name}</td>
-          <td>${doc.description}</td>
-          <td><span class="badge bg-primary">Medium</span></td>
-          <td>${formattedDate} ${formattedTime}</td>
-           <td class="status-cell" id="status-${doc.$id}">
-              <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>
-          </td>
-     
-          <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button></td>
-      `;
+function updateRowInTable(doc, dataTable) {
+    // Find the row by document ID
+    const rowIndex = dataTable.row(`#${doc.$id}`).index();
 
-      // Update the existing modal content
-      const modalElement = document.getElementById(`modal-${doc.$id}`);
-      if (modalElement) {
-          console.log("Updating modal for:", doc.$id);  // Debugging
+    // If the row exists in the DataTable
+    if (rowIndex !== null && rowIndex !== undefined) {
+        // Format the createdAt date
+        const createdAt = new Date(doc.createdAt);
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
 
-          // Ensure each element is found and update them
-          const ticketIDInput = modalElement.querySelector('#ticketID');
-          const consumerInput = modalElement.querySelector('#consumer');
-          const complaintTypeInput = modalElement.querySelector('#complaintType');
-          const additionalDetailsInput = modalElement.querySelector('#additionalDetails');
-          const addressInput = modalElement.querySelector('#address');
-          const dateCreatedInput = modalElement.querySelector('#dateCreated');
-          const dateAssignedInput = modalElement.querySelector('#dateAssigned');
-          const complaintStatusInput = modalElement.querySelector('#complaintStatus');
-          const resolutionTeamInput = modalElement.querySelector('#resolutionTeamName');
-          const followUpInput = modalElement.querySelector('#followUp');
+        const hours = ('0' + createdAt.getUTCHours()).slice(-2);
+        const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+        const formattedTime = hours + ':' + minutes;
 
-          console.log("ticketIDInput:", ticketIDInput);
-          console.log("consumerInput:", consumerInput);
-          console.log("complaintTypeInput:", complaintTypeInput);
+        // Format assignedAt date
+        const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+        const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            assignedAt.getUTCFullYear() : "Not Assigned";
+        const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
+        const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+        const assignedTime = assignedHours + ':' + assignedMinutes;
 
-          if (ticketIDInput) ticketIDInput.placeholder = doc.$id;
-          if (consumerInput) consumerInput.placeholder = doc.consumer_name;
-          if (complaintTypeInput) complaintTypeInput.placeholder = doc.description;
-          if (additionalDetailsInput) additionalDetailsInput.placeholder = doc.additionalDetails;
-          if (addressInput) addressInput.placeholder = doc.locationName;
-          if (dateCreatedInput) dateCreatedInput.placeholder = `${formattedDate} ${formattedTime}`;
-          if (dateAssignedInput) dateAssignedInput.placeholder = assignedDate + (assignedTime ? ' ' + assignedTime : '');
-          if (complaintStatusInput) complaintStatusInput.placeholder = doc.status;
-          if (resolutionTeamInput) resolutionTeamInput.placeholder = doc.crew_name;
-          if (followUpInput) followUpInput.placeholder = doc.followUp ? doc.followUp : "No";
-      } else {
-          console.log(`Modal with ID modal-${doc.$id} not found.`);
-      }
-  }
+        let statusBadgeClass = '';
+        switch (doc.status) {
+            case 'New':
+                statusBadgeClass = 'badge bg-info';
+                break;
+            case 'Assigned':
+                statusBadgeClass = 'badge bg-warning';
+                break;
+            case 'Resolved':
+                statusBadgeClass = 'badge bg-success';
+                break;
+            case 'Closed':
+                statusBadgeClass = 'badge bg-secondary';
+                break;
+            default:
+                statusBadgeClass = 'badge bg-secondary';
+        }
+
+        // Update the row data in the DataTable
+        dataTable.row(rowIndex).data([
+            doc.$id,
+            doc.consumer_name,
+            doc.description,
+            '<span class="badge bg-primary">Medium</span>',
+            `${formattedDate} ${formattedTime}`,
+            `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+            `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
+        ]).draw(false);
+
+        // Update the existing modal content
+        const modalElement = document.getElementById(`modal-${doc.$id}`);
+        if (modalElement) {
+            console.log("Updating modal for:", doc.$id);  // Debugging
+
+            // Ensure each element is found and update them
+            const ticketIDInput = modalElement.querySelector('#ticketID');
+            const consumerInput = modalElement.querySelector('#consumer');
+            const complaintTypeInput = modalElement.querySelector('#complaintType');
+            const additionalDetailsInput = modalElement.querySelector('#additionalDetails');
+            const addressInput = modalElement.querySelector('#address');
+            const dateCreatedInput = modalElement.querySelector('#dateCreated');
+            const dateAssignedInput = modalElement.querySelector('#dateAssigned');
+            const complaintStatusInput = modalElement.querySelector('#complaintStatus');
+            const resolutionTeamInput = modalElement.querySelector('#resolutionTeamName');
+            const followUpInput = modalElement.querySelector('#followUp');
+
+           
+            if (ticketIDInput) ticketIDInput.value = doc.$id;
+            if (consumerInput) consumerInput.value = doc.consumer_name;
+            if (complaintTypeInput) complaintTypeInput.value = doc.description;
+            if (additionalDetailsInput) additionalDetailsInput.value = doc.additionalDetails;
+            if (addressInput) addressInput.value = doc.locationName;
+            if (dateCreatedInput) dateCreatedInput.value = `${formattedDate} ${formattedTime}`;
+            if (dateAssignedInput) dateAssignedInput.value = assignedDate + (assignedTime ? ' ' + assignedTime : '');
+            if (complaintStatusInput) complaintStatusInput.value = doc.status;
+            if (resolutionTeamInput) resolutionTeamInput.value = doc.crew_name;
+            if (followUpInput) followUpInput.value = doc.followUp ? doc.followUp : "No";
+        } else {
+            console.log(`Modal with ID modal-${doc.$id} not found.`);
+        }
+    } else {
+        console.log(`Row with ID ${doc.$id} not found.`);
+    }
 }
 
 
@@ -346,3 +432,4 @@ function deleteRowFromTable(docId) {
       console.log("No row found with ID:", docId);
   }
 }
+

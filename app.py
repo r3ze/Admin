@@ -212,14 +212,12 @@ def complaints():
             collection_id=CREW_COLLECTION_ID
         )
 
+         # Assuming 'created_at' is a field in the document and sorting by it in descending order
+        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
 
-        # Filter out complaints with 'resolved' status
-        filtered_complaints = [
-            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved'
-        ]
-
-        # Parse the createdAt and assignedAt fields into datetime objects
-        for complaint in filtered_complaints:
+        # Parse the createdAt field into datetime objects
+        for complaint in response['documents']:
+            # Check if 'createdAt' and 'assignedAt' are not None before replacing
             if complaint.get('createdAt'):
                 complaint['createdAt_dt'] = datetime.fromisoformat(complaint['createdAt'].replace('Z', '+00:00'))
             else:
@@ -230,19 +228,19 @@ def complaints():
             else:
                 complaint['assignedAt_dt'] = None
 
-        # Sort using the datetime objects, handle None values if necessary
+
+        # Filter out complaints with 'resolved' status
+        filtered_complaints = [
+            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved'
+        ]
+
+
+           # Sort using the datetime objects, handle None values if necessary
         sorted_complaints = sorted(
-            filtered_complaints,
+             filtered_complaints,
             key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
             reverse=True
         )
-
-        # Format the datetime for display after sorting
-        for complaint in sorted_complaints:
-            if complaint['createdAt_dt']:
-                complaint['createdAt'] = complaint['createdAt_dt'].strftime('%Y/%m/%d %H:%M')
-            if complaint['assignedAt_dt']:
-                complaint['assignedAt'] = complaint['assignedAt_dt'].strftime('%Y/%m/%d %H:%M')
 
         users = user_response['documents']
         total_complaints = count_complaints()
@@ -254,6 +252,18 @@ def complaints():
                                count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    try:
+        user_response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID
+        )
+        users = user_response['documents']
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500        
 
     
 @app.route('/update-status', methods=['POST'])

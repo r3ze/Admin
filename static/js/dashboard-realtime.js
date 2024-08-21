@@ -129,7 +129,7 @@ let statusBadgeClass = '';
       <td>${doc.consumer_name}</td>
       <td>${doc.description}</td>
       <td><span class="badge bg-primary">Medium</span></td>
-      <td>${formattedDate} ${formattedTime}</td>
+      <td style="items-center">${formattedDate} ${formattedTime}</td>
           <td class="status-cell" id="status-${doc.$id}">
               <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>
           </td>
