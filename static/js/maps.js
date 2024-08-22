@@ -19,8 +19,7 @@ fetch('/complaints_data')
     .then(data => {
         console.log('Complaints data:', data); // Log the fetched data
         data.forEach(complaint => {
-            if (complaint.latitude !== null && complaint.longitude !== null) {
-                // Determine the appropriate class for the complaint type
+            if (complaint.latitude !== null && complaint.longitude !== null  ) {
                 let markerClass = '';
                 switch (complaint.complaint_description) {
                     case 'No Power':
@@ -44,17 +43,15 @@ fetch('/complaints_data')
                     default:
                         markerClass = 'blinking-marker';
                 }
-                
-                // Create the marker with the appropriate class
+
                 var marker = L.marker([complaint.latitude, complaint.longitude], {
                     icon: L.divIcon({
                         className: markerClass,
                         iconSize: [30, 30]
                     })
                 }).addTo(map);
-                
-                // Bind popup with complaint description
-                marker.bindPopup(complaint.complaint_description).openPopup();
+
+                marker.bindPopup(complaint.complaint_description);
             }
         });
     });

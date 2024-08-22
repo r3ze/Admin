@@ -140,48 +140,26 @@ def dashboard():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/complaints_data')
 def get_complaints_data():
     try:
-        # Fetch all documents from the 'complaints' collection
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID
         )
         complaints_data = response['documents']
 
-        # Dictionary to map city and barangay to their coordinates
-        location_coordinates = {
-            #Pagsanjan
-            ('Pagsanjan', 'San Isidro'): (14.2811, 121.4575),
-            ('Pagsanjan', 'Maulawin'): (14.2669, 121.4528),
-            ('Pagsanjan', 'Barangay I'): (14.2775, 121.4549),
-            ('Pagsanjan', 'Barangay II'): (14.2754, 121.4520),
-            ('Pagsanjan', 'Biñan'): (14.2679, 121.4370),
-            ('Pagsanjan', 'Buboy'): (14.2347, 121.4270),
-            ('Pagsanjan', 'Cabanbanan'): (14.2431, 121.4313),
-            ('Pagsanjan', 'Calusiche'): (14.2527, 121.4442),
-            ('Pagsanjan', 'Dingin'): (14.2397, 121.4542),
-
-            #Lumban
-            ('Lumban', 'Bagong Silang'): (14.2928, 121.4627),
-            ('Lumban', 'Balubad'): (14.2835, 121.4713),
-
-            #Cavinti
-            ('Cavinti', 'Anglas'): (14.2835, 121.4713),
-            #Paete
-             ('Paete', 'Maytoong'): (14.3632, 121.4824),
-             #Pakil
-              ('Pakil', 'Dorado'): (14.3895, 121.3799),
-
-        }
-
         processed_complaints = []
         for complaint in complaints_data:
-            # Retrieve coordinates based on city and barangay
-            coordinates = location_coordinates.get((complaint['city'], complaint['barangay']))
-            latitude, longitude = coordinates if coordinates else (None, None)
+            # Assuming 'location' is a string like "14.2811, 121.4575"
+            if 'Location' in complaint and complaint['Location']:
+                try:
+                    # Split the location string and convert to float
+                    latitude, longitude = [float(coord) for coord in complaint['Location'].split(',')]
+                except ValueError:
+                    latitude, longitude = None, None
+            else:
+                latitude, longitude = None, None
 
             complaint_dict = {
                 'complaint_description': complaint['description'],
@@ -189,13 +167,15 @@ def get_complaints_data():
                 'barangay': complaint['barangay'],
                 'date_reported': complaint['createdAt'],
                 'latitude': latitude,
-                'longitude': longitude
+                'longitude': longitude,
+                'status': complaint['status']
             }
             processed_complaints.append(complaint_dict)
 
         return jsonify(processed_complaints)
 
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 @app.route('/complaints')
 def complaints():

@@ -252,9 +252,7 @@
 
                     <td><span class="badge bg-primary">Medium</span></td>
 
-                    <td>
-                      {{- complaint['createdAt'][:10] -}} {{ complaint['createdAt'][11:16] -}}
-                    </td>
+                    <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td>
                 
                     <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
                       {% if complaint['status'] == 'New' %}
@@ -332,7 +330,7 @@
                           <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
                           <div class="col-sm-9">
                             {% if complaint['assignedAt'] %}
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['assignedAt'] }}">
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['assignedAt'][:10] }} {{ complaint['assignedAt'][11:16] }}">
                           {% else %}
                             <input type="text" class="form-control" id="dateAssigned" disabled value="">
                           {% endif %}
