@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="icon" href="/static/img/FLECO logo.png">
+    <title>Map</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/sidebar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -13,47 +14,125 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
+     <!-- MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+
      <!--Chart js-->
      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-    <style>
-  .blinking-marker {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    animation: blink 1s infinite;
-  }
+     <style>
+        /* Main container for the map and pie chart */
+        .map-container {
+          position: relative;
+          border-radius: 15px;
+          height: 95vh;
+          box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
+        }
+      
+        /* Pie chart styling */
+        #pieChart1 {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          height: 350px;
+          width: 350px;
+          background-color: rgba(255, 255, 255, 0.9);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+          border-radius: 20px;
+          padding: 15px;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      
+        /* Pie chart donut labels */
+        .apexcharts-datalabels {
+          font-size: 15px !important;
+          color: #333;
+          font-weight: bold;
+        }
+      
+        /* Blinking marker animation */
+        .blinking-marker {
+          width: 25px;
+          height: 25px;
+          border-radius: 50%;
+          animation: blink 1.5s infinite ease-in-out;
+        }
+      
+        @keyframes blink {
+          0% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+        .other-complaint {
+    background-color: #6c757d; /* Dark Gray */
+}
   
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  
-  .power-outage {
-    background-color: blue;
-  }
-  
-  .defective-meter {
-    background-color: green;
-  }
-  
-  .detached-meter {
-    background-color: orange;
-  }
-  
-  .loose-connection {
-    background-color: red;
-  }
-  
-  .low-voltage {
-    background-color: purple;
-  }
-  
-  .no-reading {
-    background-color: rgb(13, 13, 142);
-  }
-</style>
+/* Define stronger colors for different complaint types */
+.power-outage {
+    background-color: #0056b3; /* Stronger Blue */
+}
+
+.defective-meter {
+    background-color: #218838; /* Stronger Green */
+}
+
+.detached-meter {
+    background-color: #e8590c; /* Stronger Orange */
+}
+
+.loose-connection {
+    background-color: #c82333; /* Stronger Red */
+}
+
+.low-voltage {
+    background-color: #5a189a; /* Stronger Purple */
+}
+
+.no-reading {
+    background-color: #0a47a5; /* Stronger Dark Blue */
+}
+      
+        /* Cluster style modifications */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+          background-color: rgba(220, 53, 69, 0.7); /* Red background */
+          border: 2px solid rgba(220, 53, 69, 1); /* Red border */
+          color: white;
+        }
+      
+        .marker-cluster div {
+          background-color: rgba(220, 53, 69, 0.9); /* Red for number circle */
+          border-radius: 50%;
+          color: white;
+        }
+      
+        /* Responsive layout for mobile screens */
+        @media (max-width: 768px) {
+          #pieChart1 {
+            width: 250px;
+            height: 250px;
+            top: 10px;
+            right: 10px;
+          }
+      
+          .map-container {
+            height: 80vh;
+          }
+        }
+      </style>
 </head>
 <body>
   <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
@@ -116,28 +195,21 @@
        
        <!--Unresolved-->
         
-          
+       <div class="container-fluid">
+        <div class="row mt-3">
           <div class="container-fluid">
-            <div class="row mt-3">
-              <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12 mb-3">
-                        <!-- Map -->
-                        <div style="position: relative; border-radius: 10px; height: 95vh; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);" id="mapPagsanjan">
-                            <!-- Pie Chart -->
-                            <div id="pieChart1" style="position: absolute; top: 10px; right: 10px; max-height: 500px; height: 500px; width: 400px;  z-index: 1000;">
-                            </div>
-                        </div>
-                    </div>
+            <div class="row">
+              <div class="col-lg-12 mb-3">
+                <!-- Map and pie chart container -->
+                <div class="map-container" id="mapPagsanjan">
+                  <!-- Pie Chart -->
+                  <div id="pieChart1"></div>
                 </div>
+              </div>
             </div>
-            
-             
-
-          
-                </div>
-
-            </div>
+          </div>
+        </div>
+      </div>
 
         
         </div>
@@ -167,7 +239,7 @@
     function redirectToTicketHistory() {
         window.location.href = "/ticket-history";
     }
-</script>]
+</script>
 <!--apprite realtime-->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
 <script src="/static/js/map-realtime.js"></script>
@@ -178,198 +250,252 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
-    <script>
-     // ApexCharts initialization
-     var options2 = {
-         series: [0, 0, 0, 0, 0, 0], // Initial series with zeros
-         chart: {
-             type: 'donut',
-             height: 400
-         },
-         labels: ['Power outage', 'Defective Meter', 'Detached Meter', 'Loose Connection/Sparkling of Wire', 'Low Voltage', 'No Reading'],
-         title: {
-             text: '',
-             offsetY: 10,
-             style: {
-                 fontSize: '16px',
-                 fontWeight: 'bold',
-                 color: '#263238'
-             }
-         },
-         dataLabels: {
-             enabled: true,
-             formatter: function (val, opts) {
-                 return opts.w.config.series[opts.seriesIndex];
-             }
-         },
-         plotOptions: {
-             pie: {
-                 donut: {
-                     labels: {
-                         show: true,
-                         fontSize: '15px', // Change the font size here for donut labels
-                     }
-                 }
-             }
-         },
-         legend: {
-             position: 'bottom',
-             floating: false,
-             fontSize: '16px',
-             marginBottom: '10px',
-             fontWeight: 'bold',
-             labels: {
-                 useSeriesColors: false
-             }
-         }
-     };
-
-     var chart = new ApexCharts(document.querySelector("#pieChart1"), options2);
-     chart.render();
-
-     // Define a custom blinking red icon
-     var blinkingRedIcon = L.divIcon({
-         className: 'blinking-marker',
-         iconSize: [30, 30]
-     });
-
-     // Pagsanjan
-     var map = L.map('mapPagsanjan').setView([14.2811, 121.4575], 15); // Center the map at San Isidro, Pagsanjan and zoom in
-
-     // Add OpenStreetMap tile layer
-     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-         maxZoom: 19,
-         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-     }).addTo(map);
-
-     // Use AJAX to fetch complaints data from Flask route
-     fetch('/complaints_data')
-         .then(response => response.json())
-         .then(data => {
-             console.log('Complaints data:', data); // Log the fetched data
-             
-             // Initialize counters for each complaint type
-             let counts = {
-                 'No Power': 0,
-                 'Defective Meter': 0,
-                 'Detached Meter': 0,
-                 'Loose Connection/ Sparkling of Wire': 0,
-                 'Low Voltage': 0,
-                 'No Reading': 0
-             };
-             
-             data.forEach(complaint => {
-                 if (complaint.latitude !== null && complaint.longitude !== null && complaint.status !== 'Resolved') {
-                     // Determine the appropriate class for the complaint type
-                     let markerClass = '';
-                     switch (complaint.complaint_description) {
-                         case 'No Power':
-                             markerClass = 'blinking-marker power-outage';
-                             counts['No Power']++;
-                             break;
-                         case 'Defective Meter':
-                             markerClass = 'blinking-marker defective-meter';
-                             counts['Defective Meter']++;
-                             break;
-                         case 'Detached Meter':
-                             markerClass = 'blinking-marker detached-meter';
-                             counts['Detached Meter']++;
-                             break;
-                         case 'Loose Connection/ Sparkling of Wire':
-                             markerClass = 'blinking-marker loose-connection';
-                             counts['Loose Connection/ Sparkling of Wire']++;
-                             break;
-                         case 'Low Voltage':
-                             markerClass = 'blinking-marker low-voltage';
-                             counts['Low Voltage']++;
-                             break;
-                         case 'No Reading':
-                             markerClass = 'blinking-marker no-reading';
-                             counts['No Reading']++;
-                             break;
-                         default:
-                             markerClass = 'blinking-marker';
-                     }
-                     
-                     // Create the marker with the appropriate class
-                     var marker = L.marker([complaint.latitude, complaint.longitude], {
-                         icon: L.divIcon({
-                             className: markerClass,
-                             iconSize: [30, 30]
-                         })
-                     }).addTo(map);
-                     
-                     // Bind popup with complaint description
-                     marker.bindPopup(complaint.complaint_description).openPopup();
-                 }
-             });
-
-             // Update the donut chart with the counts
-             chart.updateSeries([
-                 counts['No Power'],
-                 counts['Defective Meter'],
-                 counts['Detached Meter'],
-                 counts['Loose Connection/ Sparkling of Wire'],
-                 counts['Low Voltage'],
-                 counts['No Reading']
-             ]);
-         });
-
-     // Optionally, set an interval to fetch and update data periodically
-     setInterval(() => {
-         fetch('/complaints_data')
-             .then(response => response.json())
-             .then(data => {
-                 console.log('Complaints data:', data); // Log the fetched data
-                 
-                 // Initialize counters for each complaint type
-                 let counts = {
-                     'No Power': 0,
-                     'Defective Meter': 0,
-                     'Detached Meter': 0,
-                     'Loose Connection/ Sparkling of Wire': 0,
-                     'Low Voltage': 0,
-                     'No Reading': 0
-                 };
+     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+      <!-- MarkerCluster JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+     <script>
+        // ApexCharts initialization remains the same
+        var options2 = {
+            series: [0, 0, 0, 0, 0, 0], // Initial series with zeros
+            chart: {
+                type: 'donut',
+                height: 400
+            },
+            labels: ['Power outage', 'Defective Meter', 'Detached Meter', 'Loose Connection/Sparkling of Wire', 'Low Voltage', 'No Reading', 'Others'],
+            title: {
+                text: '',
+                offsetY: 10,
+                style: {
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    color: '#263238'
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opts) {
+                    return opts.w.config.series[opts.seriesIndex];
+                }
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            fontSize: '15px', // Change the font size here for donut labels
+                        }
+                    }
+                }
+            },
+            colors: [
+        '#0056b3', // Power outage (Stronger Blue)
+        '#218838', // Defective Meter (Stronger Green)
+        '#e8590c', // Detached Meter (Stronger Orange)
+        '#c82333', // Loose Connection/Sparkling of Wire (Stronger Red)
+        '#5a189a', // Low Voltage (Stronger Purple)
+        '#0a47a5', // No Reading (Stronger Dark Blue)
+        '#6c757d'  // Others (Dark Gray)
+    ],
+            legend: {
+                position: 'bottom',
+                floating: false,
+                fontSize: '16px',
+                marginBottom: '10px',
+                fontWeight: 'bold',
+                labels: {
+                    useSeriesColors: false
+                }
+            }
+        };
+    
+        var chart = new ApexCharts(document.querySelector("#pieChart1"), options2);
+        chart.render();
+    
+        // Define a custom blinking red icon
+        var blinkingRedIcon = L.divIcon({
+            className: 'blinking-marker',
+            iconSize: [30, 30]
+        });
+    
+        // Initialize map with the center in Pagsanjan
+        var map = L.map('mapPagsanjan').setView([14.2811, 121.4575], 15);
+    
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+    
+        // Initialize marker cluster group (declare only once)
+        let markers = L.markerClusterGroup();  // <-- Declare the marker cluster group only once
+    
+        // Use AJAX to fetch complaints data from Flask route
+        fetch('/complaints_data')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Complaints data:', data); // Log the fetched data
+                
+                // Initialize counters for each complaint type
+                let counts = {
+                    'No Power': 0,
+                    'Defective Meter': 0,
+                    'Detached Meter': 0,
+                    'Loose Connection/ Sparkling of Wire': 0,
+                    'Low Voltage': 0,
+                    'No Reading': 0
+                };
+    
+                // Clear existing markers before adding new ones
+                markers.clearLayers();
+                
+                data.forEach(complaint => {
+                    if (complaint.latitude !== null && complaint.longitude !== null && complaint.status !== 'Resolved') {
+                        // Determine the appropriate class for the complaint type
+                        let markerClass = '';
+                        switch (complaint.complaint_description) {
+                            case 'No Power':
+                                markerClass = 'blinking-marker power-outage';
+                                counts['No Power']++;
+                                break;
+                            case 'Defective Meter':
+                                markerClass = 'blinking-marker defective-meter';
+                                counts['Defective Meter']++;
+                                break;
+                            case 'Detached Meter':
+                                markerClass = 'blinking-marker detached-meter';
+                                counts['Detached Meter']++;
+                                break;
+                            case 'Loose Connection/ Sparkling of Wire':
+                                markerClass = 'blinking-marker loose-connection';
+                                counts['Loose Connection/ Sparkling of Wire']++;
+                                break;
+                            case 'Low Voltage':
+                                markerClass = 'blinking-marker low-voltage';
+                                counts['Low Voltage']++;
+                                break;
+                            case 'No Reading':
+                                markerClass = 'blinking-marker no-reading';
+                                counts['No Reading']++;
+                                break;
+                            default:
+                                markerClass = 'blinking-marker other-complaint';
+                        }
+                        
+                        // Create the marker with the appropriate class
+                        var marker = L.marker([complaint.latitude, complaint.longitude], {
+                            icon: L.divIcon({
+                                className: markerClass,
+                                iconSize: [30, 30]
+                            })
+                        });
+    
+                        // Bind popup with complaint description
+                        marker.bindPopup(complaint.complaint_description);
+    
+                        // Add the marker to the cluster group
+                        markers.addLayer(marker);
+                    }
+                });
+    
+                // Add the cluster group to the map if not already added
+                if (!map.hasLayer(markers)) {
+                    map.addLayer(markers);
+                }
+    
+                // Update the donut chart with the counts
+                chart.updateSeries([
+                    counts['No Power'],
+                    counts['Defective Meter'],
+                    counts['Detached Meter'],
+                    counts['Loose Connection/ Sparkling of Wire'],
+                    counts['Low Voltage'],
+                    counts['No Reading']
+                ]);
+            });
+    
+        // Optionally, set an interval to fetch and update data periodically
+        setInterval(() => {
+            fetch('/complaints_data')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Complaints data:', data); // Log the fetched data
+                    
+                    // Initialize counters for each complaint type
+                    let counts = {
+                        'No Power': 0,
+                        'Defective Meter': 0,
+                        'Detached Meter': 0,
+                        'Loose Connection/ Sparkling of Wire': 0,
+                        'Low Voltage': 0,
+                        'No Reading': 0
+                    };
+                    
                     // Filter out complaints that have the status 'resolved'
-        const activeComplaints = data.filter(complaint => complaint.status !== 'Resolved');
+                    const activeComplaints = data.filter(complaint => complaint.status !== 'Resolved');
+    
+                    // Clear existing markers
+                    markers.clearLayers();
+    
+                    activeComplaints.forEach(complaint => {
+                        let markerClass = '';
+                        switch (complaint.complaint_description) {
+                            case 'No Power':
+                                markerClass = 'blinking-marker power-outage';
+                                counts['No Power']++;
+                                break;
+                            case 'Defective Meter':
+                                markerClass = 'blinking-marker defective-meter';
+                                counts['Defective Meter']++;
+                                break;
+                            case 'Detached Meter':
+                                markerClass = 'blinking-marker detached-meter';
+                                counts['Detached Meter']++;
+                                break;
+                            case 'Loose Connection/ Sparkling of Wire':
+                                markerClass = 'blinking-marker loose-connection';
+                                counts['Loose Connection/ Sparkling of Wire']++;
+                                break;
+                            case 'Low Voltage':
+                                markerClass = 'blinking-marker low-voltage';
+                                counts['Low Voltage']++;
+                                break;
+                            case 'No Reading':
+                                markerClass = 'blinking-marker no-reading';
+                                counts['No Reading']++;
+                                break;
+                        }
+    
+                        // Create the marker with the appropriate class
+                        var marker = L.marker([complaint.latitude, complaint.longitude], {
+                            icon: L.divIcon({
+                                className: markerClass,
+                                iconSize: [30, 30]
+                            })
+                        });
+    
+                        // Bind popup with complaint description
+                        marker.bindPopup(complaint.complaint_description);
+    
+                        // Add marker to cluster
+                        markers.addLayer(marker);
+                    });
 
-                 
-                 activeComplaints.forEach(complaint => {
-                     switch (complaint.complaint_description) {
-                         case 'No Power':
-                             counts['No Power']++;
-                             break;
-                         case 'Defective Meter':
-                             counts['Defective Meter']++;
-                             break;
-                         case 'Detached Meter':
-                             counts['Detached Meter']++;
-                             break;
-                         case 'Loose Connection/ Sparkling of Wire':
-                             counts['Loose Connection/ Sparkling of Wire']++;
-                             break;
-                         case 'Low Voltage':
-                             counts['Low Voltage']++;
-                             break;
-                         case 'No Reading':
-                             counts['No Reading']++;
-                             break;
-                     }
-                 });
-
-                 // Update the donut chart with the counts
-                 chart.updateSeries([
-                     counts['No Power'],
-                     counts['Defective Meter'],
-                     counts['Detached Meter'],
-                     counts['Loose Connection/ Sparkling of Wire'],
-                     counts['Low Voltage'],
-                     counts['No Reading']
-                 ]);
-             });
-     }, 60000); // Update every 60 seconds
- </script>
+                    
+    
+                    // Update the donut chart with the counts
+                    chart.updateSeries([
+                        counts['No Power'],
+                        counts['Defective Meter'],
+                        counts['Detached Meter'],
+                        counts['Loose Connection/ Sparkling of Wire'],
+                        counts['Low Voltage'],
+                        counts['No Reading']
+                    ]);
+                });
+        }, 60000); // Update every 60 seconds
+    </script>
+    
+    
       
 </body>
 

@@ -3,6 +3,7 @@
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="/static/img/FLECO logo.png">
         <!--Bootstrap-->
         <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
         <link
@@ -26,7 +27,7 @@
               margin-right: 10px;
           }
       </style>
-        <title>Document</title>
+        <title>Tickets</title>
       </head>
       <body>
         <div class="container-fluid">
@@ -246,14 +247,17 @@
                   <tr id="{{complaint['$id']}}">
                     <td>{{ complaint['$id'] }}</td>
                     <td>{{ complaint['consumer_name'] }}</td>
-                    <!-- consumer name -->
                     <td>{{ complaint['description'] }}</td>
-
-
-                    <td><span class="badge bg-primary">Medium</span></td>
-
-                    <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td>
-                
+                    <td>
+                      {% if complaint['priority'] == 'High' %}
+                      <span class="badge bg-danger">High</span>
+                      {% elif complaint['priority'] == 'Medium' %}
+                      <span class="badge bg-warning">Medium</span>
+                      {% else %}
+                      <span class="badge bg-success">Low</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ complaint['formattedCreatedAt'] }}</td>
                     <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
                       {% if complaint['status'] == 'New' %}
                         <span class="badge bg-info" style="padding: 5px 10px; border-radius: 20px;">New</span>
@@ -265,8 +269,6 @@
                         <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Closed</span>
                       {% endif %}
                     </td>
-                  
-
                     <td >  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{complaint['$id']}}">
                       View More
                   </button></td>
@@ -322,25 +324,33 @@
                         <div class="mb-3 row">
                           <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}">
+                            <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['formattedCreatedAt'] }}">
                           </div>
                         </div>
 
                         <div class="mb-3 row">
                           <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
                           <div class="col-sm-9">
-                            {% if complaint['assignedAt'] %}
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['assignedAt'][:10] }} {{ complaint['assignedAt'][11:16] }}">
-                          {% else %}
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="">
-                          {% endif %}
+                           
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['formattedAssignedAt'] }}">
+
 
                           </div>
                         </div>
                         <div class="mb-3 row">
                           <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="Priority" disabled placeholder="high">
+                           
+                              {% if complaint['priority'] == 'High' %}
+                              <input type="text" class="form-control" id="Priority" disabled placeholder="High">
+                              {% elif complaint['priority'] == 'Medium' %}
+                              <input type="text" class="form-control" id="Priority" disabled placeholder="Medium">
+                              {% else %}
+                              <input type="text" class="form-control" id="Priority" disabled placeholder="Low">
+                                {% endif %}
+
+                           
+                           
                           </div>
                         </div>
                         <div class="mb-3 row">
@@ -353,7 +363,16 @@
                         <div class="mb-3 row">
                           <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
                           <div class="col-sm-9">
-                            <input type="text" class="form-control" id="resolutionTeamName" disabled placeholder="{{complaint['crew_name']}}">
+
+                            <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ complaint['crew_name'] }}">
+     
+                          </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                          <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                          <div class="col-sm-9">
+                            <input type="text" class="form-control" id="followUp" disabled placeholder="{{ complaint['followUp'] }}">
                           </div>
                         </div>
 
@@ -362,7 +381,7 @@
                           <div class="col-sm-9">
                             <div class="dropdown">
                                 <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                    Assign
+                                    {{complaint['crew_name'] or 'Assign Team'}} 
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
                                     <!-- Options will be added here dynamically -->
@@ -371,12 +390,7 @@
                         </div>
                         </div>
 
-                        <div class="mb-3 row">
-                          <label for="dateCreated" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateCreated" disabled placeholder="{{ complaint['followUp'] }}">
-                          </div>
-                        </div>
+                       
                       </form>
                     </div>
                     <div class="modal-footer">
@@ -520,12 +534,6 @@ $('.dropdown-menu').on('click', '.status-dropdown', function() {
    var userName = $(this).data('user-name'); // Get the selected crew's name
    var newClass = "btn-secondary";
 
-   $(this).closest('.dropdown').find('.dropdown-toggle')
-       .removeClass('btn-primary') // Remove the existing class
-       .addClass(newClass) // Add the new class
-       .text("Edit"); // Change text to "Edit"
-
- 
 
    $.ajax({
        url: '/update-crew',

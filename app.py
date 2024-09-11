@@ -177,10 +177,57 @@ def get_complaints_data():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
+from datetime import datetime, timezone
+
+# Function to calculate priority
+def calculate_priority(complaint):
+    # Define severity based on complaint type
+    severity_map = {
+        'No Power': 'High',
+        'Loose Connection/Sparking of Wire': 'High',
+        'Low Voltage': 'Medium',
+        'Defective Meter': 'Medium',
+        'No Reading': 'Low',
+        'Detached Meter': 'Low'
+    }
+
+    # Severity-based prioritization
+    complaint_type = complaint.get('description', 'Other')
+    severity = severity_map.get(complaint_type, 'Medium')
+    severity_score = {
+        'High': 3,
+        'Medium': 2,
+        'Low': 1
+    }.get(severity, 2)
+
+    # Time-based prioritization (older complaints get higher priority)
+    submitted_at = complaint.get('createdAt')
+    if submitted_at:
+        time_submitted = datetime.fromisoformat(submitted_at).replace(tzinfo=timezone.utc)
+        hours_since_submission = (datetime.now(timezone.utc) - time_submitted).total_seconds() / 3600
+        time_score = min(int(hours_since_submission / 48), 3)  # Score based on age (max score 3)
+    else:
+        time_score = 0
+
+    # Location-based prioritization (higher priority for critical locations)
+    critical_locations = ['hospital', 'school']
+    complaint_location = complaint.get('locationName', '').lower()
+    location_score = 3 if any(loc in complaint_location for loc in critical_locations) else 0
+
+    # Total priority score
+    total_score = severity_score + time_score + location_score
+
+    # Determine priority level based on the score
+    if total_score >= 6:
+        return 'High'
+    elif total_score >= 3:
+        return 'Medium'
+    else:
+        return 'Low'
+
 @app.route('/complaints')
 def complaints():
     try:
-        
         # Fetch all documents from the 'complaints' collection
         response = database.list_documents(
             database_id=DATABASE_ID,
@@ -192,46 +239,55 @@ def complaints():
             collection_id=CREW_COLLECTION_ID
         )
 
-         # Assuming 'created_at' is a field in the document and sorting by it in descending order
-        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
-
-        # Parse the createdAt field into datetime objects
-        for complaint in response['documents']:
-            # Check if 'createdAt' and 'assignedAt' are not None before replacing
-            if complaint.get('createdAt'):
-                complaint['createdAt_dt'] = datetime.fromisoformat(complaint['createdAt'].replace('Z', '+00:00'))
-            else:
-                complaint['createdAt_dt'] = None
-
-            if complaint.get('assignedAt'):
-                complaint['assignedAt_dt'] = datetime.fromisoformat(complaint['assignedAt'].replace('Z', '+00:00'))
-            else:
-                complaint['assignedAt_dt'] = None
-
-
         # Filter out complaints with 'resolved' status
         filtered_complaints = [
             complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved'
         ]
 
-
-           # Sort using the datetime objects, handle None values if necessary
+        # Sort complaints by 'createdAt' field in descending order
         sorted_complaints = sorted(
-             filtered_complaints,
-            key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
+            filtered_complaints,
+            key=lambda x: (x['createdAt'] is not None, x['createdAt']),
             reverse=True
         )
+
+        # Calculate priority and format dates
+        for complaint in sorted_complaints:
+            complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
+            complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
+            complaint['priority'] = calculate_priority(complaint)
 
         users = user_response['documents']
         total_complaints = count_complaints()
         total_new_complaints = count_new_complaints()
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
-        
-        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users, count_new_complaints = total_new_complaints,
-                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
+
+        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users, count_new_complaints=total_new_complaints,
+                               count_assigned_complaints=total_assigned_complaints, count_resolved_complaints=total_resolved_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def format_date(iso_date):
+    if iso_date:
+        try:
+            # Try parsing with milliseconds and 'Z' (UTC timezone)
+            dt = datetime.strptime(iso_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            try:
+                # Try parsing with timezone offset (e.g., +00:00)
+                dt = datetime.strptime(iso_date, '%Y-%m-%dT%H:%M:%S.%f%z')
+            except ValueError:
+                try:
+                    # Handle cases without milliseconds (e.g., '2024-09-06T05:10:29+00:00')
+                    dt = datetime.strptime(iso_date, '%Y-%m-%dT%H:%M:%S%z')
+                except ValueError:
+                    # Final fallback, if there's no timezone or milliseconds
+                    dt = datetime.strptime(iso_date, '%Y-%m-%dT%H:%M:%S')
+        
+        return dt.strftime('%d/%m/%Y %I:%M %p')  # Formats as "DD/MM/YYYY HH:MM AM/PM"
+    return None  # Return None if date is missing
+
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
@@ -282,8 +338,8 @@ def update_crew():
             data={
                 'crews': assigned_crew,
                 'crew_name': crew_name,
-                'assignedAt': assigned_at
-                
+                'assignedAt': assigned_at,
+                'crew_id': assigned_crew
             }
         )
         return jsonify({'success': True})

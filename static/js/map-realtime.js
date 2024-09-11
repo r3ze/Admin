@@ -26,7 +26,7 @@ client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f7
   removeMarkerFromMap(document.$id);
 }
 });
-const markers = {};
+const markersC = {};
 // Function to add a marker to the map
 // Function to add a marker to the map
 function addMarkerToMap(doc) {
@@ -67,7 +67,7 @@ function addMarkerToMap(doc) {
         }).addTo(map);
 
         marker.bindPopup(doc.description);
-        markers[doc.$id] = marker;  // Store marker by document ID
+        markersC[doc.$id] = marker;  // Store marker by document ID
     }
 }
 
@@ -79,7 +79,7 @@ function updateMarkerOnMap(doc) {
         removeMarkerFromMap(doc.$id);
     } else {
         // Otherwise, update the marker on the map
-        if (markers[doc.$id]) {
+        if (markersC[doc.$id]) {
             removeMarkerFromMap(doc.$id);  // Remove the old marker
         }
         addMarkerToMap(doc);  // Add the updated marker
@@ -88,9 +88,9 @@ function updateMarkerOnMap(doc) {
 
 // Function to remove a marker from the map
 function removeMarkerFromMap(docId) {
-    if (markers[docId]) {
-        map.removeLayer(markers[docId]);  // Remove the marker from the map
-        delete markers[docId];  // Delete the marker from the markers object
+    if (markersC[docId]) {
+        map.removeLayer(markersC[docId]);  // Remove the marker from the map
+        delete markersC[docId];  // Delete the marker from the markers object
     }
 }
  

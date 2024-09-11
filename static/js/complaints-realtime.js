@@ -80,7 +80,50 @@ function updateResolvedComplaintsCount() {
 
 
 
+// Function to calculate priority based on the complaint description, creation time, and location
+function calculatePriority(complaint) {
+    // Define severity based on complaint type
+    const severityMap = {
+        'No Power': 'High',
+        'Loose Connection': 'High',
+        'Sparking': 'High',
+        'Low Voltage': 'Medium',
+        'Defective Meter': 'Medium',
+        'No Reading': 'Low',
+        'Detached Meter': 'Low'
+    };
 
+    // Severity-based prioritization
+    const complaintType = complaint.description || 'Other';
+    const severity = severityMap[complaintType] || 'Medium';
+    const severityScore = {
+        'High': 3,
+        'Medium': 2,
+        'Low': 1
+    }[severity] || 2;
+
+    // Time-based prioritization
+    const submittedAt = complaint.createdAt;
+    let timeScore = 0;
+    if (submittedAt) {
+        const timeSubmitted = new Date(submittedAt);
+        const hoursSinceSubmission = (new Date() - timeSubmitted) / (1000 * 60 * 60);
+        timeScore = Math.min(Math.floor(hoursSinceSubmission / 48), 3);
+    }
+
+    // Location-based prioritization
+    const criticalLocations = ['hospital', 'school'];
+    const complaintLocation = (complaint.locationName || '').toLowerCase();
+    const locationScore = criticalLocations.some(loc => complaintLocation.includes(loc)) ? 3 : 0;
+
+    // Total priority score
+    const totalScore = severityScore + timeScore + locationScore;
+
+    // Determine priority level based on the total score
+    if (totalScore >= 6) return 'High';
+    if (totalScore >= 3) return 'Medium';
+    return 'Low';
+}
 // Function to add a row to the table
 function addRowToTable(doc) {
     const table = $('#example').DataTable(); 
@@ -90,17 +133,19 @@ function addRowToTable(doc) {
         ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
         createdAt.getUTCFullYear();
 
-    const hours = createdAt.getUTCHours();
-    const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
-    const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes;
+        const hours = createdAt.getUTCHours();
+        const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+        const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+        const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
 
     const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
     const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
         ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
         assignedAt.getUTCFullYear() : "Not Assigned";
-    const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-    const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-    const assignedTime = assignedHours + ':' + assignedMinutes;
+        const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
+        const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
+        const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+        const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
 
     let statusBadgeClass = '';
     switch (doc.status) {
@@ -120,13 +165,30 @@ function addRowToTable(doc) {
             statusBadgeClass = 'badge bg-secondary';
     }
 
+    
     // Use DataTables API to add a new row
    // Add the row and assign the ID
+ // Calculate priority
+ const priority = calculatePriority(doc);
+ let priorityBadgeClass = '';
+ switch (priority) {
+     case 'High':
+         priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
+         break;
+     case 'Medium':
+         priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
+         break;
+     case 'Low':
+         priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
+         break;
+     default:
+         priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
+ }
    const newRow = table.row.add([
     doc.$id,
     doc.consumer_name,
     doc.description,
-    '<span class="badge bg-primary">Medium</span>',
+    `<span class="${priorityBadgeClass}">${priority}</span>`,
     `${formattedDate} ${formattedTime}`,
     `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
     `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
@@ -137,6 +199,7 @@ $(newRow).attr('id', doc.$id);
     
     table.order([0, 'desc']).draw(); 
 
+ 
   // Create the modal HTML
   const modalHtml = `
   
@@ -191,16 +254,16 @@ $(newRow).attr('id', doc.$id);
                                   <input type="text" class="form-control" id="dateCreated" disabled value="${formattedDate} ${formattedTime}">
                               </div>
                           </div>
-                          <div class="mb-3 row">
-                              <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="dateAssigned" disabled value="${assignedDate} ${assignedTime}">
-                              </div>
+                             <div class="mb-3 row">
+                          <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+                          <div class="col-sm-9">
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="${assignedDate} ${assignedTime}">
                           </div>
+                        </div>
                           <div class="mb-3 row">
                               <label for="priority" class="col-sm-3 col-form-label">Priority</label>
                               <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="priority" disabled value="High">
+                                  <input type="text" class="form-control" id="priority" disabled value="${priority}">
                               </div>
                           </div>
                           <div class="mb-3 row">
@@ -210,9 +273,9 @@ $(newRow).attr('id', doc.$id);
                               </div>
                           </div>
                           <div class="mb-3 row">
-                              <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
+                              <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
                               <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="resolutionTeam" disabled value="${doc.crew_name}">
+                                  <input type="text" class="form-control" id="resolutionTeamName" disabled value="${doc.crew_name}">
                               </div>
                           </div>
                           <div class="mb-3 row">
@@ -227,7 +290,7 @@ $(newRow).attr('id', doc.$id);
                             <div class="col-sm-9">
                                 <div class="dropdown">
                                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-${doc.$id}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                        Assign
+                                        Assign Team
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-${doc.$id}" id="dropdownMenu-${doc.$id}">
                                         <!-- Options will be added dynamically -->
@@ -260,10 +323,6 @@ $(document).on('click', '.status-dropdown', function() {
     var userName = $(this).data('user-name');
     var newClass = "btn-secondary";
 
-    $(this).closest('.dropdown').find('.dropdown-toggle')
-        .removeClass('btn-primary')
-        .addClass(newClass)
-        .text("Edit");
 
     // Update crew and status via AJAX
     $.ajax({
@@ -342,18 +401,19 @@ function updateRowInTable(doc, dataTable) {
             ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
             createdAt.getUTCFullYear();
 
-        const hours = ('0' + createdAt.getUTCHours()).slice(-2);
-        const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
-        const formattedTime = hours + ':' + minutes;
-
-        // Format assignedAt date
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
+    
         const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
         const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
             ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
             assignedAt.getUTCFullYear() : "Not Assigned";
-        const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-        const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-        const assignedTime = assignedHours + ':' + assignedMinutes;
+            const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
+            const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
+            const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+            const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
 
         let statusBadgeClass = '';
         switch (doc.status) {
@@ -372,15 +432,31 @@ function updateRowInTable(doc, dataTable) {
             default:
                 statusBadgeClass = 'badge bg-secondary';
         }
-
+        // Calculate priority
+ const priority = calculatePriority(doc);
+ let priorityBadgeClass = '';
+ switch (priority) {
+     case 'High':
+         priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
+         break;
+     case 'Medium':
+         priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
+         break;
+     case 'Low':
+         priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
+         break;
+     default:
+         priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
+ }
         // Update the row data in the DataTable
         dataTable.row(rowIndex).data([
             doc.$id,
             doc.consumer_name,
             doc.description,
-            '<span class="badge bg-primary">Medium</span>',
+            `<span class="${priorityBadgeClass}">${priority}</span>`,
             `${formattedDate} ${formattedTime}`,
             `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+
             `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
         ]).draw(false);
 
