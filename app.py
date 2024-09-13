@@ -2,7 +2,11 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for
 from datetime import datetime
 from appwrite.client import Client
 from appwrite.services.databases import Databases
-
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+from datetime import datetime, timezone
+# nltk.download('vader_lexicon') 
+sia = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
 client = Client()
@@ -134,6 +138,11 @@ def dashboard():
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
         complaints_data = sorted_complaints[:7]  # Limiting to the first 7 complaints after sorting
+
+        # Calculate priority and format dates
+        for complaint in sorted_complaints:
+            complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
+            complaint['priority'] = calculate_priority(complaint)
         
         return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints, count_new_complaints = total_new_complaints,
                                count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
@@ -177,7 +186,7 @@ def get_complaints_data():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
-from datetime import datetime, timezone
+
 
 # Function to calculate priority
 def calculate_priority(complaint):
@@ -192,7 +201,7 @@ def calculate_priority(complaint):
     }
 
     # Severity-based prioritization
-    complaint_type = complaint.get('description', 'Other')
+    complaint_type = complaint.get('description', 'Others')
     severity = severity_map.get(complaint_type, 'Medium')
     severity_score = {
         'High': 3,
@@ -213,10 +222,27 @@ def calculate_priority(complaint):
     critical_locations = ['hospital', 'school']
     complaint_location = complaint.get('locationName', '').lower()
     location_score = 3 if any(loc in complaint_location for loc in critical_locations) else 0
+ # NLP-based severity for 'Other' complaints
+    if complaint_type == 'Others':
+        additional_details = complaint.get('additionalDetails', '')  # Get additional details or an empty string if not present
+        sentiment_scores = sia.polarity_scores(additional_details)
+        compound_score = sentiment_scores['compound']
 
+        if compound_score >= 0.5:  # Positive sentiment (less urgent)
+            severity = 'Low'
+        elif compound_score <= -0.5:  # Negative sentiment (more urgent)
+            severity = 'High'
+        else:  # Neutral sentiment
+            severity = 'Medium'
+
+        severity_score = {
+            'High': 3,
+            'Medium': 2,
+            'Low': 1
+        }.get(severity, 2)
     # Total priority score
     total_score = severity_score + time_score + location_score
-
+    print(severity_score, time_score, location_score)
     # Determine priority level based on the score
     if total_score >= 6:
         return 'High'
@@ -224,6 +250,13 @@ def calculate_priority(complaint):
         return 'Medium'
     else:
         return 'Low'
+
+@app.route('/calculate-priority', methods=['POST'])
+def calculate_priority_endpoint():
+    complaint = request.json  # Receive the complaint JSON from the request
+    priority = calculate_priority(complaint)
+    return jsonify({'priority': priority})  # Return the result as JSON
+
 
 @app.route('/complaints')
 def complaints():

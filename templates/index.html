@@ -225,8 +225,16 @@
         <td>{{ complaint['consumer_name'] }}</td> <!-- consumer name -->
         <td>{{ complaint['description'] }}</td> <!-- Description -->
 
-        <td><span class="badge bg-primary">Medium</span></td>
-        <td>{{ complaint['createdAt'][:10] }} {{ complaint['createdAt'][11:16] }}</td> <!-- Date Reported -->
+        <td>
+          {% if complaint['priority'] == 'High' %}
+          <span class="badge bg-danger">High</span>
+          {% elif complaint['priority'] == 'Medium' %}
+          <span class="badge bg-warning">Medium</span>
+          {% else %}
+          <span class="badge bg-success">Low</span>
+          {% endif %}
+        </td>
+        <td>{{ complaint['formattedCreatedAt'] }}</td> <!-- Date Reported -->
         
         <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
           {% if complaint['status'] == 'New' %}
@@ -235,8 +243,8 @@
             <span class="badge bg-warning" style="padding: 5px 10px; border-radius: 20px;">Assigned</span>
           {% elif complaint['status'] == 'Resolved' %}
             <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
-          {% elif complaint['status'] == 'closed' %}
-            <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Closed</span>
+          {% elif complaint['status'] == 'In Progress' %}
+            <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">In Progress</span>
           {% endif %}
         </td>
       

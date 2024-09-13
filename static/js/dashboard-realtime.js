@@ -87,25 +87,26 @@ function addRowToTable(doc) {
   const row = document.createElement('tr');
   row.id = doc.$id;
   const createdAt = new Date(doc.createdAt);
-  const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-  ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-  createdAt.getUTCFullYear();
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
 
-const hours = createdAt.getUTCHours();
-const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
 
-const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes;
+        const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+        const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            assignedAt.getUTCFullYear() : "Not Assigned";
+            const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
+            const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
+            const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+            const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
 
 
 
-  // Format assignedAt date
-  const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-  const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-      ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-      assignedAt.getUTCFullYear() : "Not Assigned";
-  const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-  const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-  const assignedTime = assignedHours + ':' + assignedMinutes;
 let statusBadgeClass = '';
       switch (doc.status) {
           case 'New':
@@ -124,24 +125,72 @@ let statusBadgeClass = '';
               statusBadgeClass = 'badge bg-secondary';
       }
 
-  row.innerHTML = `
-      <td>${doc.$id}</td>
-      <td>${doc.consumer_name}</td>
-      <td>${doc.description}</td>
-      <td><span class="badge bg-primary">Medium</span></td>
-      <td style="items-center">${formattedDate} ${formattedTime}</td>
-          <td class="status-cell" id="status-${doc.$id}">
-              <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>
-          </td>
-   
-  `;
 
-  // Append the row to the top of the table
-  if (tableBody.firstChild) {
-      tableBody.insertBefore(row, tableBody.firstChild);
-  } else {
-      tableBody.appendChild(row);
-  }
+
+// Call Flask API to calculate priority
+fetch('http://127.0.0.1:5000/calculate-priority', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        description: doc.description,
+        createdAt: doc.createdAt,
+        locationName: doc.locationName,
+        additionalDetails: doc.additionalDetails
+    })
+
+})
+.then(response => response.json())
+.then(data => {
+    const priority = data.priority;
+
+    let priorityBadgeClass = '';
+    switch (priority) {
+        case 'High':
+            priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
+            break;
+        case 'Medium':
+            priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
+            break;
+        case 'Low':
+            priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
+            break;
+        default:
+            priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
+    }
+
+    row.innerHTML = `
+    <td>${doc.$id}</td>
+    <td>${doc.consumer_name}</td>
+    <td>${doc.description}</td>
+     <td> <span class="${priorityBadgeClass}">${priority}</span></td>
+    <td style="items-center">${formattedDate} ${formattedTime}</td>
+        <td class="status-cell" id="status-${doc.$id}">
+            <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>
+        </td>
+ 
+`;
+
+// Append the row to the top of the table
+if (tableBody.firstChild) {
+    tableBody.insertBefore(row, tableBody.firstChild);
+} else {
+    tableBody.appendChild(row);
+} 
+
+
+
+
+})
+.catch((error) => {
+    console.error('Error calculating priority:', error);
+});
+
+
+
+
+
 }
 
 
@@ -150,23 +199,23 @@ function updateRowInTable(doc) {
 
    // Format the createdAt date
    const createdAt = new Date(doc.createdAt);
-    const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-        ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-        createdAt.getUTCFullYear();
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
 
-    const hours = ('0' + createdAt.getUTCHours()).slice(-2);
-    const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
 
-    const formattedTime = hours + ':' + minutes;
-
-    // Format assignedAt date
-    const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-    const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-        ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-        assignedAt.getUTCFullYear() : "Not Assigned";
-    const assignedHours = assignedAt ? ('0' + assignedAt.getUTCHours()).slice(-2) : '00';
-    const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-    const assignedTime = assignedHours + ':' + assignedMinutes;
+        const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+        const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            assignedAt.getUTCFullYear() : "Not Assigned";
+            const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
+            const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
+            const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+            const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
     if (row) {
 
 
@@ -191,7 +240,7 @@ function updateRowInTable(doc) {
             <td>${doc.$id}</td>
             <td>${doc.consumer_name}</td>
             <td>${doc.description}</td>
-            <td><span class="badge bg-primary">Medium</span></td>
+            <span class="${priorityBadgeClass}">${priority}</span>,
             <td>${formattedDate} ${formattedTime}</td>
              <td class="status-cell" id="status-${doc.$id}">
                 <span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>

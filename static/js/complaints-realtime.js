@@ -1,289 +1,318 @@
-const client = new Appwrite.Client();
-const collectionId = '6626029b134a98006f77'; 
+    const client = new Appwrite.Client();
+    const collectionId = '6626029b134a98006f77'; 
 
-// Set up Appwrite client
-client
-    .setEndpoint('https://cloud.appwrite.io/v1') 
-    .setProject('662248657f5bd3dd103c'); 
+    // Set up Appwrite client
+    client
+        .setEndpoint('https://cloud.appwrite.io/v1') 
+        .setProject('662248657f5bd3dd103c'); 
 
-const database = new Appwrite.Databases(client);
+    const database = new Appwrite.Databases(client);
 
-// Listen to real-time events on the collection
-client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f77.documents', response => {
-    const event = response.events[0];
-    const document = response.payload;
+    // Listen to real-time events on the collection
+    client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f77.documents', response => {
+        const event = response.events[0];
+        const document = response.payload;
 
-    const status = response.payload.status;
-    console.log(status)
-    if (status === 'New') {
-      updateNewComplaintsCount();
-      updateAssignedComplaintsCount();
-      updateResolvedComplaintsCount();
-      console.log("new complaint");
-  } else if (status === 'Assigned') {
-    updateNewComplaintsCount();
-      updateAssignedComplaintsCount();
-      updateResolvedComplaintsCount();
-      console.log("assigned complaint");
-  } else if (status === 'Resolved') {
-    updateNewComplaintsCount();
-      updateAssignedComplaintsCount();
-      updateResolvedComplaintsCount();
-      console.log("resolved complaint");
-  }
-
-    console.log('Real-time event received:', response);
-    console.log('Event:', event);
-    
-    const table = $('#example').DataTable();
-    if (event.includes('create')) {
-        console.log("Create event matched");
-        addRowToTable(document);
-    } else if (event.includes('update')) {
-        console.log("Update event matched");
-        updateRowInTable(document, table);
-    } else if (event.includes('delete')) {
-  console.log("Delete event received with document ID:", document.$id);
-  deleteRowFromTable(document.$id);
-}
-});
-
-// Function to update the count of new complaints
-function updateNewComplaintsCount() {
-  database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-      .then(response => {
-          const totalNewComplaints = response.documents.filter(complaint => complaint.status === 'New').length;
-          document.getElementById('new_complaints_card').innerText = totalNewComplaints;
-          document.getElementById('unassigned_complaints_card').innerText = totalNewComplaints;
-          console.log(totalNewComplaints)
-      });
-}
-
-// Function to update the count of assigned complaints
-function updateAssignedComplaintsCount() {
-  database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-      .then(response => {
-          const totalAssignedComplaints = response.documents.filter(complaint => complaint.status === 'Assigned').length;
-          document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
-      });
-}
-
-// Function to update the count of resolved complaints
-function updateResolvedComplaintsCount() {
-  database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-      .then(response => {
-          const totalResolvedComplaints = response.documents.filter(complaint => complaint.status === 'Resolved').length;
-          document.getElementById('resolved_complaints_card').innerText = totalResolvedComplaints;
-      });
-}
-
-
-
-
-// Function to calculate priority based on the complaint description, creation time, and location
-function calculatePriority(complaint) {
-    // Define severity based on complaint type
-    const severityMap = {
-        'No Power': 'High',
-        'Loose Connection': 'High',
-        'Sparking': 'High',
-        'Low Voltage': 'Medium',
-        'Defective Meter': 'Medium',
-        'No Reading': 'Low',
-        'Detached Meter': 'Low'
-    };
-
-    // Severity-based prioritization
-    const complaintType = complaint.description || 'Other';
-    const severity = severityMap[complaintType] || 'Medium';
-    const severityScore = {
-        'High': 3,
-        'Medium': 2,
-        'Low': 1
-    }[severity] || 2;
-
-    // Time-based prioritization
-    const submittedAt = complaint.createdAt;
-    let timeScore = 0;
-    if (submittedAt) {
-        const timeSubmitted = new Date(submittedAt);
-        const hoursSinceSubmission = (new Date() - timeSubmitted) / (1000 * 60 * 60);
-        timeScore = Math.min(Math.floor(hoursSinceSubmission / 48), 3);
+        const status = response.payload.status;
+        console.log(status)
+        if (status === 'New') {
+        updateNewComplaintsCount();
+        updateAssignedComplaintsCount();
+        updateResolvedComplaintsCount();
+        console.log("new complaint");
+    } else if (status === 'Assigned') {
+        updateNewComplaintsCount();
+        updateAssignedComplaintsCount();
+        updateResolvedComplaintsCount();
+        console.log("assigned complaint");
+    } else if (status === 'Resolved') {
+        updateNewComplaintsCount();
+        updateAssignedComplaintsCount();
+        updateResolvedComplaintsCount();
+        console.log("resolved complaint");
     }
 
-    // Location-based prioritization
-    const criticalLocations = ['hospital', 'school'];
-    const complaintLocation = (complaint.locationName || '').toLowerCase();
-    const locationScore = criticalLocations.some(loc => complaintLocation.includes(loc)) ? 3 : 0;
+        console.log('Real-time event received:', response);
+        console.log('Event:', event);
+        
+        const table = $('#example').DataTable();
+        if (event.includes('create')) {
+            console.log("Create event matched");
+            addRowToTable(document);
+        } else if (event.includes('update')) {
+            console.log("Update event matched");
+            updateRowInTable(document, table);
+        } else if (event.includes('delete')) {
+    console.log("Delete event received with document ID:", document.$id);
+    deleteRowFromTable(document.$id);
+    }
+    });
 
-    // Total priority score
-    const totalScore = severityScore + timeScore + locationScore;
-
-    // Determine priority level based on the total score
-    if (totalScore >= 6) return 'High';
-    if (totalScore >= 3) return 'Medium';
-    return 'Low';
-}
-// Function to add a row to the table
-function addRowToTable(doc) {
-    const table = $('#example').DataTable(); 
-    console.log(table)
-    const createdAt = new Date(doc.createdAt);
-    const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-        ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-        createdAt.getUTCFullYear();
-
-        const hours = createdAt.getUTCHours();
-        const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
-        const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
-        const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
-
-    const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-    const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-        ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-        assignedAt.getUTCFullYear() : "Not Assigned";
-        const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
-        const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
-        const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
-        const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
-
-    let statusBadgeClass = '';
-    switch (doc.status) {
-        case 'New':
-            statusBadgeClass = 'badge bg-info';
-            break;
-        case 'Assigned':
-            statusBadgeClass = 'badge bg-warning';
-            break;
-        case 'Resolved':
-            statusBadgeClass = 'badge bg-success';
-            break;
-        case 'Closed':
-            statusBadgeClass = 'badge bg-secondary';
-            break;
-        default:
-            statusBadgeClass = 'badge bg-secondary';
+    // Function to update the count of new complaints
+    function updateNewComplaintsCount() {
+    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
+        .then(response => {
+            const totalNewComplaints = response.documents.filter(complaint => complaint.status === 'New').length;
+            document.getElementById('new_complaints_card').innerText = totalNewComplaints;
+            document.getElementById('unassigned_complaints_card').innerText = totalNewComplaints;
+            console.log(totalNewComplaints)
+        });
     }
 
-    
-    // Use DataTables API to add a new row
-   // Add the row and assign the ID
- // Calculate priority
- const priority = calculatePriority(doc);
- let priorityBadgeClass = '';
- switch (priority) {
-     case 'High':
-         priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
-         break;
-     case 'Medium':
-         priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
-         break;
-     case 'Low':
-         priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
-         break;
-     default:
-         priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
- }
-   const newRow = table.row.add([
-    doc.$id,
-    doc.consumer_name,
-    doc.description,
-    `<span class="${priorityBadgeClass}">${priority}</span>`,
-    `${formattedDate} ${formattedTime}`,
-    `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
-    `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
-]).draw(false).node();
+    // Function to update the count of assigned complaints
+    function updateAssignedComplaintsCount() {
+    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
+        .then(response => {
+            const totalAssignedComplaints = response.documents.filter(complaint => complaint.status === 'Assigned').length;
+            document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
+        });
+    }
 
-// Set the row ID to match the document ID
-$(newRow).attr('id', doc.$id);
-    
-    table.order([0, 'desc']).draw(); 
+    // Function to update the count of resolved complaints
+    function updateResolvedComplaintsCount() {
+    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
+        .then(response => {
+            const totalResolvedComplaints = response.documents.filter(complaint => complaint.status === 'Resolved').length;
+            document.getElementById('resolved_complaints_card').innerText = totalResolvedComplaints;
+        });
+    }
 
- 
-  // Create the modal HTML
-  const modalHtml = `
-  
-      <div class="modal fade ticket-modal" id="modal-${doc.$id}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-${doc.$id}" aria-hidden="true">
-          <div class="modal-dialog modal-xl">
-              <div class="modal-content">
-                  <div class="modal-header">
-                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                      <form>
-                          <div class="mb-3 row">
-                              <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="ticketID" disabled value="${doc.$id}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="consumer" disabled value="${doc.consumer_name}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="complaintType" disabled value="${doc.description}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="additionalDetails" class="col-sm-3 col-form-label">Additional Details</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="additionalDetails" disabled value="${doc.additionalDetails}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="address" class="col-sm-3 col-form-label">Address</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="address" disabled value="${doc.locationName}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="image" class="col-sm-3 col-form-label">Image</label>
-                              <div class="col-sm-9">
-                                  <a href="#" class="view-image" data-image="${doc.image}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="dateCreated" disabled value="${formattedDate} ${formattedTime}">
-                              </div>
-                          </div>
-                             <div class="mb-3 row">
-                          <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="${assignedDate} ${assignedTime}">
-                          </div>
+
+    function calculatePriority(complaint) {
+        // Define severity based on complaint type
+        const severityMap = {
+            'No Power': 'High',
+            'Loose Connection/Sparking of Wire': 'High',
+            'Low Voltage': 'Medium',
+            'Defective Meter': 'Medium',
+            'No Reading': 'Low',
+            'Detached Meter': 'Low'
+        };
+
+        // Severity-based prioritization
+        const complaintType = complaint.description || 'Other';
+        const severity = severityMap[complaintType] || 'Medium';
+        const severityScore = {
+            'High': 3,
+            'Medium': 2,
+            'Low': 1
+        }[severity] || 2;
+
+        // Time-based prioritization (older complaints get higher priority)
+            // Time-based prioritization 
+            const createdAt = complaint.createdAt;
+            let timeScore = 0;
+            if (createdAt) {
+                const timeSubmitted = new Date(createdAt); 
+        
+                // Get current time in UTC (you might want to fetch this from the server for better accuracy)
+                const nowUTC = new Date(); 
+                const offsetMinutes = nowUTC.getTimezoneOffset(); 
+                nowUTC.setMinutes(nowUTC.getMinutes() - offsetMinutes); 
+        
+                const hoursSinceSubmission = (nowUTC - timeSubmitted) / (1000 * 60 * 60);
+                timeScore = Math.min(Math.floor(hoursSinceSubmission / 48), 3);
+            }
+
+        // Location-based prioritization (higher priority for critical locations)
+        const criticalLocations = ['hospital', 'school'];
+        const complaintLocation = (complaint.locationName || '').toLowerCase();
+        const locationScore = criticalLocations.some(loc => complaintLocation.includes(loc)) ? 3 : 0;
+
+        // Total priority score
+        const totalScore = severityScore + timeScore + locationScore;
+
+        // Determine priority level based on the score
+        if (totalScore >= 6) {
+            return 'High';
+        } else if (totalScore >= 3) {
+            return 'Medium';
+        } else {
+            return 'Low';
+        }
+    }
+
+    // Function to add a row to the table
+    function addRowToTable(doc) {
+        const table = $('#example').DataTable(); 
+        console.log(table)
+        const createdAt = new Date(doc.createdAt);
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
+
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
+
+        const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+        const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            assignedAt.getUTCFullYear() : "Not Assigned";
+            const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
+            const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
+            const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
+            const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
+
+        const additionalDetails = doc.additionalDetails ? doc.additionalDetails : 'No additional details provided.';
+        let statusBadgeClass = '';
+        switch (doc.status) {
+            case 'New':
+                statusBadgeClass = 'badge bg-info';
+                break;
+            case 'Assigned':
+                statusBadgeClass = 'badge bg-warning';
+                break;
+            case 'Resolved':
+                statusBadgeClass = 'badge bg-success';
+                break;
+            case 'In Progress':
+                statusBadgeClass = 'badge bg-secondary';
+                break;
+            default:
+                statusBadgeClass = 'badge bg-secondary';
+        }
+
+        
+        // Use DataTables API to add a new row
+    // Add the row and assign the ID
+    // Calculate priority
+
+
+    // Call Flask API to calculate priority
+    fetch('http://127.0.0.1:5000/calculate-priority', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: doc.description,
+            createdAt: doc.createdAt,
+            locationName: doc.locationName,
+            additionalDetails: doc.additionalDetails
+        })
+
+    })
+    .then(response => response.json())
+    .then(data => {
+        const priority = data.priority;
+
+        let priorityBadgeClass = '';
+        switch (priority) {
+            case 'High':
+                priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
+                break;
+            case 'Medium':
+                priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
+                break;
+            case 'Low':
+                priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
+                break;
+            default:
+                priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
+        }
+        const newRow = table.row.add([
+        doc.$id,
+        doc.consumer_name,
+        doc.description,
+        `<span class="${priorityBadgeClass}">${priority}</span>`,
+        `${formattedDate} ${formattedTime}`,
+        `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+        `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
+    ]).draw(false).node();
+    
+    // Set the row ID to match the document ID
+    $(newRow).attr('id', doc.$id);
+        
+        table.order([0, 'desc']).draw(); 
+    
+
+        
+    // Create the modal HTML
+    const modalHtml = `
+    
+    <div class="modal fade ticket-modal" id="modal-${doc.$id}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-${doc.$id}" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3 row">
+                            <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="ticketID" disabled value="${doc.$id}">
+                            </div>
                         </div>
-                          <div class="mb-3 row">
-                              <label for="priority" class="col-sm-3 col-form-label">Priority</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="priority" disabled value="${priority}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="complaintStatus" disabled value="${doc.status}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="resolutionTeamName" disabled value="${doc.crew_name}">
-                              </div>
-                          </div>
-                          <div class="mb-3 row">
-                              <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-                              <div class="col-sm-9">
-                                  <input type="text" class="form-control" id="followUp" disabled value="${doc.followUp}">
-                              </div>
-                          </div>
+                        <div class="mb-3 row">
+                            <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="consumer" disabled value="${doc.consumer_name}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="complaintType" disabled value="${doc.description}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="additionalDetails" class="col-sm-3 col-form-label">Additional Details</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="additionalDetails" disabled value="${additionalDetails}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="address" class="col-sm-3 col-form-label">Address</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="address" disabled value="${doc.locationName}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="image" class="col-sm-3 col-form-label">Image</label>
+                            <div class="col-sm-9">
+                                <a href="#" class="view-image" data-image="${doc.image}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="dateCreated" disabled value="${formattedDate} ${formattedTime}">
+                            </div>
+                        </div>
+                            <div class="mb-3 row">
+                        <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="dateAssigned" disabled value="${assignedDate} ${assignedTime}">
+                        </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="priority" class="col-sm-3 col-form-label">Priority</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="priority" disabled value="${priority}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="complaintStatus" disabled value="${doc.status}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="resolutionTeamName" disabled value="${doc.crew_name}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="followUp" disabled value="${doc.followUp}">
+                            </div>
+                        </div>
 
                                 <div class="mb-3 row">
                             <label for="resolutionTeamDropdown" class="col-sm-3 col-form-label">Resolution Team</label>
@@ -299,173 +328,215 @@ $(newRow).attr('id', doc.$id);
                             </div>
                         </div>
 
-                      </form>
-                  </div>
-                  <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <button type="button" class="btn btn-primary">Understood</button>
-                  </div>
-              </div>
-          </div>
-      </div>
-  `;
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
 
-  // Append the modal HTML to the body
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-  // Populate dropdowns for the specific complaint
-  populateDropdown(`#dropdownMenu-${doc.$id}`);
-
-  // Event listener for dropdown selection
-$(document).on('click', '.status-dropdown', function() {
-    var complaintId = $(this).data('complaint-id');
-    var assignedCrew = $(this).data('user-id');
-    var userName = $(this).data('user-name');
-    var newClass = "btn-secondary";
+    // Append the modal HTML to the body
+    document.body.insertAdjacentHTML('afterbegin', modalHtml);
 
 
-    // Update crew and status via AJAX
-    $.ajax({
-        url: '/update-crew',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
-        success: function(response) {
-            if (response.success) {
-                alert('Crew assigned successfully!');
+    })
+    .catch((error) => {
+        console.error('Error calculating priority:', error);
+    });
+    
+    
 
-                var newStatus = "Assigned";
-                $.ajax({
-                    url: '/update-status',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
-                    success: function(response) {
-                        if (response.success) {
-                            alert('Status updated successfully!');
-                        } else {
-                            alert('Error updating status: ' + response.error);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        alert('AJAX error: ' + error);
-                    }
-                });
-            } else {
-                alert('Error assigning crew: ' + response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            alert('AJAX error: ' + error);
+    // Populate dropdowns for the specific complaint
+    populateDropdown(`#dropdownMenu-${doc.$id}`);
+
+ 
+    $(document).on('click', '.status-dropdown', function() {
+        const complaintId = $(this).data('complaint-id');
+        const assignedCrew = $(this).data('user-id');
+        const userName = $(this).data('user-name');
+       
+        $('#confirmAssignModal').modal('show');
+
+        // Handle the confirm button click
+        $('#confirmAssignButton').off('click').on('click', function () {
+        // Close the confirmation modal
+    $('#confirmAssignModal').modal('hide');
+    updateCrew(complaintId, assignedCrew, userName).done(function(response) {
+        $('#modalBodyContent').text('Crew assigned successfully!');
+        $('#successModal').modal('show');;
+        if (response.success) {
+            updateStatus(complaintId, 'Assigned').done(function(response) {
+                if (response.success) {
+                    
+                } else {
+                    alert('Error updating status: ' + response.error);
+                }
+            });
+        } else {
+            alert('Error assigning crew: ' + response.error);
         }
+    }).fail(function(xhr, status, error) {
+        alert('AJAX error: ' + error);
     });
 });
-}
-
-
-// Function to populate a specific dropdown
-function populateDropdown(dropdownSelector) {
-    $.ajax({
-        url: '/api/users',
-        method: 'GET',
-        dataType: 'json',
-        success: function(users) {
-            var dropdownMenu = $(dropdownSelector);
-
-            users.forEach(function(user) {
-                var listItem = `<li>
-                    <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${dropdownMenu.attr('id').split('-')[1]}"
-                       data-user-name="${user['name_team']}">
-                       ${user['name_team']}
-                    </a>
-                </li>`;
-                dropdownMenu.append(listItem);
-            });
-        },
-        error: function(xhr, status, error) {
-            console.error('Failed to fetch users:', error);
-        }
+        
     });
-}
+    }
+
+       // Event listener for dropdown selection
+       function updateCrew(complaintId, assignedCrew, userName) {
+        return $.ajax({
+            url: '/update-crew',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName })
+        });
+    }
+    
+    function updateStatus(complaintId, newStatus) {
+        return $.ajax({
+            url: '/update-status',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ complaintId: complaintId, status: newStatus })
+        });
+    }
+
+    
+    
+
+    // Function to populate a specific dropdown
+    function populateDropdown(dropdownSelector) {
+        $.ajax({
+            url: '/api/users',
+            method: 'GET',
+            dataType: 'json',
+            success: function(users) {
+                var dropdownMenu = $(dropdownSelector);
+
+                users.forEach(function(user) {
+                    var listItem = `<li>
+                        <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${dropdownMenu.attr('id').split('-')[1]}"
+                        data-user-name="${user['name_team']}">
+                        ${user['name_team']}
+                        </a>
+                    </li>`;
+                    dropdownMenu.append(listItem);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to fetch users:', error);
+            }
+        });
+    }
 
 
-function updateRowInTable(doc, dataTable) {
-    // Find the row by document ID
-    const rowIndex = dataTable.row(`#${doc.$id}`).index();
+    function updateRowInTable(doc, dataTable) {
+        // Find the row by document ID
+        const rowIndex = dataTable.row(`#${doc.$id}`).index();
 
-    // If the row exists in the DataTable
-    if (rowIndex !== null && rowIndex !== undefined) {
-        // Format the createdAt date
-        const createdAt = new Date(doc.createdAt);
-        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
-            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
-            createdAt.getUTCFullYear();
+        // If the row exists in the DataTable
+        if (rowIndex !== null && rowIndex !== undefined) {
+            // Format the createdAt date
+            const createdAt = new Date(doc.createdAt);
+            const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+                ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+                createdAt.getUTCFullYear();
 
             const hours = createdAt.getUTCHours();
             const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
-            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const ampm = hours >= 12 ? 'PM' : 'AM';
             const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
-    
-        const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
-        const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
-            ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
-            assignedAt.getUTCFullYear() : "Not Assigned";
+
+            const assignedAt = doc.assignedAt ? new Date(doc.assignedAt) : null;
+            const assignedDate = assignedAt ? ('0' + assignedAt.getUTCDate()).slice(-2) + '/' +
+                ('0' + (assignedAt.getUTCMonth() + 1)).slice(-2) + '/' +
+                assignedAt.getUTCFullYear() : "Not Assigned";
             const assignedHours = assignedAt ? ('0' + (assignedAt.getUTCHours() % 12 || 12)).slice(-2) : '00';
             const assignedAmpm = assignedAt ? (assignedAt.getUTCHours() >= 12 ? 'PM' : 'AM') : '';
             const assignedMinutes = assignedAt ? ('0' + assignedAt.getUTCMinutes()).slice(-2) : '00';
             const assignedTime = assignedHours + ':' + assignedMinutes + ' ' + assignedAmpm;
 
-        let statusBadgeClass = '';
-        switch (doc.status) {
-            case 'New':
-                statusBadgeClass = 'badge bg-info';
-                break;
-            case 'Assigned':
-                statusBadgeClass = 'badge bg-warning';
-                break;
-            case 'Resolved':
-                statusBadgeClass = 'badge bg-success';
-                break;
-            case 'Closed':
-                statusBadgeClass = 'badge bg-secondary';
-                break;
-            default:
-                statusBadgeClass = 'badge bg-secondary';
+            let statusBadgeClass = '';
+            switch (doc.status) {
+                case 'New':
+                    statusBadgeClass = 'badge bg-info';
+                    break;
+                case 'Assigned':
+                    statusBadgeClass = 'badge bg-warning';
+                    break;
+                case 'Resolved':
+                    statusBadgeClass = 'badge bg-success';
+                    break;
+                case 'In Progress':
+                    statusBadgeClass = 'badge bg-secondary';
+                    break;
+                default:
+                    statusBadgeClass = 'badge bg-secondary';
+            }
+
+            // Fetch updated priority from the API
+            fetch('http://127.0.0.1:5000/calculate-priority', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: doc.description,
+                    createdAt: doc.createdAt,
+                    locationName: doc.locationName,
+                    additionalDetails: doc.additionalDetails
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const priority = data.priority;
+
+                // Define the class for priority badge based on the calculated priority
+                let priorityBadgeClass = '';
+                switch (priority) {
+                    case 'High':
+                        priorityBadgeClass = 'badge bg-danger';
+                        break;
+                    case 'Medium':
+                        priorityBadgeClass = 'badge bg-warning';
+                        break;
+                    case 'Low':
+                        priorityBadgeClass = 'badge bg-success';
+                        break;
+                    default:
+                        priorityBadgeClass = 'badge bg-secondary';
+                }
+
+                // Update the row data in the DataTable
+                dataTable.row(rowIndex).data([
+                    doc.$id,
+                    doc.consumer_name,
+                    doc.description,
+                    `<span class="${priorityBadgeClass}">${priority}</span>`,
+                    `${formattedDate} ${formattedTime}`,
+                    `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+                    `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
+                ]).draw(false);
+
+                // Update the existing modal content
+                updateModalContent(doc, formattedDate, formattedTime, assignedDate, assignedTime);
+            })
+            .catch(error => {
+                console.error('Error calculating priority:', error);
+            });
+        } else {
+            console.log(`Row with ID ${doc.$id} not found.`);
         }
-        // Calculate priority
- const priority = calculatePriority(doc);
- let priorityBadgeClass = '';
- switch (priority) {
-     case 'High':
-         priorityBadgeClass = 'badge bg-danger';  // High priority: Red badge
-         break;
-     case 'Medium':
-         priorityBadgeClass = 'badge bg-warning'; // Medium priority: Yellow badge
-         break;
-     case 'Low':
-         priorityBadgeClass = 'badge bg-success'; // Low priority: Green badge
-         break;
-     default:
-         priorityBadgeClass = 'badge bg-secondary'; // Default: Grey badge
- }
-        // Update the row data in the DataTable
-        dataTable.row(rowIndex).data([
-            doc.$id,
-            doc.consumer_name,
-            doc.description,
-            `<span class="${priorityBadgeClass}">${priority}</span>`,
-            `${formattedDate} ${formattedTime}`,
-            `<span class="${statusBadgeClass}" style="padding: 5px 10px; border-radius: 20px;">${doc.status}</span>`,
+    }
 
-            `<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${doc.$id}">View More</button>`
-        ]).draw(false);
-
-        // Update the existing modal content
+    // Helper function to update the modal content
+    function updateModalContent(doc, formattedDate, formattedTime, assignedDate, assignedTime) {
         const modalElement = document.getElementById(`modal-${doc.$id}`);
         if (modalElement) {
-            console.log("Updating modal for:", doc.$id);  // Debugging
-
-            // Ensure each element is found and update them
             const ticketIDInput = modalElement.querySelector('#ticketID');
             const consumerInput = modalElement.querySelector('#consumer');
             const complaintTypeInput = modalElement.querySelector('#complaintType');
@@ -477,11 +548,10 @@ function updateRowInTable(doc, dataTable) {
             const resolutionTeamInput = modalElement.querySelector('#resolutionTeamName');
             const followUpInput = modalElement.querySelector('#followUp');
 
-           
             if (ticketIDInput) ticketIDInput.value = doc.$id;
             if (consumerInput) consumerInput.value = doc.consumer_name;
             if (complaintTypeInput) complaintTypeInput.value = doc.description;
-            if (additionalDetailsInput) additionalDetailsInput.value = doc.additionalDetails;
+            if (additionalDetailsInput) additionalDetailsInput.value = doc.additionalDetails ? doc.additionalDetails : 'No additional details provided.';
             if (addressInput) addressInput.value = doc.locationName;
             if (dateCreatedInput) dateCreatedInput.value = `${formattedDate} ${formattedTime}`;
             if (dateAssignedInput) dateAssignedInput.value = assignedDate + (assignedTime ? ' ' + assignedTime : '');
@@ -491,21 +561,18 @@ function updateRowInTable(doc, dataTable) {
         } else {
             console.log(`Modal with ID modal-${doc.$id} not found.`);
         }
-    } else {
-        console.log(`Row with ID ${doc.$id} not found.`);
     }
-}
 
 
-// Function to delete a row from the table
-function deleteRowFromTable(docId) {
-  console.log("Attempting to delete row with ID:", docId);
-  const row = document.getElementById(docId);
-  if (row) {
-      row.remove();
-      console.log("Row successfully removed:", row);
-  } else {
-      console.log("No row found with ID:", docId);
-  }
-}
+    // Function to delete a row from the table
+    function deleteRowFromTable(docId) {
+    console.log("Attempting to delete row with ID:", docId);
+    const row = document.getElementById(docId);
+    if (row) {
+        row.remove();
+        console.log("Row successfully removed:", row);
+    } else {
+        console.log("No row found with ID:", docId);
+    }
+    }
 
