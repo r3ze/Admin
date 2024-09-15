@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/img/FLECO logo.png">
+  <!--Bootstrap-->
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+  />
+  <link rel="stylesheet" href="/static/css/sidebar.css" />
+ 
+  <link
+    rel="stylesheet"
+    href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
+  />  
+    <title>User Management</title>
+    <style>
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        .card-title i {
+            margin-right: 10px;
+            color: #007bff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-2 position-fixed" 
+     style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+  <div class="list-group">
+    <!-- Admin Title -->
+    <button type="button" class="list-group-item list-group-item-action mt-4"
+            style="color: white; background-color: #1D1D42; text-align: center; border: none;">
+      <h2>Admin</h2>
+    </button>
+
+    <!-- Dashboard -->
+    <button type="button" onclick="redirectToDashboard()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
+      Dashboard
+    </button>
+
+    <!-- Ticket -->
+    <button type="button" onclick="redirectToTicket()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket
+    </button>
+
+    <!-- Ticket History -->
+    <button type="button" onclick="redirectToTicketHistory()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket History
+    </button>
+
+    <!-- Map -->
+    <button type="button" onclick="redirectToMap()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+      Map
+    </button>
+
+    <!-- History Log -->
+    <button type="button" onclick="redirectToLog()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      History Log
+    </button>
+
+    <!-- User Management Accordion -->
+    <div class="accordion mt-4" id="userManagementAccordion" style="border: none; background-color: #1D1D42;">
+      <div class="accordion-item" style="border: none; background-color: #1D1D42;">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button collapsed"
+                  style="border: none; background-color: #1D1D42; color: #72728A; padding: 12px 16px; font-weight: 600;"
+                  type="button" 
+                  data-bs-toggle="collapse" 
+                  data-bs-target="#collapseOne" 
+                  aria-expanded="false" 
+                  aria-controls="collapseOne">
+            <span class="fa fa-users" style="margin-right: 8px; font-size: 20px;"></span>
+            User Management
+          </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse show" aria-labelledby="headingOne" data-bs-parent="#userManagementAccordion">
+          <div class="accordion-body" style="padding: 0;">
+            <a href="/user-management?type=consumers" class="list-group-item list-group-item-action active"
+               style="padding: 12px 16px; background-color: #1D1D42; color: white; border: none;">
+              Consumers
+            </a>
+            <a href="/user-management?type=crews" class="list-group-item list-group-item-action"
+               style="padding: 12px 16px; background-color: #27274F; color: white; border: none;">
+              Crews
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+        <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
+            <div class="mt-3">
+                <h2>Crews</h2>
+          
+
+                <div id="tableContainer" >
+  <!-- Add New Crew Button -->
+  <div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCrewModal">
+        <i class="fa fa-plus"></i> Add New Crew
+    </button>
+</div>
+                    <table id="example" class="mt-3 complaints-table table table-striped"
+                           style="border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; background-color: #ededed; width: 100%;">
+                        <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Team</th>
+                            <th scope="col">Action</th>
+                        
+                        </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for user in users %}
+                                <tr>
+                                    <td>{{ user['accountId'] }}</td>
+                                    <td>{{ user['email'] }}</td>
+                                    <td>{{ user['name_team'] }}</td>
+                                    <td>    
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Action
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a  class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-{{user['$id']}}" data-user-id="{{ user['accountId'] }}" href="#">Edit</a></li>
+                                                <li><a class="dropdown-item view-history-button" href="/crew-history/{{ user['$id'] }}">View History</a></li>
+                                            </ul>
+                                        </div>
+                                    </td> 
+                        
+                                    <div class="modal fade" id="modal-{{ user['$id'] }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit User</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form id="editUserForm-{{ user['$id'] }}">
+                                                        <input type="hidden" id="editUserId-{{ user['$id'] }}" value="{{ user['$id'] }}" />
+                                                        <div class="mb-3">
+                                                            <label for="editUserEmail-{{ user['accountId'] }}" class="form-label">Email</label>
+                                                            <input type="email" class="form-control" id="editUserEmail-{{ user['accountId'] }}" value="{{ user['email'] }}" placeholder="Enter email">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="editUserResolutionTeam-{{ user['accountId'] }}" class="form-label">Resolution Team</label>
+                                                            <input type="text" class="form-control" id="editUserResolutionTeam-{{ user['accountId'] }}" value="{{ user['name_team'] }}" placeholder="Enter resolution team">
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="button" class="btn btn-primary saveChangesButton"
+                                                            data-document-id="{{ user['$id'] }}" 
+                                                            data-user-id="{{ user['accountId'] }}">
+                                                        Save changes
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Crew Modal -->
+<div class="modal fade" id="addCrewModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addCrewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCrewModalLabel">Add New Crew</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCrewForm">
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label for="addCrewEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="addCrewEmail" required>
+                    </div>
+                    
+                    <!-- Resolution Team Dropdown -->
+                    <div class="mb-3">
+                        <label for="addCrewResolutionTeam" class="form-label">Resolution Team</label>
+                        <input type="text" class="form-control" id="addCrewResolutionTeam" required>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label for="addCrewPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="addCrewPassword" required minlength="6">
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="mb-3">
+                        <label for="addCrewConfirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="addCrewConfirmPassword" required minlength="6">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveCrewButton">Save Crew</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel"> <i class="fa fa-check-circle-o me-2"></i> Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Crew member added successfully.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Edit-->
+
+<div class="modal fade" id="successEditModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel"> <i class="fa fa-check-circle-o me-2"></i> Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Crew updated successfully!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<!-- DataTable -->
+<script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+<script>
+    function redirectToDashboard() {
+        window.location.href = "/";
+    }
+
+    function redirectToTicket() {
+        window.location.href = "/complaints";
+    }
+
+    function redirectToMap() {
+        window.location.href = "/maps";
+    }
+
+    function redirectToLog() {
+        window.location.href = "/log-history";
+    }
+    function redirectUserManagement() {
+        window.location.href = "/user-management";
+    }
+    function redirectToTicketHistory() {
+        window.location.href = "/ticket-history";
+    }
+
+    function redirectToCrews() {
+        window.location.href = "/crews";
+    }
+
+
+    function showUsers(municipality) {
+        $('#cardsContainer').addClass('d-none');
+        $('#tableContainer').removeClass('d-none');
+        $('#municipalityName').text(municipality);
+        filterTableByMunicipality(municipality);
+    }
+
+    function showCards() {
+        $('#cardsContainer').removeClass('d-none');
+        $('#tableContainer').addClass('d-none');
+    }
+
+    function showHistory(){
+        $('#tableHistoryContainer').removeClass('d-none');
+        $('#tableContainer').addClass('d-none');
+    }
+
+    function filterTableByMunicipality(municipality) {
+        $('#example').DataTable().search(municipality).draw();
+    }
+
+    $(document).ready(function () {
+    // Initialize DataTables for both tables
+    var consumerTable = $('#example').DataTable({
+        buttons: [
+            {
+                extend: "previous",
+                className: "btn-secondary",
+            },
+            {
+                extend: "next",
+                className: "btn-secondary",
+            },
+        ]
+    });
+
+    
+});
+</script>
+
+<script>
+    document.getElementById('saveCrewButton').addEventListener('click', function() {
+    const email = document.getElementById('addCrewEmail').value;
+    const password = document.getElementById('addCrewPassword').value;
+    const confirmPassword = document.getElementById('addCrewConfirmPassword').value;
+    const team = document.getElementById('addCrewResolutionTeam').value;
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+        alert('Passwords do not match.');
+        return;
+    }
+
+    // Prepare the data for submission
+    const data = {
+        email: email,
+        password: password,
+        team: team
+    };
+
+    // Send an AJAX request to create the new crew member
+    fetch('/crews/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Hide the Add Crew Modal
+            var addCrewModal = new bootstrap.Modal(document.getElementById('addCrewModal'));
+            addCrewModal.hide();
+
+            // Show the Success Modal
+            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+
+            // Optionally, refresh the page after the modal is closed
+            document.getElementById('successModal').addEventListener('hidden.bs.modal', function () {
+                location.reload();  // Reload page to show the new crew member
+            });
+        } else {
+            alert('Error adding crew member: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+</script>
+<!--Edit crew-->
+<script>
+ document.querySelectorAll('.saveChangesButton').forEach(button => {
+    button.addEventListener('click', function () {
+        const docId = this.getAttribute('data-document-id');
+        const userId = this.getAttribute('data-user-id');
+        const email = document.getElementById(`editUserEmail-${userId}`).value;
+        const resolutionTeam = document.getElementById(`editUserResolutionTeam-${userId}`).value;
+
+        // Prepare the data for submission
+        const data = {
+            doc_id: docId,
+            user_id: userId,
+            email: email,  // Always include email
+            resolution_team: resolutionTeam  // Always include resolution team
+        };
+
+        // Send an AJAX request to update the crew member
+        fetch('/crews/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show the Success Modal
+            var successModal = new bootstrap.Modal(document.getElementById('successEditModal'));
+            successModal.show();
+
+            // Optionally, refresh the page after the modal is closed
+            document.getElementById('successEditModal').addEventListener('hidden.bs.modal', function () {
+                location.reload();  // Reload page to show the new crew member
+            });
+            } else {
+                alert('Error updating crew member: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+});
+
+</script>
+</body>
+</html>

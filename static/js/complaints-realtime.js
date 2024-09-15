@@ -392,7 +392,30 @@
             url: '/update-crew',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName })
+            data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+            success:function(response)
+            {
+                if(response.success)
+                {
+                    const log_data = {
+                        crew_id: assignedCrew, // Correct property assignment
+                        user: "Admin",
+                        action: "Assigned tasks to " + userName, // Concatenation issue fixed
+                    };
+                    
+                      fetch('/log', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(log_data)
+                        })
+                        .then(response => response.json())
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
+            }
         });
     }
     
@@ -402,6 +425,8 @@
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ complaintId: complaintId, status: newStatus })
+           
+            
         });
     }
 

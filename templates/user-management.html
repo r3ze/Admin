@@ -53,34 +53,88 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-2 position-fixed" style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1d1d42;">
-            <div class="list-group">
-                <button type="button" style="color: white; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                    <h2>Admin</h2>
-                </button>
-                <button type="button" onclick="redirectToDashboard()" style="color: #72728a; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                    <span class="fa fa-home" style="margin-right: 8px; font-size: 20px"></span>
-                    <span style="font-weight: 600">Dashboard</span>
-                </button>
-                <button type="button" onclick="redirectToTicket()" style="color: #72728a; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                    <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px"></span>
-                    <span style="font-weight: 600">Ticket</span>
-                </button>
-                <button type="button" onclick="redirectToTicketHistory()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                    <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
-                    <span style="font-weight: 600">Ticket History</span>
-                </button>
-                <button type="button" onclick="redirectToMap()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                    <span class="fa fa-map" style="margin-right: 8px; font-size: 20px"></span>
-                    <span style="font-weight: 600">Map</span>
-                </button>
-            
-                <button type="button" onclick="redirectUserManagement()" style="background-color: #27274f; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-                  <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
-                  <span style="font-weight: 600">User Management</span>
-              </button>
-            </div>
+        <div class="col-lg-2 position-fixed" 
+     style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+  <div class="list-group">
+    <!-- Admin Title -->
+    <button type="button" class="list-group-item list-group-item-action mt-4"
+            style="color: white; background-color: #1D1D42; text-align: center; border: none;">
+      <h2>Admin</h2>
+    </button>
+
+    <!-- Dashboard -->
+    <button type="button" onclick="redirectToDashboard()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
+      Dashboard
+    </button>
+
+    <!-- Ticket -->
+    <button type="button" onclick="redirectToTicket()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket
+    </button>
+
+    <!-- Ticket History -->
+    <button type="button" onclick="redirectToTicketHistory()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket History
+    </button>
+
+    <!-- Map -->
+    <button type="button" onclick="redirectToMap()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+      Map
+    </button>
+
+    <!-- History Log -->
+    <button type="button" onclick="redirectToLog()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      History Log
+    </button>
+
+    <!-- User Management Accordion -->
+    <div class="accordion mt-4" id="userManagementAccordion" style="border: none; background-color: #1D1D42;">
+      <div class="accordion-item" style="border: none; background-color: #1D1D42;">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button collapsed"
+                  style="border: none; background-color: #1D1D42; color: #72728A; padding: 12px 16px; font-weight: 600;"
+                  type="button" 
+                  data-bs-toggle="collapse" 
+                  data-bs-target="#collapseOne" 
+                  aria-expanded="false" 
+                  aria-controls="collapseOne">
+            <span class="fa fa-users" style="margin-right: 8px; font-size: 20px;"></span>
+            User Management
+          </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse show" aria-labelledby="headingOne" data-bs-parent="#userManagementAccordion">
+          <div class="accordion-body" style="padding: 0;">
+            <a onclick="redirectUserManagement()" class="list-group-item list-group-item-action active"
+               style="padding: 12px 16px; background-color: #27274F;; color: white; border: none;">
+              Consumers
+            </a>
+            <a onclick="redirectToCrews()" class="list-group-item list-group-item-action"
+               style="padding: 12px 16px; background-color: #1D1D42; color: white; border: none;">
+              Crews
+            </a>
+          </div>
         </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
             <div class="mt-3">
                 <h2>Consumers</h2>
@@ -112,6 +166,7 @@
                             <th scope="col">Municipality</th>
                             <th scope="col">Barangay</th>
                             <th scope="col">House/Block/Lot No. / Street / Subdivision/Village *</th>
+                            <th scope="col">Action</th>
                         </tr>
                         </thead>
                         <tbody class="table-group-divider">
@@ -123,16 +178,98 @@
                                 <td>{{ user['city'] }} </td>
                                 <td>{{ user['barangay'] }} </td>
                                 <td>{{ user['street'] }} </td>
+                                <td> 
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Action
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a  class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-{{user['$id']}}" data-user-id="{{ user['accountId'] }}" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item view-history-button" href="/user-history/{{ user['$id'] }}">View History</a></li>
+                                        </ul>
+                                    </div>
+                                </td> 
                             </tr>
+
+
+
+                            <div class="modal fade" id="modal-{{ user['$id'] }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit User</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="editUserForm-{{ user['$id'] }}">
+                                                <input type="hidden" id="editUserId-{{ user['$id'] }}" value="{{ user['$id'] }}" />
+                                                <div class="mb-3">
+                                                    <label for="editUserName-{{ user['accountId'] }}" class="form-label">Name</label>
+                                                    <input type="text" class="form-control" id="editUserName-{{ user['accountId'] }}" value="{{ user['name'] }}" placeholder="Name">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editUserEmail-{{ user['accountId'] }}" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="editUserEmail-{{ user['accountId'] }}" value="{{ user['email'] }}" placeholder="Enter email">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editAccountNumber-{{ user['accountId'] }}" class="form-label">Account Number</label>
+                                                    <input type="text" class="form-control" id="editAccountNumber-{{ user['accountId'] }}" value="{{ user['account_number'] }}" placeholder="Account Number">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editMunicipality-{{ user['accountId'] }}" class="form-label">Municipality</label>
+                                                    <input type="text" class="form-control" id="editMunicipality-{{ user['accountId'] }}" value="{{ user['city'] }}" placeholder="Municipality">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editBarangay-{{ user['accountId'] }}" class="form-label">Barangay</label>
+                                                    <input type="text" class="form-control" id="editBarangay-{{ user['accountId'] }}" value="{{ user['barangay'] }}" placeholder="Barangay">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editStreet-{{ user['accountId'] }}" class="form-label">Street</label>
+                                                    <input type="text" class="form-control" id="editStreet-{{ user['accountId'] }}" value="{{ user['street'] }}" placeholder="Street">
+                                                </div>
+                                         
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-primary saveChangesButton"
+                                                    data-document-id="{{ user['$id'] }}" 
+                                                    data-user-id="{{ user['accountId'] }}">
+                                                Save changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="successEditModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel"> <i class="fa fa-check-circle-o me-2"></i> Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Consumer updated successfully!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Ok</button>
             </div>
         </div>
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="/static/js/bootstrap.min.js"></script>
 <!-- DataTable -->
 <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
@@ -150,7 +287,7 @@
         window.location.href = "/maps";
     }
 
-    function redirectToLogHistory() {
+    function redirectToLog() {
         window.location.href = "/log-history";
     }
     function redirectUserManagement() {
@@ -158,6 +295,9 @@
     }
     function redirectToTicketHistory() {
         window.location.href = "/ticket-history";
+    }
+    function redirectToCrews() {
+        window.location.href = "/crews";
     }
 
 
@@ -173,29 +313,90 @@
         $('#tableContainer').addClass('d-none');
     }
 
+    function showHistory(){
+        $('#tableHistoryContainer').removeClass('d-none');
+        $('#tableContainer').addClass('d-none');
+    }
+
     function filterTableByMunicipality(municipality) {
         $('#example').DataTable().search(municipality).draw();
     }
 
     $(document).ready(function () {
-        $("#example").DataTable({
-     
-            buttons: [
-                {
-                    extend: "previous",
-                    className: "btn-secondary",
-                },
-                {
-                    extend: "next",
-                    className: "btn-secondary",
-                },
-     
-            ],
-     
-        });
-
-  
+    // Initialize DataTables for both tables
+    var consumerTable = $('#example').DataTable({
+        buttons: [
+            {
+                extend: "previous",
+                className: "btn-secondary",
+            },
+            {
+                extend: "next",
+                className: "btn-secondary",
+            },
+        ]
     });
+
+    
+});
 </script>
+
+
+<script>
+    document.querySelectorAll('.saveChangesButton').forEach(button => {
+       button.addEventListener('click', function () {
+           const docId = this.getAttribute('data-document-id');
+           const userId = this.getAttribute('data-user-id');
+           const name = document.getElementById(`editUserName-${userId}`).value;
+           const account_number = document.getElementById(`editAccountNumber-${userId}`).value;
+           const municipality = document.getElementById(`editMunicipality-${userId}`).value;
+           const barangay = document.getElementById(`editBarangay-${userId}`).value;
+           const street = document.getElementById(`editStreet-${userId}`).value;
+           const email = document.getElementById(`editUserEmail-${userId}`).value;
+         
+   
+           // Prepare the data for submission
+           const data = {
+               doc_id: docId,
+               user_id: userId,
+               email: email,  // Always include email
+               name: name,
+               account_number: account_number,
+               municipality: municipality,
+               barangay: barangay,
+               street: street,
+               
+           };
+   
+           // Send an AJAX request to update the crew member
+           fetch('/consumer/update', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json'
+               },
+               body: JSON.stringify(data)
+           })
+           .then(response => response.json())
+           .then(data => {
+               if (data.success) {
+                   // Show the Success Modal
+               var successModal = new bootstrap.Modal(document.getElementById('successEditModal'));
+               successModal.show();
+   
+               // Optionally, refresh the page after the modal is closed
+               document.getElementById('successEditModal').addEventListener('hidden.bs.modal', function () {
+                   location.reload();  // Reload page to show the new crew member
+               });
+               } else {
+                   alert('Error updating consumer: ' + data.error);
+               }
+           })
+           .catch(error => {
+               console.error('Error:', error);
+           });
+       });
+   });
+   
+   </script>
 </body>
 </html>

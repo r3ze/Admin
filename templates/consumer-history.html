@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/static/img/FLECO logo.png">
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/sidebar.css" />
+  
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
+    />
+
+    <link rel="stylesheet" href="/static/css/complaint.css">
+    <style>
+      .filter-dropdown .dropdown-menu {
+          min-width: 200px;
+      }
+      .filter-dropdown .dropdown-item i {
+          margin-right: 10px;
+      }
+  </style>
+    <title>Tickets</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!--sidebar-->
+        <div class="col-lg-2 position-fixed" 
+        style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+     <div class="list-group">
+       <!-- Admin Title -->
+       <button type="button" class="list-group-item list-group-item-action mt-4"
+               style="color: white; background-color: #1D1D42; text-align: center; border: none;">
+         <h2>Admin</h2>
+       </button>
+   
+       <!-- Dashboard -->
+       <button type="button" onclick="redirectToDashboard()" 
+               class="list-group-item list-group-item-action mt-4"
+               style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+         <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
+         Dashboard
+       </button>
+   
+       <!-- Ticket -->
+       <button type="button" onclick="redirectToTicket()" 
+               class="list-group-item list-group-item-action mt-4"
+               style="color: #72728A;background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+         <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+         Ticket
+       </button>
+   
+       <!-- Ticket History -->
+       <button type="button" onclick="redirectToTicketHistory()" 
+               class="list-group-item list-group-item-action mt-4"
+               style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+         <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+         Ticket History
+       </button>
+   
+       <!-- Map -->
+       <button type="button" onclick="redirectToMap()" 
+               class="list-group-item list-group-item-action mt-4"
+               style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+         <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+         Map
+       </button>
+   
+       <!-- History Log -->
+       <button type="button" onclick="redirectToLog()" 
+               class="list-group-item list-group-item-action mt-4"
+               style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+         <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+         History Log
+       </button>
+   
+       <!-- User Management Accordion -->
+       <div class="accordion mt-4" id="userManagementAccordion" style="border: none; background-color: #1D1D42;">
+         <div class="accordion-item" style="border: none; background-color: #1D1D42;">
+           <h2 class="accordion-header" id="headingOne">
+             <button class="accordion-button collapsed"
+                     style="border: none; background-color: #1D1D42; color: #72728A; padding: 12px 16px; font-weight: 600;"
+                     type="button" 
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#collapseOne" 
+                     aria-expanded="false" 
+                     aria-controls="collapseOne">
+               <span class="fa fa-users" style="margin-right: 8px; font-size: 20px;"></span>
+               User Management
+             </button>
+           </h2>
+           <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#userManagementAccordion">
+             <div class="accordion-body" style="padding: 0;">
+               <a onclick="redirectUserManagement()" class="list-group-item list-group-item-action"
+                  style="padding: 12px 16px; background-color: #27274F; color: white; border: none;">
+                 Consumers
+               </a>
+               <a onclick="redirectToCrews()" class="list-group-item list-group-item-action"
+                  style="padding: 12px 16px; background-color: #27274F; color: white; border: none;">
+                 Crews
+               </a>
+             </div>
+           </div>
+         </div>
+       </div>
+   
+     </div>
+   </div>
+   
+        <div
+          class="col-lg-10 offset-lg-2"
+          style="background-color: #f4f7fe; height: 100vh"
+        >
+          <div id="ticket" class=" mt-2">
+            <h3 style="font-weight: 600">Consumer History</h3>
+          </div>
+          <div class="mt-3"></div>
+
+
+          <div id="cards" class="row mt-3">
+            <!-- Total Complaints Card -->
+            <div class="col-lg-3">
+              <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                <div class="top"></div>
+                <div class="card-body">
+                  <div class="icon-number">
+                    <div class="text-title">
+                      <h5 class="card-title" style="font-weight: bold">Total Complaints</h5>
+                    </div>
+                    <div class="number-icon" style="display: flex; justify-content: space-between">
+                      <h3 style="font-weight: bold; color: #444446" id="total_complaints_card">{{ total_complaints }}</h3>
+                      <i class="fa fa-list-alt" style="font-size: 50px; color: #444446;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+            <!-- Resolved Complaints Card -->
+            <div class="col-lg-3">
+              <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                <div class="top"></div>
+                <div class="card-body">
+                  <div class="icon-number">
+                    <div class="text-title">
+                      <h5 class="card-title" style="font-weight: bold">Resolved Complaints</h5>
+                    </div>
+                    <div class="number-icon" style="display: flex; justify-content: space-between">
+                      <h3 style="font-weight: bold; color: #444446" id="resolved_complaints_card">{{ resolved_complaints }}</h3>
+                      <i class="fa fa-check-circle" style="font-size: 50px; color: #444446;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+            <!-- Pending Complaints Card -->
+            <div class="col-lg-3">
+              <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1)">
+                <div class="top"></div>
+                <div class="card-body">
+                  <div class="icon-number">
+                    <div class="text-title">
+                      <h5 class="card-title" style="font-weight: bold">Pending Complaints</h5>
+                    </div>
+                    <div class="number-icon" style="display: flex; justify-content: space-between">
+                      <h3 style="font-weight: bold; color: #444446" id="pending_complaints_card">{{ pending_complaints }}</h3>
+                      <i class="fa fa-clock-o" style="font-size: 50px; color: #444446;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+            <!-- Cancelled Complaints Card -->
+            <div class="col-lg-3">
+              <div class="card" style="box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); position: relative;">
+                <div class="top"></div>
+                <div class="card-body">
+                  <div class="icon-number">
+                    <div class="text-title">
+                      <h5 class="card-title" style="font-weight: bold">Cancelled Complaints</h5>
+                    </div>
+                    <div class="number-icon" style="display: flex; justify-content: space-between">
+                      <h3 style="font-weight: bold; color: #444446" id="cancelled_complaints_card">{{ cancelled_complaints }}</h3>
+                      <i class="fa fa-times-circle" style="font-size: 50px; color: #444446;"></i>
+                    </div>
+                  </div>
+             
+                </div>
+              </div>
+            </div>
+          </div>
+          
+
+      
+    
+      
+
+          
+          <div class="mt-3"></div>
+          <div id="tableContainer">
+            <table
+              id="example"
+              class="mt-3 complaints-table table table-striped"
+              style="
+                border-collapse: separate;
+                border-spacing: 0;
+                border-radius: 10px;
+                overflow: hidden;
+                background-color: #ededed;
+                width: 100%;
+              "
+            >
+            <thead>
+              <tr>
+                <th scope="col">Ticket ID</th>
+                <th scope="col">Consumer</th>
+                <th scope="col">Complaint Type</th>
+                
+                <th scope="col">Priority</th>
+                <th scope="col">Date Reported</th>
+                <th scope="col">Status</th>
+        
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="table-group-divider">
+              {% for complaint in complaints %}
+              <tr id="{{complaint['$id']}}">
+                <td>{{ complaint['$id'] }}</td>
+                <td>{{ complaint['consumer_name'] }}</td>
+                <td>{{ complaint['description'] }}</td>
+                <td>
+                  {% if complaint['priority'] == 'High' %}
+                  <span class="badge bg-danger">High</span>
+                  {% elif complaint['priority'] == 'Medium' %}
+                  <span class="badge bg-warning">Medium</span>
+                  {% else %}
+                  <span class="badge bg-success">Low</span>
+                  {% endif %}
+                </td>
+                <td>{{ complaint['formattedCreatedAt'] }}</td>
+                <td class="status-cell" id="status-{{complaint['$id']}}" style="padding: 10px;">
+                  {% if complaint['status'] == 'New' %}
+                    <span class="badge bg-info" style="padding: 5px 10px; border-radius: 20px;">New</span>
+                  {% elif complaint['status'] == 'Assigned' %}
+                    <span class="badge bg-warning" style="padding: 5px 10px; border-radius: 20px;">Assigned</span>
+                  {% elif complaint['status'] == 'Resolved' %}
+                    <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
+                  {% elif complaint['status'] == 'In Progress' %}
+                    <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">In Progress</span>
+                  {% endif %}
+                </td>
+                <td >  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{complaint['$id']}}">
+                  View Details
+              </button></td>
+              </tr>
+
+          <!--Modal for ticket info-->
+          <div class="modal fade ticket-modal" id="modal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{complaint['$id']}}" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form>
+                    <div class="mb-3 row">
+                      <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="ticketID" disabled value="{{ complaint['$id'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="consumer" disabled value="{{ complaint['consumer_name'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['description'] }}">
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
+                      <div class="col-sm-9">
+                        {% if complaint['additionalDetails'] %}
+                        <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['additionalDetails'] }}">
+                        {% else %}
+                        <input type="text" class="form-control" id="complaintType" disabled value="No additional details provided.">
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="address" class="col-sm-3 col-form-label">Address</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="address" disabled value="{{ complaint['locationName'] }}">
+                      </div>
+                    </div>
+            
+                    <div class="mb-3 row">
+                      <label for="image" class="col-sm-3 col-form-label">Image</label>
+                      <div class="col-sm-9">
+                        <a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="dateCreated" disabled value="{{ complaint['formattedCreatedAt'] }}">
+                      </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                      <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+                      <div class="col-sm-9">
+                      {% if complaint['assignedAt']%}
+                        <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['formattedAssignedAt'] }}">
+                        {% else %}
+                        <input type="text" class="form-control" id="dateAssigned" disabled value="Not assigned yet.">
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
+                      <div class="col-sm-9">
+                      {% if complaint['resolvedAt']%}
+                        <input type="text" class="form-control" id="dateResolved" disabled value="{{ complaint['formattedResolvedAt'] }}">
+                        {% else %}
+                        <input type="text" class="form-control" id="dateResolved" disabled value="Not resolved yet.">
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
+                      <div class="col-sm-9">
+                       
+                          {% if complaint['priority'] == 'High' %}
+                          <input type="text" class="form-control" id="Priority" disabled value="High">
+                          {% elif complaint['priority'] == 'Medium' %}
+                          <input type="text" class="form-control" id="Priority" disabled value="Medium">
+                          {% else %}
+                          <input type="text" class="form-control" id="Priority" disabled value="Low">
+                            {% endif %}
+
+                       
+                       
+                      </div>
+                    </div>
+                    <div class="mb-3 row">
+                      <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="complaintStatus" disabled value="{{ complaint['status'] }}">
+                      </div>
+                    </div>
+                  
+                    <div class="mb-3 row">
+                      <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
+                      <div class="col-sm-9">
+
+                        <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ complaint['crew_name'] }}">
+ 
+                      </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                      <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="followUp" disabled placeholder="{{ complaint['followUp'] }}">
+                      </div>
+                    </div>
+
+
+                   
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+          <div class="mb-3"></div>
+        </div>
+      </div>
+    </div>
+
+    
+<!-- Modal for displaying the image -->
+<div class="modal fade" id="imageModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="col-lg-12">
+                  <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-target=".ticket-modal" data-bs-toggle="modal">Close</button>
+          </div>
+      </div>
+  </div>
+
+
+  <!--success modal-->
+
+
+</div>
+
+      <!-- Success Modal -->
+      <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title" id="successModalLabel">
+                <i class="fa fa-check-circle-o me-2"></i> Success
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+              </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!--confirmation modal-->
+
+      <div class="modal fade" id="confirmAssignModal" tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmAssignModalLabel">Confirm Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Confirm task assignment?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button
+type="button" class="btn btn-primary"
+id="confirmAssignButton">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--CHange route-->
+    <script>
+      function redirectToDashboard() {
+        window.location.href = "/"; // Redirect to the Flask route
+      }
+      function redirectToTicket() {
+        window.location.href = "/complaints"; // Redirect to the Flask route
+      }
+      function redirectToMap() {
+        window.location.href = "/maps"; // Redirect to the Flask route
+      }
+      function redirectToLog() {
+      window.location.href = "/log-history"; // Redirect to the Flask route
+    }
+    function redirectUserManagement() {
+        window.location.href = "/user-management";
+    }
+    function redirectToTicketHistory() {
+        window.location.href = "/ticket-history";
+    }
+    function redirectToCrews() {
+        window.location.href = "/crews";
+    }
+    </script>
+    <!--bootstrap-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+  
+    <!--DataTable-->
+    <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+  <script>
+    $(document).ready(function () {
+      $("#example").DataTable({
+        
+        // Add custom pagination button styling
+        buttons: [
+          {
+            extend: "previous",
+            className: "btn-secondary",
+          },
+          {
+            extend: "next",
+            className: "btn-secondary",
+          },
+ 
+        ],
+        "order": [], // Disables initial ordering
+    "columnDefs": [
+        { "orderable": false, "targets": 0 } // Disables ordering for the first column
+    ]
+      }); 
+    });
+
+
+
+      $('.ticket-modal').on('click', '.view-image', function(event) {
+          event.preventDefault();
+          var imageUrl = $(this).data('image');
+          $('#modalImage').attr('src', imageUrl);
+      });
+  </script>
+
+  
+<script>
+
+//function to assign crew
+$(document).ready(function() {
+
+// Fetch users when the page loads
+$.ajax({
+url: '/api/users',
+method: 'GET',
+dataType: 'json',
+success: function(users) {
+ // Populate dropdowns for each complaint
+ $('.dropdown-menu').each(function() {
+     var complaintId = $(this).attr('aria-labelledby').split('-')[1]; // Extract complaint ID
+     var dropdownMenu = $(this);
+
+     users.forEach(function(user) {
+         var listItem = `<li>
+             <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${complaintId}"
+               data-user-name="${user['name_team']}">
+               ${user['name_team']}
+             </a>
+         </li>`;
+         dropdownMenu.append(listItem);
+     });
+ });
+},
+error: function(xhr, status, error) {
+ console.error('Failed to fetch users:', error);
+}
+});
+
+
+$('.dropdown-menu').on('click', '.status-dropdown', function() {
+var complaintId = $(this).data('complaint-id');
+var assignedCrew = $(this).data('user-id');
+var userName = $(this).data('user-name'); // Get the selected crew's name
+var newClass = "btn-secondary";
+// Show the confirmation modal
+$('#confirmAssignModal').modal('show');
+
+// Handle the confirm button click
+$('#confirmAssignButton').off('click').on('click', function () {
+// Close the confirmation modal
+$('#confirmAssignModal').modal('hide');
+
+
+
+$.ajax({
+   url: '/update-crew',
+   method: 'POST',
+   contentType: 'application/json',
+   data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+   success: function(response) {
+       if (response.success) {
+       
+       
+           // After crew assignment, update the status
+           var newStatus = "Assigned";
+        
+           $.ajax({
+               url: '/update-status',
+               method: 'POST',
+               contentType: 'application/json',
+               data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
+               success: function(response) {
+                   if (response.success) {
+                    $('#modalBodyContent').text('Crew assigned successfully!');
+                    $('#successModal').modal('show');;
+                  
+                       // Update with new status
+                   } else {
+                       alert('Error updating status: ' + response.error);
+                   }
+               },
+               error: function(xhr, status, error) {
+                   alert('AJAX error: ' + error);
+               }
+           });
+       } else {
+           alert('Error assigning crew: ' + response.error);
+       }
+   },
+   error: function(xhr, status, error) {
+       alert('AJAX error: ' + error);
+   }
+});
+});
+
+
+});
+
+
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
+<script src="/static/js/complaints-realtime.js"></script>
+
+
+
+  </body>
+</html>

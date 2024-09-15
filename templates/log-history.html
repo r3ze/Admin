@@ -24,37 +24,88 @@
   <body>
     <div class="container-fluid">
       <div class="row">
-        <div class="col-lg-2 position-fixed" style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1d1d42;">
-          <div class="list-group">
-            <button type="button" style="color: white; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <h2>Admin</h2>
-            </button>
-            <button type="button" onclick="redirectToDashboard()" style="color: #72728a; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-home" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">Dashboard</span>
-            </button>
-            <button type="button" onclick="redirectToTicket()" style="color: #72728a; background-color: #1d1d42" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">Ticket</span>
-            </button>
-            <button type="button" onclick="redirectToTicketHistory()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">Ticket History</span>
-            </button>
-            <button type="button" onclick="redirectToMap()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-map" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">Map</span>
-            </button>
-            <button type="button" onclick="redirectToLogHistory()" style="background-color: #27274f; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-history" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">History Log</span>
-            </button>
-            <button type="button" onclick="redirectUserManagement()" style="background-color: #1d1d42; color: #72728a" class="list-group-item list-group-item-action mt-4" aria-current="true">
-              <span class="fa fa-users" style="margin-right: 8px; font-size: 20px"></span>
-              <span style="font-weight: 600">User Management</span>
+        <div class="col-lg-2 position-fixed" 
+     style="box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); height: 100%; background-color: #1D1D42;">
+  <div class="list-group">
+    <!-- Admin Title -->
+    <button type="button" class="list-group-item list-group-item-action mt-4"
+            style="color: white; background-color: #1D1D42; text-align: center; border: none;">
+      <h2>Admin</h2>
+    </button>
+
+    <!-- Dashboard -->
+    <button type="button" onclick="redirectToDashboard()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
+      Dashboard
+    </button>
+
+    <!-- Ticket -->
+    <button type="button" onclick="redirectToTicket()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-ticket" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket
+    </button>
+
+    <!-- Ticket History -->
+    <button type="button" onclick="redirectToTicketHistory()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      Ticket History
+    </button>
+
+    <!-- Map -->
+    <button type="button" onclick="redirectToMap()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+      Map
+    </button>
+
+    <!-- History Log -->
+    <button type="button" onclick="redirectToLog()" 
+            class="list-group-item list-group-item-action mt-4"
+            style="color: #72728A; background-color: #27274F; padding: 12px 16px; font-weight: 600;">
+      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+      History Log
+    </button>
+
+    <!-- User Management Accordion -->
+    <div class="accordion mt-4" id="userManagementAccordion" style="border: none; background-color: #1D1D42;">
+      <div class="accordion-item" style="border: none; background-color: #1D1D42;">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button collapsed"
+                  style="border: none; background-color: #1D1D42; color: #72728A; padding: 12px 16px; font-weight: 600;"
+                  type="button" 
+                  data-bs-toggle="collapse" 
+                  data-bs-target="#collapseOne" 
+                  aria-expanded="false" 
+                  aria-controls="collapseOne">
+            <span class="fa fa-users" style="margin-right: 8px; font-size: 20px;"></span>
+            User Management
           </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#userManagementAccordion">
+          <div class="accordion-body" style="padding: 0;">
+            <a onclick="redirectUserManagement()" class="list-group-item list-group-item-action"
+               style="padding: 12px 16px; background-color: #27274F; color: white; border: none;">
+              Consumers
+            </a>
+            <a onclick="redirectToCrews()" class="list-group-item list-group-item-action"
+               style="padding: 12px 16px; background-color: #27274F; color: white; border: none;">
+              Crews
+            </a>
           </div>
         </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
           <div class="mt-3">
             <h2>History Log</h2>
@@ -75,7 +126,7 @@
                   <tr>
                     
                     <th scope="col">ID</th>
-                    <th scope="col">Consumer</th>
+                    <th scope="col">User</th>
                     <th scope="col">Action</th>
                     <th scope="col">Timestamp</th>
                   </tr>
@@ -121,6 +172,9 @@
     }
     function redirectToTicketHistory() {
         window.location.href = "/ticket-history";
+    }
+    function redirectToCrews() {
+        window.location.href = "/crews";
     }
     </script>
     <script>

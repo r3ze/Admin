@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for
 from datetime import datetime
 from appwrite.client import Client
 from appwrite.services.databases import Databases
+from appwrite.services.users import Users
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timezone
@@ -14,6 +15,7 @@ client.set_endpoint('https://cloud.appwrite.io/v1')
 client.set_project('662248657f5bd3dd103c')
 client.set_key('207cd5fd8dc09632737a600005a611e179f5b0ed8d8049b385f4f396c97581599ee63732daca48d79ec51029363c8225280013a93e7509061c4adeddc8dfc7cf081a521301153811fc6625d57077dbcc7b8a0e048ce8d5ab0137000cd4af98155a1779fad9bed80c9714ee3bdced5a97b5c3ea5b3349f54abf3871ff10f70e0b')
 
+users_service = Users(client)
 
 database = Databases(client)
 
@@ -35,6 +37,20 @@ def login():
         else:
             return "Invalid credentials. Please try again."
     return render_template('login.html')
+
+def count_complaints_by_status(complaints):
+    total_complaints = len(complaints)
+    resolved_complaints = sum(1 for complaint in complaints if complaint.get('status') == 'Resolved')
+    pending_complaints = sum(1 for complaint in complaints if complaint.get('status') in ['In Progress', 'New', 'Assigned'])  # Assuming these statuses are "pending"
+    cancelled_complaints = sum(1 for complaint in complaints if complaint.get('status') == 'Withdrawn')
+
+    return {
+        'total_complaints': total_complaints,
+        'resolved_complaints': resolved_complaints,
+        'pending_complaints': pending_complaints,
+        'cancelled_complaints': cancelled_complaints
+    }
+
 
 
 #count users
@@ -66,6 +82,22 @@ def count_complaints():
         return 0  # Return 0 if there's an error
     
 # Count new complaints
+def count_new_user_complaints(consumer_id):
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter and count only complaints with status = 'New'
+        total_new_user_complaints = sum(1 for complaint in response['documents'] if complaint.get('consumer_id') == consumer_id)
+        
+        return total_new_user_complaints
+    except Exception as e:
+        print(f"Error counting new complaints: {str(e)}")
+        return 0  # Return 0 if there's an error
+# Count new complaints
 def count_new_complaints():
     try:
         # Fetch all documents from the 'complaints' collection
@@ -82,6 +114,9 @@ def count_new_complaints():
         print(f"Error counting new complaints: {str(e)}")
         return 0  # Return 0 if there's an error
     
+
+    
+
 # Count new complaints
 def count_assigned_complaints():
     try:
@@ -381,6 +416,157 @@ def update_crew():
         return jsonify({'success': False, 'error': str(e)}), 500        
 
 
+@app.route('/crews/add', methods=['POST'])
+def add_crew_member():
+    data = request.get_json()
+    
+    email = data.get('email')
+    password = data.get('password')
+    team = data.get('team')
+
+    # Validate the data
+    if not email or not password or not team:
+        return jsonify({"error": "Email, password, and team are required."}), 400
+
+    try:
+        # Create user in Appwrite
+        user = users_service.create(
+            user_id='unique()',  # Let Appwrite generate a unique ID
+            email=email,
+            password=password
+        )
+
+
+        new_crew = database.create_document(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID,
+            document_id='unique()',
+            data={
+                'accountId': user['$id'],
+                'email': email,
+                'name_team': team,
+                'password': password
+            }
+        )
+
+        return jsonify({"success": "Crew member added successfully."}), 200
+    except Exception as e:
+        print(f"Error creating crew member: {e}")
+        return jsonify({"error": "Error creating crew member."}), 500
+        
+
+@app.route('/crews/update', methods=['POST'])
+def update_crew_member():
+    data = request.get_json()
+    doc_id = data.get('doc_id')
+    user_id = data.get('user_id')
+    email = data.get('email')
+    resolution_team = data.get('resolution_team')
+
+    if not doc_id or not user_id:
+        return jsonify({"error": "Document ID and User ID are required."}), 400
+
+    try:
+        # Log for debugging purposes
+        print(f"Updating document with doc_id: {doc_id}, user_id: {user_id}")
+
+        # Check if the document exists before updating
+        document = database.get_document(DATABASE_ID, CREW_COLLECTION_ID, doc_id)
+        if document is None:
+            return jsonify({"error": "Document not found."}), 404
+
+        # Prepare the data for updating
+        update_data = {}
+        
+        # Update email only if it's changed
+        if email and email != document.get('email'):
+            update_data['email'] = email
+            users_service.update_email(user_id=user_id, email=email)
+
+        # Update the team name only if it's changed
+        if resolution_team and resolution_team != document.get('name_team'):
+            update_data['name_team'] = resolution_team
+
+        # Perform the update only if there's data to update
+        if update_data:
+            database.update_document(
+                database_id=DATABASE_ID,
+                collection_id=CREW_COLLECTION_ID,
+                document_id=doc_id,
+                data=update_data
+            )
+
+        return jsonify({"success": "Crew member updated successfully."}), 200
+
+    except Exception as e:
+        print(f"Error updating crew member: {e}")
+        return jsonify({"error": "Error updating crew member."}), 500
+    
+@app.route('/consumer/update', methods=['POST'])
+def update_consumer():
+    data = request.get_json()
+    doc_id = data.get('doc_id')
+    user_id = data.get('user_id')
+    email = data.get('email')
+    name = data.get('name')
+    account_number = data.get('account_number')
+    municipality = data.get('municipality')
+    barangay = data.get('barangay')
+    street = data.get('street')
+    if not doc_id or not user_id:
+        return jsonify({"error": "Document ID and User ID are required."}), 400
+
+    try:
+        # Log for debugging purposes
+        print(f"Updating document with doc_id: {doc_id}, user_id: {user_id}")
+
+        # Check if the document exists before updating
+        document = database.get_document(DATABASE_ID, USER_COLLECTION_ID, doc_id)
+        if document is None:
+            return jsonify({"error": "Document not found."}), 404
+
+        # Prepare the data for updating
+        update_data = {}
+        
+        # Update email only if it's changed
+        if email and email != document.get('email'):
+            update_data['email'] = email
+            users_service.update_email(user_id=user_id, email=email)
+
+
+
+
+        if name and name != document.get('name'):
+            update_data['name'] = name
+        
+        if account_number and account_number != document.get('account_number'):
+            update_data['account_number'] = account_number
+
+        if municipality and municipality != document.get('municipality'):
+            update_data['city'] = municipality
+
+        if barangay and barangay != document.get('barangay'):
+            update_data['barangay'] = barangay
+
+        if street and street != document.get('street'):
+            update_data['street'] = street
+
+        # Perform the update only if there's data to update
+        if update_data:
+            database.update_document(
+                database_id=DATABASE_ID,
+                collection_id=USER_COLLECTION_ID,
+                document_id=doc_id,
+                data=update_data
+            )
+
+        return jsonify({"success": "consumer updated successfully."}), 200
+
+    except Exception as e:
+        print(f"Error updating consumer: {e}")
+        return jsonify({"error": "Error updating consumer."}), 500
+
+
 
 @app.route('/log-history')
 def log_history():
@@ -403,15 +589,149 @@ def user_management():
             database_id=DATABASE_ID,
             collection_id=USER_COLLECTION_ID
         )
-        users_list = result['documents']
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=LOG_COLLECTION_ID
+        )
 
+        sorted_logs = sorted(response['documents'], key=lambda x: x['time_stamp'], reverse=True)
+        
+        users_list = result['documents']
+        
         if municipality:
             users_list = [user for user in users_list if user.get('city') == municipality]
     except Exception as e:
         print(f"Error fetching users: {e}")
         users_list = []
 
-    return render_template("user-management.html", users=users_list, municipality=municipality)
+    return render_template("user-management.html", users=users_list, municipality=municipality, logs = sorted_logs)
+
+@app.route('/crews')
+def crews():
+  
+    try:
+        result = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID
+        )
+
+     
+        
+        users_list = result['documents']
+   
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        users_list = []
+
+    return render_template("crews.html", users=users_list)
+@app.route('/user-history/<user_id>')
+def consumerHistory(user_id):
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter complaints based on consumer_id
+        filtered_complaints = [
+            complaint for complaint in response['documents']
+            if complaint.get('consumer_id') == user_id
+        ]
+
+        # Sort complaints by 'createdAt' field in descending order
+        sorted_complaints = sorted(
+            filtered_complaints,
+            key=lambda x: (x['createdAt'] is not None, x['createdAt']),
+            reverse=True
+        )
+
+        # Format date and calculate priority
+        for complaint in sorted_complaints:
+            complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
+            complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
+            complaint['formattedResolvedAt'] = format_date(complaint.get('resolvedAt'))
+            complaint['priority'] = calculate_priority(complaint)
+
+        # Count complaints by status
+        complaint_counts = count_complaints_by_status(filtered_complaints)
+
+        # Fetch user information
+        user_response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID
+        )
+        users = user_response['documents']
+
+        return render_template(
+            "consumer-history.html",
+            complaints=sorted_complaints,
+            users=users,
+            total_complaints=complaint_counts['total_complaints'],
+            resolved_complaints=complaint_counts['resolved_complaints'],
+            pending_complaints=complaint_counts['pending_complaints'],
+            cancelled_complaints=complaint_counts['cancelled_complaints']
+        )
+    except Exception as e:
+        print(f"Error: {e}")  # Print the error for debugging
+        return jsonify({'error': str(e)}), 500
+
+    
+@app.route('/crew-history/<user_id>')
+def crewHistory(user_id):
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Fetch crew information
+        user_response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID
+        )
+
+        # Filter complaints based on crew_id
+        filtered_complaints = [
+            complaint for complaint in response['documents']
+            if complaint.get('crew_id') == user_id
+        ]
+
+        # Sort complaints by 'createdAt' field in descending order
+        sorted_complaints = sorted(
+            filtered_complaints,
+            key=lambda x: (x['createdAt'] is not None, x['createdAt']),
+            reverse=True
+        )
+
+        # Format date and calculate priority
+        for complaint in sorted_complaints:
+            complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
+            complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
+            complaint['formattedResolvedAt'] = format_date(complaint.get('resolvedAt'))
+            complaint['priority'] = calculate_priority(complaint)
+
+        # Count complaints by status for the crew member
+        complaint_counts = count_complaints_by_status(filtered_complaints)
+
+        # Get the crew members
+        users = user_response['documents']
+
+        return render_template(
+            "crew_history.html",
+            complaints=sorted_complaints,
+            total_complaints=complaint_counts['total_complaints'],
+            resolved_complaints=complaint_counts['resolved_complaints'],
+            pending_complaints=complaint_counts['pending_complaints'],
+            cancelled_complaints=complaint_counts['cancelled_complaints'],
+            users=users
+        )
+    except Exception as e:
+        print(f"Error: {e}")  # Print the error for debugging
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/ticket-history')
 def ticket_history():
     try:
@@ -426,43 +746,18 @@ def ticket_history():
             if doc['status'] in ['Withdrawn', 'Resolved']
         ]
 
+
+           
         # Parse the createdAt, assignedAt, and resolvedAt fields into datetime objects
         for ticket in relevant_tickets:
-            # Check if 'createdAt' is not None before replacing
-            if ticket.get('createdAt'):
-                ticket['createdAt_dt'] = datetime.fromisoformat(ticket['createdAt'].replace('Z', '+00:00'))
-            else:
-                ticket['createdAt_dt'] = None
+            ticket['formattedCreatedAt'] = format_date(ticket.get('createdAt'))
+            ticket['formattedAssignedAt'] = format_date(ticket.get('assignedAt'))
+            ticket['formattedResolvedAt'] = format_date(ticket.get('resolvedAt'))
+            ticket['priority'] = calculate_priority(ticket)
 
-            # Check if 'assignedAt' is not None before replacing
-            if ticket.get('assignedAt'):
-                ticket['assignedAt_dt'] = datetime.fromisoformat(ticket['assignedAt'].replace('Z', '+00:00'))
-            else:
-                ticket['assignedAt_dt'] = None
 
-            # Check if 'resolvedAt' is not None before replacing
-            if ticket.get('resolvedAt'):
-                ticket['resolvedAt_dt'] = datetime.fromisoformat(ticket['resolvedAt'].replace('Z', '+00:00'))
-            else:
-                ticket['resolvedAt_dt'] = None
 
-        # Sort using the datetime objects, handle None values if necessary
-        sorted_tickets = sorted(
-            relevant_tickets,
-            key=lambda x: (x['createdAt_dt'] is not None, x['createdAt_dt']),
-            reverse=True
-        )
-        
-        # Format the datetime for display after sorting
-        for ticket in sorted_tickets:
-            if ticket['createdAt_dt']:
-                ticket['createdAt'] = ticket['createdAt_dt'].strftime('%Y/%m/%d %H:%M')
-            if ticket['assignedAt_dt']:
-                ticket['assignedAt'] = ticket['assignedAt_dt'].strftime('%Y/%m/%d %H:%M')
-            if ticket['resolvedAt_dt']:
-                ticket['resolvedAt'] = ticket['resolvedAt_dt'].strftime('%Y/%m/%d %H:%M')
-
-        return render_template("ticket_history.html", tickets=sorted_tickets)
+        return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -470,6 +765,36 @@ def ticket_history():
 def map():
     
     return render_template("map.html")
+
+@app.route('/log', methods=['POST'])
+def insert_to_log():
+    data = request.get_json()
+    assigned_at = datetime.now().isoformat()
+    user = data.get('user')
+    action = data.get('action')
+    crew_id = data.get('crew_id')  # Ensure field matches
+
+    try:
+        # Ensure 'crew_id', 'user', 'action' match your schema in Appwrite
+        new_log = database.create_document(
+            database_id=DATABASE_ID,
+            collection_id=LOG_COLLECTION_ID,
+            document_id='unique()',
+            data={
+                'consumer_id': crew_id,  # Ensure correct field names
+                'consumer_name': user,
+                'time_stamp': assigned_at,
+                'Action': action  # Ensure 'Action' matches field in your database
+            }
+        )
+
+        return jsonify({"success": "Log added successfully."}), 200
+    except Exception as e:
+        print(f"Error creating Log: {e}")
+        return jsonify({"error": "Error creating Log."}), 500
+
+
+
 
 
 
