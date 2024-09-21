@@ -272,145 +272,159 @@
                     </td>
                     <td >  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{complaint['$id']}}">
                       View Details
-                  </button></td>
+                  </button>
+                </td>
                   </tr>
 
-              <!--Modal for ticket info-->
-              <div class="modal fade ticket-modal" id="modal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{complaint['$id']}}" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <form>
-                        <div class="mb-3 row">
-                          <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="ticketID" disabled value="{{ complaint['$id'] }}">
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="consumer" disabled value="{{ complaint['consumer_name'] }}">
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['description'] }}">
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
-                          <div class="col-sm-9">
-                            {% if complaint['additionalDetails'] %}
-                            <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['additionalDetails'] }}">
-                            {% else %}
-                            <input type="text" class="form-control" id="complaintType" disabled value="No additional details provided.">
-                            {% endif %}
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="address" class="col-sm-3 col-form-label">Address</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="address" disabled value="{{ complaint['locationName'] }}">
-                          </div>
-                        </div>
-                
-                        <div class="mb-3 row">
-                          <label for="image" class="col-sm-3 col-form-label">Image</label>
-                          <div class="col-sm-9">
-                            <a href="#" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="dateCreated" disabled value="{{ complaint['formattedCreatedAt'] }}">
-                          </div>
-                        </div>
-
-                        <div class="mb-3 row">
-                          <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
-                          <div class="col-sm-9">
-                          {% if complaint['assignedAt']%}
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['formattedAssignedAt'] }}">
-                            {% else %}
-                            <input type="text" class="form-control" id="dateAssigned" disabled value="Not assigned yet.">
-                            {% endif %}
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
-                          <div class="col-sm-9">
-                           
-                              {% if complaint['priority'] == 'High' %}
-                              <input type="text" class="form-control" id="Priority" disabled value="High">
-                              {% elif complaint['priority'] == 'Medium' %}
-                              <input type="text" class="form-control" id="Priority" disabled value="Medium">
-                              {% else %}
-                              <input type="text" class="form-control" id="Priority" disabled value="Low">
-                                {% endif %}
-
-                           
-                           
-                          </div>
-                        </div>
-                        <div class="mb-3 row">
-                          <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="complaintStatus" disabled value="{{ complaint['status'] }}">
-                          </div>
-                        </div>
-                      
-                        <div class="mb-3 row">
-                          <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
-                          <div class="col-sm-9">
-
-                            <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ complaint['crew_name'] }}">
-     
-                          </div>
-                        </div>
-
-                        <div class="mb-3 row">
-                          <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-                          <div class="col-sm-9">
-                            <input type="text" class="form-control" id="followUp" disabled placeholder="{{ complaint['followUp'] }}">
-                          </div>
-                        </div>
-
-                        <div class="mb-3 row">
-                          <label for="resolutionTeam" class="col-sm-3 col-form-label">Resolution Team</label>
-                          <div class="col-sm-9">
-                            <div class="dropdown">
-                              {% if complaint['crew_name'] %}
-                              <button class="btn btn-secondary dropdown-toggle" disabled aria-disabled="true" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                {{complaint['crew_name']}} 
-                            </button>
-                              {% else %}
-                             
-                                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                 Assign Team 
-                              </button>
-                              {% endif %}
-                              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
-                                </ul>
+                <!--Modal for ticket info-->
+                <div class="modal fade ticket-modal" id="modal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{complaint['$id']}}" aria-hidden="true">
+                  <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form>
+                          <div class="mb-3 row">
+                            <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="ticketID" disabled value="{{ complaint['$id'] }}">
                             </div>
-                        </div>
-                        </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="consumer" disabled value="{{ complaint['consumer_name'] }}">
+                            </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['description'] }}">
+                            </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
+                            <div class="col-sm-9">
+                              {% if complaint['additionalDetails'] %}
+                              <input type="text" class="form-control" id="complaintType" disabled value="{{ complaint['additionalDetails'] }}">
+                              {% else %}
+                              <input type="text" class="form-control" id="complaintType" disabled value="No additional details provided.">
+                              {% endif %}
+                            </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="address" class="col-sm-3 col-form-label">Address</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="address" disabled value="{{ complaint['locationName'] }}">
+                            </div>
+                          </div>
+                  
+                          <div class="mb-3 row">
+                            <label for="image" class="col-sm-3 col-form-label">Image</label>
+                            <div class="col-sm-9">
+                              <a href="#" id="image" class="view-image" data-image="{{ complaint['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
+                            </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="dateCreated" disabled value="{{ complaint['formattedCreatedAt'] }}">
+                            </div>
+                          </div>
 
-                       
-                      </form>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                          <div class="mb-3 row">
+                            <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+                            <div class="col-sm-9">
+                            {% if complaint['assignedAt']%}
+                              <input type="text" class="form-control" id="dateAssigned" disabled value="{{ complaint['formattedAssignedAt'] }}">
+                              {% else %}
+                              <input type="text" class="form-control" id="dateAssigned" disabled value="Not assigned yet.">
+                              {% endif %}
+                            </div>
+                          </div>
+
+                          <div class="mb-3 row">
+                            <label for="resolutionDate" class="col-sm-3 col-form-label">Estimated Resolution Date</label>
+                            <div class="col-sm-9">
+                              {% if complaint['formattedResolutionDate'] %}
+                                <input type="text" class="form-control" id="resolutionDate" disabled value="{{ complaint['formattedResolutionDate'] }}">
+                              {% else %}
+                                <input type="text" class="form-control" id="resolutionDate" disabled value="No date provided">
+                              {% endif %}
+                            </div>
+                          </div>
+                          
+
+
+                          <div class="mb-3 row">
+                            <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
+                            <div class="col-sm-9">
+                              {% if complaint['priority'] == 'High' %}
+                              <input type="hidden" class="form-control"  id="Priority" value="High">
+                              <input type=text" class="form-control" disabled value="High">
+                              {% elif complaint['priority'] == 'Medium' %}
+                              <input type="hidden" class="form-control" id="Priority" value="Medium">
+                              <input type=text" class="form-control" disabled value="Medium">
+                              {% else %}
+                              <input type="hidden" class="form-control" id="Priority" value="Low">
+                              <input type=text" class="form-control" disabled value="Low">
+                              {% endif %}
+                            </div>
+                          </div>
+                          <div class="mb-3 row">
+                            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="complaintStatus" disabled value="{{ complaint['status'] }}">
+                            </div>
+                          </div>
+                        
+                          <div class="mb-3 row">
+                            <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
+                            <div class="col-sm-9">
+
+                              <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ complaint['crew_name'] }}">
+      
+                            </div>
+                          </div>
+
+                          <div class="mb-3 row">
+                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                            <div class="col-sm-9">
+                              <input type="text" class="form-control" id="followUp" disabled placeholder="{{ complaint['followUp'] }}">
+                            </div>
+                          </div>
+
+                          <div class="mb-3 row">
+                            <label for="resolutionTeam" class="col-sm-3 col-form-label">Action</label>
+                            <div class="col-sm-9">
+                              <div class="dropdown">
+                                {% if complaint['crew_name'] %}
+                                <button class="btn btn-secondary dropdown-toggle" disabled aria-disabled="true" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                                  {{complaint['crew_name']}} 
+                              </button>
+                                {% else %}
+                              
+                                  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                                  Assign Team 
+                                </button>
+                                {% endif %}
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
+                                  </ul>
+                              </div>
+                          </div>
+                          </div>
+
+                        
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
 
                   {% endfor %}
@@ -423,30 +437,25 @@
         </div>
 
         
-    <!-- Modal for displaying the image -->
-    <div class="modal fade" id="imageModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-sm modal-dialog-center" role="document">
-          <div class="modal-content">
-              <div class="modal-header">
-                  <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                  <div class="col-lg-12">
-                      <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
-                  </div>
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-target=".ticket-modal" data-bs-toggle="modal">Close</button>
+      <!-- Modal for displaying the image -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="col-lg-12">
+                  <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
               </div>
           </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
       </div>
-
-
-      <!--success modal-->
-
-
-    </div>
+  </div>
+</div>
 
           <!-- Success Modal -->
           <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -467,27 +476,57 @@
             </div>
           </div>
 
-          <!--confirmation modal-->
+ <!-- Confirmation Modal with Advanced Styling -->
+<div class="modal fade" id="confirmAssignModal" tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content shadow-lg border-0 rounded-4">
 
-          <div class="modal fade" id="confirmAssignModal" tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="confirmAssignModalLabel">Confirm Assignment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Confirm task assignment?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button
-type="button" class="btn btn-primary"
-id="confirmAssignButton">Confirm</button>
-                    </div>
-                </div>
-            </div>
+      <!-- Modal Header -->
+      <div class="modal-header bg-gradient-info rounded-top-4 border-bottom-0">
+        <h5 class="modal-title d-flex align-items-center" id="confirmAssignModalLabel">
+          <i class="fas fa-calendar-check me-2"></i> Confirm Assignment
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4">
+        <p class="fs-6 text-muted">
+          Please confirm the task assignment and set the estimated resolution date.
+        </p>
+
+        <!-- Estimated Resolution Date and Time -->
+        <div class="form-group mb-3">
+          <label for="resolutionStartDate" class="form-label fw-bold">
+            <i class="fas fa-calendar-alt me-2 text-primary"></i> Estimated Resolution Start Date
+          </label>
+          <input type="date" class="form-control" id="resolutionStartDate" required />
         </div>
+        
+        <div class="form-group mb-3">
+          <label for="resolutionEndDate" class="form-label fw-bold">
+            <i class="fas fa-calendar-alt me-2 text-info"></i> Estimated Resolution End Date
+          </label>
+          <input type="date" class="form-control" id="resolutionEndDate" required />
+        </div>
+        
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer justify-content-between bg-light rounded-bottom-4 border-top-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="confirmAssignButton">
+          <i class="fas fa-check-circle me-1"></i> Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+        
 
 
         <!--CHange route-->
@@ -592,6 +631,7 @@ $('.dropdown-menu').on('click', '.status-dropdown', function() {
    var complaintId = $(this).data('complaint-id');
    var assignedCrew = $(this).data('user-id');
    var userName = $(this).data('user-name'); // Get the selected crew's name
+  
    var newClass = "btn-secondary";
  // Show the confirmation modal
  $('#confirmAssignModal').modal('show');
@@ -601,13 +641,22 @@ $('#confirmAssignButton').off('click').on('click', function () {
     // Close the confirmation modal
     $('#confirmAssignModal').modal('hide');
 
+     // Get the values from the modal inputs
+     var resolutionStartDate = $('#resolutionStartDate').val(); // Correct way to get input value
+      var resolutionEndDate = $('#resolutionEndDate').val(); // Correct way to get input value
+    var priority = $('#Priority').val();
+        if (!resolutionStartDate || !resolutionEndDate) {
+            alert("Please select both start and end dates");
+            return;
+        }
+
     
 
    $.ajax({
        url: '/update-crew',
        method: 'POST',
        contentType: 'application/json',
-       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName }),
+       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName, resolutionStartDate: resolutionStartDate, resolutionEndDate: resolutionEndDate, priority: priority }),
        success: function(response) {
            if (response.success) {
            

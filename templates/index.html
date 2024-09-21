@@ -280,6 +280,8 @@
             <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
           {% elif complaint['status'] == 'In Progress' %}
             <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">In Progress</span>
+          {% elif complaint['status'] == 'Withdrawn' %}
+            <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Withdrawn</span>
           {% endif %}
         </td>
       

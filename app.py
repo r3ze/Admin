@@ -292,7 +292,21 @@ def calculate_priority_endpoint():
     priority = calculate_priority(complaint)
     return jsonify({'priority': priority})  # Return the result as JSON
 
+# Helper function to format dates and handle timezone
+def format_date_range(start_date_str, end_date_str):
+    try:
+        # Strip out the time and timezone part using the first 10 characters (YYYY-MM-DD)
+        start_date = datetime.strptime(start_date_str[:10], '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_str[:10], '%Y-%m-%d')
 
+        # Check if the month is the same
+        if start_date.month == end_date.month:
+            return f"{start_date.strftime('%B')} {start_date.day} - {end_date.day}"
+        else:
+            return f"{start_date.strftime('%B')} {start_date.day} - {end_date.strftime('%B')} {end_date.day}"
+    except Exception as e:
+        print(f"Error formatting date range: {e}")
+        return None
 @app.route('/complaints')
 def complaints():
     try:
@@ -309,7 +323,7 @@ def complaints():
 
         # Filter out complaints with 'resolved' status
         filtered_complaints = [
-            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved'
+            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved' and complaint.get('status')!='Withdrawn'
         ]
 
         # Sort complaints by 'createdAt' field in descending order
@@ -324,6 +338,11 @@ def complaints():
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
             complaint['priority'] = calculate_priority(complaint)
+
+              # Format resolution date range
+            start_date = complaint.get('resolutionStartDate')
+            end_date = complaint.get('resolutionEndDate')
+            complaint['formattedResolutionDate'] = format_date_range(start_date, end_date)
 
         users = user_response['documents']
         total_complaints = count_complaints()
@@ -397,6 +416,9 @@ def update_crew():
     complaint_id = data.get('complaintId')
     assigned_crew = data.get('assigned_crew')
     crew_name = data.get('crew_name')
+    resolutionStartDate = data.get('resolutionStartDate')
+    resolutionEndDate = data.get('resolutionEndDate')
+    priority = data.get('priority')
     try:
         assigned_at = datetime.now().isoformat()
         database.update_document(
@@ -407,7 +429,10 @@ def update_crew():
                 'crews': assigned_crew,
                 'crew_name': crew_name,
                 'assignedAt': assigned_at,
-                'crew_id': assigned_crew
+                'crew_id': assigned_crew,
+                'resolutionStartDate':resolutionStartDate,
+                'resolutionEndDate':resolutionEndDate,
+                'priority': priority
             }
         )
         return jsonify({'success': True})
