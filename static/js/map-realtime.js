@@ -29,12 +29,50 @@ client.subscribe('databases.66224a152d9f9a67af78.collections.6626029b134a98006f7
 const markersC = {};
 // Function to add a marker to the map
 // Function to add a marker to the map
+
+   // Helper function to format the date range
+   function formatDateRange(startDateStr, endDateStr) {
+    try {
+        // Convert string to Date objects, assuming input is in 'YYYY-MM-DD' format
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+
+        const options = { month: 'long', day: 'numeric' }; // e.g., September 21
+
+        // Check if the month is the same
+        if (startDate.getMonth() === endDate.getMonth()) {
+            return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.getDate()}`;
+        } else {
+            // Different months
+            return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.toLocaleDateString(undefined, options)}`;
+        }
+    } catch (error) {
+        console.error('Error formatting date range:', error);
+        return 'Invalid Date';
+    }
+}
 function addMarkerToMap(doc) {
-    // Only add the marker if the complaint is not resolved
-    console.log(doc.status)
+    fetch('/calculate-priority', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: doc.description,
+            createdAt: doc.createdAt,
+            locationName: doc.locationName,
+            additionalDetails: doc.additionalDetails
+        })
+
+    })
+    .then(response => response.json())
+    .then(data => {
+        const priority = data.priority;
+
+                
     if (doc.status !== 'Resolved' && doc.Location) {
         const [latitude, longitude] = doc.Location.split(',').map(coord => parseFloat(coord));
-        
+
         let markerClass = '';
         switch (doc.description) {
             case 'No Power':
@@ -59,6 +97,7 @@ function addMarkerToMap(doc) {
                 markerClass = 'blinking-marker';
         }
 
+        // Create the marker with the appropriate class
         const marker = L.marker([latitude, longitude], {
             icon: L.divIcon({
                 className: markerClass,
@@ -66,16 +105,47 @@ function addMarkerToMap(doc) {
             })
         }).addTo(map);
 
-        marker.bindPopup(doc.description);
-        markersC[doc.$id] = marker;  // Store marker by document ID
+        const createdAt = new Date(doc.createdAt);
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
+
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
+
+            const formattedResolutionDate = (doc.resolutionStartDate && doc.resolutionEndDate) ? formatDateRange(complaint.resolutionStartDate, complaint.resolutionEndDate): "No date provided"
+          // Bind the click event to show modal with complaint details
+          marker.on('click', function() {
+              // Set the details of the clicked complaint in the modal
+              document.getElementById('complaintType').textContent = doc.description || 'Unknown Type';
+              document.getElementById('complaintAddress').textContent = doc.locationName;
+             
+              
+              // Set the date reported and estimated resolution time
+              document.getElementById('complaintDateReported').textContent = formattedDate + " "+ formattedTime;
+              document.getElementById('complaintEstimatedTime').textContent = formattedResolutionDate;
+              document.getElementById('complaintPriority').textContent = priority
+
+            // Show the modal with animation
+            const myModal = new bootstrap.Modal(document.getElementById('complaintModal'));
+            myModal.show();
+        });
+
+        // Store the marker by document ID
+        markersC[doc.$id] = marker;
     }
+    })
+
 }
+
 
 
 // Function to update a marker on the map
 function updateMarkerOnMap(doc) {
     // Remove the marker if the complaint is resolved
-    if (doc.status === 'Resolved') {
+    if (doc.status === 'Resolved' || doc.status==='Withdrawn') {
         removeMarkerFromMap(doc.$id);
     } else {
         // Otherwise, update the marker on the map

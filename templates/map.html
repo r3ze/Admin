@@ -161,6 +161,14 @@
       Dashboard
     </button>
 
+      <!-- Map -->
+      <button type="button" onclick="redirectToMap()" 
+      class="list-group-item list-group-item-action mt-4"
+      style="color: #72728A; background-color: #27274F; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+Map
+</button>
+
     <!-- Ticket -->
     <button type="button" onclick="redirectToTicket()" 
             class="list-group-item list-group-item-action mt-4"
@@ -173,17 +181,11 @@
     <button type="button" onclick="redirectToTicketHistory()" 
             class="list-group-item list-group-item-action mt-4"
             style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+            <span class="fa fa-list-alt" style="margin-right: 8px; font-size: 20px;"></span>
       Ticket History
     </button>
 
-    <!-- Map -->
-    <button type="button" onclick="redirectToMap()" 
-            class="list-group-item list-group-item-action mt-4"
-            style="color: #72728A; background-color: #27274F; padding: 12px 16px; font-weight: 600;">
-      <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
-      Map
-    </button>
+  
 
     <!-- History Log -->
     <button type="button" onclick="redirectToLog()" 
@@ -257,7 +259,7 @@
     <div class="modal-content shadow-lg border-0 rounded-4">
       
       <!-- Modal Header -->
-      <div class="modal-header bg-gradient-primary text-white rounded-top-4 border-bottom-0">
+      <div class="modal-header bg-primary text-white rounded-top-4">
         <h5 class="modal-title d-flex align-items-center" id="complaintModalLabel">
           <i class="fas fa-info-circle me-2"></i> Complaint Details
         </h5>
@@ -267,48 +269,45 @@
       <!-- Modal Body -->
       <div class="modal-body p-4">
         
-        <!-- Complaint Type and Description -->
+        <!-- Complaint Type and Address -->
         <div class="row mb-4">
-          <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
-              <i class="fas fa-exclamation-circle text-danger me-2"></i> Type of Complaint:
+        
+          <div class="col-md-12">
+            <h6 class="text-uppercase text-secondary fw-bold">
+              <i class="fas fa-map-marker-alt text-info me-2"></i> Address:
             </h6>
-            <p id="complaintType" class="fs-5 fw-bold text-primary"></p>
+            <p id="complaintAddress" class="fs-5 text-dark"></p>
           </div>
-          <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
-              <i class="fas fa-clipboard-list text-warning me-2"></i> Description:
-            </h6>
-            <p id="complaintDescription" class="fs-5 text-dark"></p>
-          </div>
+       
         </div>
         
         <!-- Date Reported and Estimated Resolution Time -->
         <div class="row mb-4">
           <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
+            <h6 class="text-uppercase text-secondary fw-bold">
+              <i class="fas fa-exclamation-circle text-danger me-2"></i> Type of Complaint:
+            </h6>
+            <p id="complaintType" class="fs-5 text-primary"></p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-secondary fw-bold">
               <i class="fas fa-calendar-alt text-success me-2"></i> Date Reported:
             </h6>
             <p id="complaintDateReported" class="fs-6 text-muted"></p>
           </div>
-          <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
-              <i class="fas fa-hourglass-half text-info me-2"></i> Estimated Resolution Time:
-            </h6>
-            <p id="complaintEstimatedTime" class="fs-6 text-muted"></p>
-          </div>
+
         </div>
 
         <!-- Status and Priority -->
         <div class="row mb-4">
           <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
-              <i class="fas fa-tasks text-primary me-2"></i> Status:
+            <h6 class="text-uppercase text-secondary fw-bold">
+              <i class="fas fa-hourglass-half text-info me-2"></i> Estimated Resolution Time:
             </h6>
-            <p id="complaintStatus" class="fs-5 text-dark"></p>
+            <p id="complaintEstimatedTime" class="fs-6 text-muted"></p>
           </div>
           <div class="col-md-6">
-            <h6 class="text-uppercase text-secondary">
+            <h6 class="text-uppercase text-secondary fw-bold">
               <i class="fas fa-flag text-danger me-2"></i> Priority:
             </h6>
             <p id="complaintPriority" class="fs-5 text-dark"></p>
@@ -317,16 +316,12 @@
 
       </div>
 
-      <!-- Modal Footer -->
-      <div class="modal-footer justify-content-between border-top-0 bg-light rounded-bottom-4">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="fas fa-times-circle me-1"></i> Close
-        </button>
-      </div>
+ 
 
     </div>
   </div>
 </div>
+
 
 
 <!-- CSS for modal enhancements and animations -->
@@ -428,6 +423,32 @@
       <!-- MarkerCluster JavaScript -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
      <script>
+
+   // Helper function to format the date range
+   function formatDateRange(startDateStr, endDateStr) {
+    
+    try {
+        // Convert string to Date objects, assuming input is in 'YYYY-MM-DD' format
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+
+        const options = { month: 'long', day: 'numeric' }; // e.g., September 21
+
+        // Check if the month is the same
+        if (startDate.getMonth() === endDate.getMonth()) {
+            return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.getDate()}`;
+        } else {
+            // Different months
+            return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.toLocaleDateString(undefined, options)}`;
+        }
+    } catch (error) {
+        console.error('Error formatting date range:', error);
+        return 'Invalid Date';
+    }
+}
+
+
+
           // ApexCharts initialization remains the same
           var options2 = {
               series: [0, 0, 0, 0, 0, 0], // Initial series with zeros
@@ -523,7 +544,7 @@
                   markers.clearLayers();
                   
                   data.forEach(function(complaint) {
-                    if (complaint.latitude !== null && complaint.longitude !== null &&( complaint.status !== 'Resolved' && complaint.status !=='Withdrawn')) {
+                    if (complaint.latitude !== null && complaint.longitude !== null &&( complaint.status !== 'Resolved' && complaint.status !=='Withdrawn' && complaint.status !=='Canceled')) {
           
           // Determine the appropriate class for the complaint type
           let markerClass = '';
@@ -564,16 +585,48 @@
               })
           });
 
+        const createdAt = new Date(complaint.date_reported);
+        const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
+            ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
+            createdAt.getUTCFullYear();
+
+            const hours = createdAt.getUTCHours();
+            const minutes = ('0' + createdAt.getUTCMinutes()).slice(-2);
+            const ampm = hours >= 12 ? 'PM' : 'AM';  // Check if it's AM or PM
+            const formattedTime = ('0' + (hours % 12 || 12)).slice(-2) + ':' + minutes + ' ' + ampm;
+
+            const formattedResolutionDate = (complaint.resolutionStartDate && complaint.resolutionEndDate) ? formatDateRange(complaint.resolutionStartDate, complaint.resolutionEndDate): "No date provided"
           // Bind the click event to show modal with complaint details
           marker.on('click', function() {
               // Set the details of the clicked complaint in the modal
               document.getElementById('complaintType').textContent = complaint.complaint_description || 'Unknown Type';
-              document.getElementById('complaintDescription').textContent = complaint.complaint_details || 'No details available';
-              document.getElementById('complaintStatus').textContent = complaint.status || 'Unknown Status';
+              document.getElementById('complaintAddress').textContent = complaint.location;
+             
               
               // Set the date reported and estimated resolution time
-              document.getElementById('complaintDateReported').textContent = complaint.date_reported || 'Unknown Date';
-              document.getElementById('complaintEstimatedTime').textContent = complaint.estimated_resolution || 'No estimate available';
+              document.getElementById('complaintDateReported').textContent = formattedDate + " "+ formattedTime;
+              document.getElementById('complaintEstimatedTime').textContent = formattedResolutionDate;
+              
+fetch('/calculate-priority', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: complaint.complaint_description,
+            createdAt: complaint.date_reportedt,
+            locationName: complaint.location,
+            additionalDetails: complaint.additionalDetails
+        })
+
+    })
+    .then(response => response.json())
+    .then(data => {
+        const priority = data.priority;
+
+        document.getElementById('complaintPriority').textContent = priority;
+    })
+           
 
               // Show the modal with animation
               var myModal = new bootstrap.Modal(document.getElementById('complaintModal'));
@@ -584,10 +637,7 @@
           markers.addLayer(marker);
       }
   });
-
-
-
-      
+ 
                   // Add the cluster group to the map if not already added
                   if (!map.hasLayer(markers)) {
                       map.addLayer(markers);

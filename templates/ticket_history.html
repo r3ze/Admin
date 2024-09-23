@@ -43,6 +43,14 @@
       Dashboard
     </button>
 
+     <!-- Map -->
+     <button type="button" onclick="redirectToMap()" 
+     class="list-group-item list-group-item-action mt-4"
+     style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+Map
+</button>
+
     <!-- Ticket -->
     <button type="button" onclick="redirectToTicket()" 
             class="list-group-item list-group-item-action mt-4"
@@ -55,17 +63,11 @@
     <button type="button" onclick="redirectToTicketHistory()" 
             class="list-group-item list-group-item-action mt-4"
             style="color: #72728A; background-color: #27274F; padding: 12px 16px; font-weight: 600;">
-      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+            <span class="fa fa-list-alt" style="margin-right: 8px; font-size: 20px;"></span>
       Ticket History
     </button>
 
-    <!-- Map -->
-    <button type="button" onclick="redirectToMap()" 
-            class="list-group-item list-group-item-action mt-4"
-            style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-      <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
-      Map
-    </button>
+   
 
     <!-- History Log -->
     <button type="button" onclick="redirectToLog()" 
@@ -111,6 +113,7 @@
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
           <div class="mt-3">
             <h2>Ticket History</h2>
+            
             <div id="tableContainer">
               <table
                 id="example"
@@ -132,8 +135,8 @@
                     <th scope="col">Complaint</th>
 
                     <th scope="col">Image</th>
-                    <th scope="col">Date Resolved</th>
-                    <th scope="col">Resolution Team</th>
+                    <th scope="col">Status</th>
+
                     <td scope = "col" >Action</td>
                   </tr>
                 </thead>
@@ -145,8 +148,8 @@
             <td>{{ ticket['description'] }}</td>
 
             <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-            <td>{{ ticket['formattedResolvedAt'] }}</td>
-            <td>{{ ticket['crew_name'] }}</td>
+            <td>{{ ticket['status'] }}</td>
+
             <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
               View Details
             </button></td>
@@ -204,32 +207,64 @@
             </div>
           </div>
           <div class="mb-3 row">
+            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="complaintStatus" disabled value="{{ ticket['status'] }}">
+            </div>
+          </div>
+          <div class="mb-3 row">
             <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="dateCreated" disabled value="{{ ticket['formattedCreatedAt'] }}">
             </div>
           </div>
-
+          {% if ticket['status'] == 'Resolved' %}
           <div class="mb-3 row">
-            <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
-            <div class="col-sm-9">
-            {% if ticket['assignedAt'] %}
-              <input type="text" class="form-control" id="dateAssigned" disabled value="{{ ticket['formattedAssignedAt'] }}">
-            {% else %}
-              <input type="text" class="form-control" id="dateAssigned" disabled value="Not assigned yet.">
-            {% endif %}
-            </div>
+              <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+              <div class="col-sm-9">   
+                  <input type="text" class="form-control" id="dateAssigned" disabled value="{{ ticket['formattedAssignedAt'] }}">
+              </div>
           </div>
+      
           <div class="mb-3 row">
               <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
               <div class="col-sm-9">
-              {% if ticket['resolvedAt'] %}
-                <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
-              {% else %}
-                <input type="text" class="form-control" id="dateResolved" disabled value="Not resolved yet.">
-              {% endif %}
+                  <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
               </div>
           </div>
+      {% elif ticket['status'] == 'Withdrawn' %}
+          <div class="mb-3 row">
+              <label for="dateWithdrawn" class="col-sm-3 col-form-label">Date Withdrawn</label>
+              <div class="col-sm-9">
+                  <input type="text" class="form-control" id="dateWithdrawn" disabled value="{{ ticket['formattedWithdrawnAt'] }}">
+              </div>
+          </div>
+      
+          <div class="mb-3 row">
+              <label for="withdrawnReason" class="col-sm-3 col-form-label">Reason for Withdrawal</label>
+              <div class="col-sm-9">
+                  <input type="text" class="form-control" id="withdrawnReason" disabled value="{{ ticket['reason'] }}">
+              </div>
+          </div>
+      {% elif ticket['status'] == 'Canceled' %}
+          <div class="mb-3 row">
+              <label for="dateCanceled" class="col-sm-3 col-form-label">Date Canceled</label>
+              <div class="col-sm-9">
+                  <input type="text" class="form-control" id="dateCanceled" disabled value="{{ ticket['formattedCanceledAt'] }}">
+              </div>
+          </div>
+      
+          <div class="mb-3 row">
+              <label for="cancelReason" class="col-sm-3 col-form-label">Reason for Cancellation</label> <!-- Updated label -->
+              <div class="col-sm-9">
+                  <input type="text" class="form-control" id="cancelReason" disabled value="{{ ticket['cancellation_reason'] }}">
+              </div>
+          </div>
+      {% endif %}
+      
+
+  
+
           <div class="mb-3 row">
             <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
             <div class="col-sm-9">
@@ -242,12 +277,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="mb-3 row">
-            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="complaintStatus" disabled value="{{ ticket['status'] }}">
-            </div>
-          </div>
+         
         
           <div class="mb-3 row">
             <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>

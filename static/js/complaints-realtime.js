@@ -179,6 +179,14 @@ function formatDateRange(startDateStr, endDateStr) {
         const crew_name = doc.crew_name ? doc.crew_name : '';
         const additionalDetails = doc.additionalDetails ? doc.additionalDetails : 'No additional details provided.';
         let resolutionTeamButton = '';
+        let cancelComplaintButton = '';
+
+      
+            cancelComplaintButton = `<button class="btn btn-danger cancelComplaintButton" id="cancelComplaintButton" type="button" data-selected-complaint="${doc.$id}">
+                            Cancel Complaint
+                          </button>`;
+        
+      
 
         // Example start and end date in 'YYYY-MM-DD' format
         const resolutionStartDate =  doc.resolutionStartDate
@@ -186,13 +194,11 @@ function formatDateRange(startDateStr, endDateStr) {
 
 // Call the formatDateRange function
         const formattedResolutionDate = (doc.resolutionEndDate && doc.resolutionEndDate) ? formatDateRange(resolutionStartDate, resolutionEndDate): "No date provided"
-        
+        const followedUp = doc.followedUpAt ? doc.followedUpAt: 'Not followed up by consumer'
 if (doc.crew_name) {
-    resolutionTeamButton = `
-        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-${doc.$id}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-            ${doc.crew_name}
-        </button>
-    `;
+    resolutionTeamButton = cancelComplaintButton = `<button class="btn btn-danger cancelComplaintButton" id="cancelComplaintButton" type="button" data-selected-complaint="${doc.$id}">
+    Cancel Complaint
+  </button>`;
 } else {
     resolutionTeamButton = `
         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-${doc.$id}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
@@ -225,7 +231,7 @@ if (doc.crew_name) {
 
 
     // Call Flask API to calculate priority
-    fetch('http://127.0.0.1:5000/calculate-priority', {
+    fetch('/calculate-priority', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -341,6 +347,13 @@ if (doc.crew_name) {
                         </div>
                         </div>
 
+                           <div class="mb-3 row">
+                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="followUp" disabled value="${followedUp}">
+                            </div>
+                        </div>
+
                         
 
 
@@ -363,21 +376,21 @@ if (doc.crew_name) {
                                 <input type="text" class="form-control" id="resolutionTeamName" disabled value="${crew_name}">
                             </div>
                         </div>
-                        <div class="mb-3 row">
-                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-                            <div class="col-sm-9">
-                                <input type="text" class="form-control" id="followUp" disabled value="${doc.followUp}">
-                            </div>
-                        </div>
+                     
 
                                  <div class="mb-3 row">
                         <label for="resolutionTeamDropdown" class="col-sm-3 col-form-label">Action</label>
                         <div class="col-sm-9">
-                            <div class="dropdown">
+                        <div class="d-flex"> 
+                            <div class="dropdown me-2">
                                 ${resolutionTeamButton}
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-${doc.$id}" id="dropdownMenu-${doc.$id}">
                                     <!-- Options will be added dynamically -->
                                 </ul>
+                            </div>
+                            <div>
+                            ${cancelComplaintButton}
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -391,9 +404,56 @@ if (doc.crew_name) {
         </div>
     </div>
     `;
+    const cancelModalHtml =`<!-- Modal for canceling complaint -->
+<div class="modal fade" id="cancelModal-${doc.$id}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="cancelModalLabel-${doc.$id}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cancelModalLabel-${doc.$id}">Cancel Complaint</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to cancel this complaint? Please provide a reason:</p>
+        
+        <!-- Radio buttons for predefined reasons -->
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-${doc.$id}" id="reason1-${doc.$id}" value="Duplicate Complaint">
+            <label class="form-check-label" for="reason1-${doc.$id}">
+              Duplicate Complaint
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-${doc.$id}" id="reason2-${doc.$id}" value="Issue Resolved">
+            <label class="form-check-label" for="reason2-${doc.$id}">
+              Issue Resolved
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-${doc.$id}" id="reason3-${doc.$id}" value="Other">
+            <label class="form-check-label" for="reason3-${doc.$id}">
+              Other
+            </label>
+          </div>
+        </div>
+
+        <!-- Textarea for custom reason (enabled only when 'Other' is selected) -->
+        <textarea class="form-control" id="cancelReason-${doc.$id}" rows="3" placeholder="Enter cancellation reason..." disabled></textarea>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="confirmCancelButton" cancel-complaint-id="${doc.$id}">Confirm Cancellation</button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+
 
     // Append the modal HTML to the body
-    document.body.insertAdjacentHTML('afterbegin', modalHtml);
+    document.body.insertAdjacentHTML('afterbegin', modalHtml + cancelModalHtml);
 
 
     })
@@ -435,6 +495,12 @@ if (doc.crew_name) {
                 .done(function(response) {
                     $('#modalBodyContent').text('Crew assigned successfully!');
                     $('#successModal').modal('show');
+
+                    var button = $('#dropdownMenuButton-' + complaintId);
+                    button.prop('disabled', true);            // Disable the button
+                    button.removeClass('btn-primary');        // Remove the primary class
+                    button.addClass('btn-secondary');         // Add the secondary class
+                    button.text(userName);             // Change button text
     
                     if (response.success) {
                         updateStatus(complaintId, 'Assigned')
@@ -453,6 +519,114 @@ if (doc.crew_name) {
         });
     });
     
+
+    $(document).ready(function() {
+        document.addEventListener('click', function(event) {
+            // Check if the cancel complaint button was clicked
+            if (event.target && event.target.classList.contains('cancelComplaintButton')) {
+                event.preventDefault();
+                
+                // Get the complaint ID
+                const complaintId = event.target.getAttribute('data-selected-complaint');
+                console.log('Complaint ID:', complaintId);  // Log the complaint ID
+                
+                const cancelModalId = `#cancelModal-${complaintId}`;
+                console.log('Cancel Modal ID:', cancelModalId);  // Log the modal ID
+                
+                const cancelModalElement = document.querySelector(cancelModalId);
+                console.log('Cancel Modal Element:', cancelModalElement);  // Log the modal element
+                
+                if (!cancelModalElement) {
+                    console.error('Modal not found in the DOM');  // If no modal element is found, log an error
+                    return;  // Prevent further execution if the modal is not found
+                }
+                
+                const cancelModal = new bootstrap.Modal(cancelModalElement, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                cancelModal.show();  // Show the modal
+    
+                // Handle enabling/disabling the textarea based on the selected reason
+                const reasonRadios = document.querySelectorAll(`input[name="cancelReasonOptions-${complaintId}"]`);
+                const cancelReasonTextarea = document.getElementById(`cancelReason-${complaintId}`);
+    
+                // Initially disable the textarea
+                cancelReasonTextarea.disabled = true;
+                
+                reasonRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value === "Other") {
+                            cancelReasonTextarea.disabled = false; // Enable textarea when "Other" is selected
+                        } else {
+                            cancelReasonTextarea.disabled = true;  // Disable textarea for predefined reasons
+                            cancelReasonTextarea.value = '';  // Clear the textarea when disabled
+                        }
+                    });
+                });
+            }
+    
+            // Confirm cancel button logic
+            if (event.target && event.target.id === 'confirmCancelButton') {
+                event.preventDefault();
+                
+                const complaintId = event.target.getAttribute('cancel-complaint-id');
+                console.log('Complaint ID from confirm button:', complaintId);  // Log the complaint ID
+                
+                const selectedReason = document.querySelector(`input[name="cancelReasonOptions-${complaintId}"]:checked`).value;
+                let cancellationReason = selectedReason;
+                
+                if (selectedReason === 'Other') {
+                    cancellationReason = document.getElementById(`cancelReason-${complaintId}`).value.trim();
+                }
+                
+                if (!cancellationReason) {
+                    alert("Please provide a cancellation reason.");
+                    return;
+                }
+    
+                // Send AJAX request to Flask backend
+                fetch('/cancel-complaint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        complaintId: complaintId,
+                        cancellation_reason: cancellationReason
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Complaint successfully canceled.');
+    
+                        // Close the modal upon successful cancellation
+                        const cancelModalElement = document.querySelector(`#cancelModal-${complaintId}`);
+                        const cancelModal = bootstrap.Modal.getInstance(cancelModalElement);
+                        cancelModal.hide();  // Hide the modal
+                        
+                        // Disable the "Cancel Complaint" button
+                        const cancelButton = document.querySelector(`[data-selected-complaint="${complaintId}"]`);
+                        if (cancelButton) {
+                            cancelButton.disabled = true;
+                            cancelButton.classList.remove('btn-danger');
+                            cancelButton.classList.add('btn-secondary');
+                            cancelButton.innerText = 'Complaint Canceled';  // Optional: update button text
+                        }
+                    } else {
+                        alert('Failed to cancel the complaint. Please try again.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+    
+      
+      
+      
+
     }
 
     function updateCrew(complaintId, assignedCrew, userName, startDate, endDate, priority) {

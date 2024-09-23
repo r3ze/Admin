@@ -49,6 +49,14 @@
              <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
              Dashboard
            </button>
+
+                      <!-- Map -->
+                      <button type="button" onclick="redirectToMap()" 
+                      class="list-group-item list-group-item-action mt-4"
+                      style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+                <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+                Map
+              </button>
        
            <!-- Ticket -->
            <button type="button" onclick="redirectToTicket()" 
@@ -62,17 +70,11 @@
            <button type="button" onclick="redirectToTicketHistory()" 
                    class="list-group-item list-group-item-action mt-4"
                    style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-             <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+                   <span class="fa fa-list-alt" style="margin-right: 8px; font-size: 20px;"></span>
              Ticket History
            </button>
        
-           <!-- Map -->
-           <button type="button" onclick="redirectToMap()" 
-                   class="list-group-item list-group-item-action mt-4"
-                   style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-             <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
-             Map
-           </button>
+
        
            <!-- History Log -->
            <button type="button" onclick="redirectToLog()" 
@@ -268,6 +270,8 @@
                         <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
                       {% elif complaint['status'] == 'In Progress' %}
                         <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">In Progress</span>
+                        {% elif complaint['status'] == 'Canceled' %}
+                        <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Canceled</span>
                       {% endif %}
                     </td>
                     <td >  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{complaint['$id']}}">
@@ -355,6 +359,17 @@
                               {% endif %}
                             </div>
                           </div>
+
+                          <div class="mb-3 row">
+                            <label for="followUp" class="col-sm-3 col-form-label">Date Followed-up</label>
+                            <div class="col-sm-9">
+                              {% if complaint['followedUpAt'] %}
+                              <input type="text" class="form-control" id="followUp" disabled value="{{ complaint['followedUpAt'] }}">
+                              {% else %}
+                              <input type="text" class="form-control" id="followUp" disabled value="Not followed up by consumer">
+                            </div>
+                            {% endif %}
+                          </div>
                           
 
 
@@ -389,32 +404,42 @@
                             </div>
                           </div>
 
-                          <div class="mb-3 row">
-                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-                            <div class="col-sm-9">
-                              <input type="text" class="form-control" id="followUp" disabled placeholder="{{ complaint['followUp'] }}">
-                            </div>
-                          </div>
+                        
 
                           <div class="mb-3 row">
                             <label for="resolutionTeam" class="col-sm-3 col-form-label">Action</label>
                             <div class="col-sm-9">
-                              <div class="dropdown">
-                                {% if complaint['crew_name'] %}
-                                <button class="btn btn-secondary dropdown-toggle" disabled aria-disabled="true" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                  {{complaint['crew_name']}} 
-                              </button>
-                                {% else %}
-                              
+                              <div class="d-flex">
+                                <div class="dropdown me-2">
+                                  {% if complaint['crew_name'] %}
+                                  <button class="btn btn-secondary dropdown-toggle" disabled aria-disabled="true" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
+                                    {{complaint['crew_name']}}
+                                  </button>
+                                  {% else %}
                                   <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton-{{complaint['$id']}}" data-bs-toggle="dropdown" aria-expanded="false" data-selected-user="">
-                                  Assign Team 
+                                    Assign Team
+                                  </button>
+                                  {% endif %}
+                                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
+                                    <!-- Populate dropdown options here -->
+                                  </ul>
+                                </div>
+                          
+                                <!-- Cancel Complaint Button -->
+                              {% if complaint['status'] =='New' %}
+                                <button class="btn btn-danger" id="cancelComplaintButton" type="button" data-selected-complaint="{{complaint['$id']}}">
+                                  Cancel Complaint
+                                </button>
+                                {% else %}
+                                <button class="btn btn-danger" id="cancelComplaintButton" disabled aria-disabled="true" aria-expanded="false" type="button" data-selected-complaint="{{complaint['$id']}}">
+                                  Cancel Complaint
                                 </button>
                                 {% endif %}
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-{{complaint['$id']}}" id="dropdownMenu-{{complaint['$id']}}">
-                                  </ul>
                               </div>
+                            </div>
                           </div>
-                          </div>
+                          
+                      
 
                         
                         </form>
@@ -425,6 +450,51 @@
                     </div>
                   </div>
                 </div>
+
+             <!-- Modal for canceling complaint -->
+<div class="modal fade" id="cancelModal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="cancelModalLabel-{{complaint['$id']}}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cancelModalLabel-{{complaint['$id']}}">Cancel Complaint</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to cancel this complaint? Please provide a reason:</p>
+        
+        <!-- Radio buttons for predefined reasons -->
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-{{complaint['$id']}}" id="reason1-{{complaint['$id']}}" value="Duplicate Complaint">
+            <label class="form-check-label" for="reason1-{{complaint['$id']}}">
+              Duplicate Complaint
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-{{complaint['$id']}}" id="reason2-{{complaint['$id']}}" value="Issue Resolved">
+            <label class="form-check-label" for="reason2-{{complaint['$id']}}">
+              Issue Resolved
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-{{complaint['$id']}}" id="reason3-{{complaint['$id']}}" value="Other">
+            <label class="form-check-label" for="reason3-{{complaint['$id']}}">
+              Other
+            </label>
+          </div>
+        </div>
+
+        <!-- Textarea for custom reason (enabled only when 'Other' is selected) -->
+        <textarea class="form-control" id="cancelReason-{{complaint['$id']}}" rows="3" placeholder="Enter cancellation reason..." disabled></textarea>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="confirmCancelButton" cancel-complaint-id="{{complaint['$id']}}">Confirm Cancellation</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
                   {% endfor %}
@@ -438,7 +508,7 @@
 
         
       <!-- Modal for displaying the image -->
-<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+<div class="modal fade" id="imageModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-center" role="document">
       <div class="modal-content">
           <div class="modal-header">
@@ -694,6 +764,13 @@ $('#confirmAssignButton').off('click').on('click', function () {
         console.error('Error:', error);
     });
 
+   // Disable the button and change its class to btn-secondary
+   var button = $('#dropdownMenuButton-' + complaintId);
+                        button.prop('disabled', true);            // Disable the button
+                        button.removeClass('btn-primary');        // Remove the primary class
+                        button.addClass('btn-secondary');         // Add the secondary class
+                        button.text(userName);             // Change button text
+
                       
                            // Update with new status
                        } else {
@@ -716,6 +793,96 @@ $('#confirmAssignButton').off('click').on('click', function () {
    
 
 });
+document.querySelectorAll('#cancelComplaintButton').forEach(button => {
+  button.addEventListener('click', function(event) {
+    event.preventDefault();
+    const complaintId = this.getAttribute('data-selected-complaint');
+    const cancelModalId = `#cancelModal-${complaintId}`;
+    const cancelModal = new bootstrap.Modal(document.querySelector(cancelModalId), {
+      backdrop: 'static',
+      keyboard: false
+    });
+    cancelModal.show();
+
+    // Handle enabling/disabling the textarea based on selected reason
+    const reasonRadios = document.querySelectorAll(`input[name="cancelReasonOptions-${complaintId}"]`);
+    const cancelReasonTextarea = document.getElementById(`cancelReason-${complaintId}`);
+    
+    reasonRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === "Other") {
+          cancelReasonTextarea.disabled = false; // Enable textarea when "Other" is selected
+        } else {
+          cancelReasonTextarea.disabled = true; // Disable textarea for predefined reasons
+          cancelReasonTextarea.value = ''; // Clear textarea when disabled
+        }
+      });
+    });
+  // Attach the modal instance to the button element so we can access it later
+  button.cancelModalInstance = cancelModal;
+  });
+
+  
+});
+
+document.querySelectorAll('#confirmCancelButton').forEach(button => {
+  button.addEventListener('click', function(event) {
+    const complaintId = this.getAttribute('cancel-complaint-id');
+    
+    // Get selected reason
+    const selectedReason = document.querySelector(`input[name="cancelReasonOptions-${complaintId}"]:checked`).value;
+    let cancellationReason = selectedReason;
+    
+    // If "Other" is selected, use the value from the textarea
+    if (selectedReason === 'Other') {
+      cancellationReason = document.getElementById(`cancelReason-${complaintId}`).value.trim();
+    }
+    
+    if (!cancellationReason) {
+      alert("Please provide a cancellation reason.");
+      return;
+    }
+
+    // Send AJAX request to Flask backend
+    fetch('/cancel-complaint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        complaintId: complaintId,
+        cancellation_reason: cancellationReason
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Complaint successfully canceled.');
+
+        
+
+          // Disable the "Cancel Complaint" button
+          const cancelButton = document.querySelector(`#cancelComplaintButton[data-selected-complaint="${complaintId}"]`);
+        if (cancelButton && cancelButton.cancelModalInstance) {
+          cancelButton.cancelModalInstance.hide(); // Close the modal
+        }
+        if (cancelButton) {
+          cancelButton.disabled = true;
+          cancelButton.classList.remove('btn-danger');
+          cancelButton.classList.add('btn-secondary');
+          cancelButton.innerText = 'Complaint Canceled'; // Optional: update button text
+        }
+        
+      } else {
+        alert('Failed to cancel the complaint. Please try again.');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  });
+});
+
+
+
 
 
 });

@@ -45,6 +45,14 @@
          <span class="fa fa-home" style="margin-right: 8px; font-size: 20px;"></span>
          Dashboard
        </button>
+
+              <!-- Map -->
+              <button type="button" onclick="redirectToMap()" 
+              class="list-group-item list-group-item-action mt-4"
+              style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+        <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
+        Map
+      </button>
    
        <!-- Ticket -->
        <button type="button" onclick="redirectToTicket()" 
@@ -58,17 +66,11 @@
        <button type="button" onclick="redirectToTicketHistory()" 
                class="list-group-item list-group-item-action mt-4"
                style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-         <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+               <span class="fa fa-list-alt" style="margin-right: 8px; font-size: 20px;"></span>
          Ticket History
        </button>
    
-       <!-- Map -->
-       <button type="button" onclick="redirectToMap()" 
-               class="list-group-item list-group-item-action mt-4"
-               style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-         <span class="fa fa-map" style="margin-right: 8px; font-size: 20px;"></span>
-         Map
-       </button>
+
    
        <!-- History Log -->
        <button type="button" onclick="redirectToLog()" 
@@ -282,6 +284,8 @@
             <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">In Progress</span>
           {% elif complaint['status'] == 'Withdrawn' %}
             <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Withdrawn</span>
+            {% elif complaint['status'] == 'Canceled' %}
+            <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Canceled</span>
           {% endif %}
         </td>
       
@@ -396,11 +400,7 @@
     
 
   </script>
-  <script>      $('#complaints-table').on('click', '.view-image', function(event) {
-    event.preventDefault();
-    var imageUrl = $(this).data('image');
-    $('#modalImage').attr('src', imageUrl);
-});
+  <script>   
   </script>
 
       <!--Chart js--> <script src="/static/js/charts.js"></script>

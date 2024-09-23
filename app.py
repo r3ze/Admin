@@ -207,8 +207,12 @@ def get_complaints_data():
 
             complaint_dict = {
                 'complaint_description': complaint['description'],
+                'additionalDetails' : complaint['additionalDetails'],
                 'city': complaint['city'],
                 'barangay': complaint['barangay'],
+                'location': complaint['locationName'],
+                'resolutionStartDate': complaint['resolutionStartDate'],
+                'resolutionEndDate' : complaint['resolutionEndDate'],
                 'date_reported': complaint['createdAt'],
                 'latitude': latitude,
                 'longitude': longitude,
@@ -323,7 +327,7 @@ def complaints():
 
         # Filter out complaints with 'resolved' status
         filtered_complaints = [
-            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved' and complaint.get('status')!='Withdrawn'
+            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved' and complaint.get('status')!='Withdrawn' and complaint.get('status')!='Canceled'
         ]
 
         # Sort complaints by 'createdAt' field in descending order
@@ -592,6 +596,29 @@ def update_consumer():
         return jsonify({"error": "Error updating consumer."}), 500
 
 
+@app.route('/cancel-complaint', methods=['POST'])
+def cancel_complaint():
+    data = request.get_json()
+    complaint_id = data.get('complaintId')
+    cancellation_reason = data.get('cancellation_reason')
+    cancelled_at = datetime.now().isoformat()
+    try:
+        database.update_document(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID,
+            document_id=complaint_id,
+            data={
+                'cancellation_reason': cancellation_reason,
+                'status': 'Canceled',  # Optionally update status as well
+                'canceledAt': cancelled_at
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error updating status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500    
+
+
 
 @app.route('/log-history')
 def log_history():
@@ -768,7 +795,7 @@ def ticket_history():
         # Filter complaints to include only those with status 'Resolved' or 'Withdrawn'
         relevant_tickets = [
             doc for doc in response['documents'] 
-            if doc['status'] in ['Withdrawn', 'Resolved']
+            if doc['status'] in ['Withdrawn', 'Resolved', 'Canceled']
         ]
 
 
@@ -778,6 +805,8 @@ def ticket_history():
             ticket['formattedCreatedAt'] = format_date(ticket.get('createdAt'))
             ticket['formattedAssignedAt'] = format_date(ticket.get('assignedAt'))
             ticket['formattedResolvedAt'] = format_date(ticket.get('resolvedAt'))
+            ticket['formattedWithdrawnAt'] = format_date(ticket.get('withdrawnAt'))
+            ticket['formattedCanceledAt'] = format_date(ticket.get('canceledAt'))
             ticket['priority'] = calculate_priority(ticket)
 
 
