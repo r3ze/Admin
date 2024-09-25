@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/img/FLECO logo.png">
      <!--Bootstrap-->
      <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
      <link
@@ -15,10 +16,7 @@
        rel="stylesheet"
        href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
      />
-     <link
-       rel="stylesheet"
-       href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
-     />
+
     <title>Log History</title>
   </head>
   <body>
@@ -61,7 +59,7 @@
     <button type="button" onclick="redirectToTicketHistory()" 
             class="list-group-item list-group-item-action mt-4"
             style="color: #72728A; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
-      <span class="fa fa-history" style="margin-right: 8px; font-size: 20px;"></span>
+            <span class="fa fa-list-alt" style="margin-right: 8px; font-size: 20px;"></span>
       Ticket History
     </button>
 
@@ -111,6 +109,19 @@
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
           <div class="mt-3">
             <h2>History Log</h2>
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <input type="date" id="startDate" class="form-control" placeholder="Start Date">
+              </div>
+              <div class="col-md-3">
+                <input type="date" id="endDate" class="form-control" placeholder="End Date">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary" id="filterButton">Filter</button>
+                <button class="btn btn-secondary" id="clearFilterButton">Clear Filter</button>
+              </div>
+            </div>
+            
             <div id="tableContainer">
               <table
                 id="example"
@@ -204,5 +215,76 @@
             $('#modalImage').attr('src', imageUrl);
         });
     </script>
+
+<script>
+  document.getElementById('filterButton').addEventListener('click', function () {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+  
+    if (!startDate || !endDate) {
+      alert("Please select both a start and end date.");
+      return;
+    }
+  
+    // AJAX request to backend to fetch filtered logs
+    fetch(`/filter-logs?start_date=${startDate}&end_date=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('tbody.table-group-divider');
+        tbody.innerHTML = '';  // Clear existing table rows
+  
+        // Populate table with filtered data
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">No logs found for the selected date range.</td></tr>';
+        } else {
+          data.forEach(log => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${log.consumer_id}</td>
+              <td>${log.consumer_name}</td>
+              <td>${log.Action}</td>
+              <td>${log['time_stamp'].substring(0, 10)} ${log['time_stamp'].substring(11, 16)}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  });
+  
+  document.getElementById('clearFilterButton').addEventListener('click', function () {
+    document.getElementById('startDate').value = '';  // Clear start date input
+    document.getElementById('endDate').value = '';    // Clear end date input
+  
+    // Fetch all logs without any filtering by date
+    fetch('/filter-logs')
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('tbody.table-group-divider');
+        tbody.innerHTML = '';  // Clear existing table rows
+  
+        // Populate table with all logs
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">No logs found.</td></tr>';
+        } else {
+          data.forEach(log => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${log.consumer_id}</td>
+              <td>${log.consumer_name}</td>
+              <td>${log.Action}</td>
+              <td>${log['time_stamp'].substring(0, 10)} ${log['time_stamp'].substring(11, 16)}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  });
+  </script>
   </body>
 </html>

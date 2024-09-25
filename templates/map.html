@@ -262,6 +262,8 @@ Map
       <div class="modal-header bg-primary text-white rounded-top-4">
         <h5 class="modal-title d-flex align-items-center" id="complaintModalLabel">
           <i class="fas fa-info-circle me-2"></i> Complaint Details
+          <!-- Add the status in the header -->
+          <span class="badge bg-warning text-dark ms-3" id="complaintStatus">Pending</span>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -537,7 +539,8 @@ Map
                       'Detached Meter': 0,
                       'Loose Connection/ Sparkling of Wire': 0,
                       'Low Voltage': 0,
-                      'No Reading': 0
+                      'No Reading': 0,
+                      'Others': 0
                   };
       
                   // Clear existing markers before adding new ones
@@ -573,6 +576,9 @@ Map
                   markerClass = 'blinking-marker no-reading';
                   counts['No Reading']++;
                   break;
+              case 'Others':
+                  markerClass='blinking-marker others'
+                  counts['Others']++
               default:
                   markerClass = 'blinking-marker other-complaint';
           }
@@ -601,11 +607,13 @@ Map
               // Set the details of the clicked complaint in the modal
               document.getElementById('complaintType').textContent = complaint.complaint_description || 'Unknown Type';
               document.getElementById('complaintAddress').textContent = complaint.location;
+              document.getElementById('complaintStatus').textContent = complaint.status;
              
               
               // Set the date reported and estimated resolution time
               document.getElementById('complaintDateReported').textContent = formattedDate + " "+ formattedTime;
               document.getElementById('complaintEstimatedTime').textContent = formattedResolutionDate;
+
               
 fetch('/calculate-priority', {
         method: 'POST',
@@ -614,7 +622,7 @@ fetch('/calculate-priority', {
         },
         body: JSON.stringify({
             description: complaint.complaint_description,
-            createdAt: complaint.date_reportedt,
+            createdAt: complaint.date_reported,
             locationName: complaint.location,
             additionalDetails: complaint.additionalDetails
         })
@@ -650,9 +658,12 @@ fetch('/calculate-priority', {
                       counts['Detached Meter'],
                       counts['Loose Connection/ Sparkling of Wire'],
                       counts['Low Voltage'],
-                      counts['No Reading']
+                      counts['No Reading'],
+                      counts['Others']
                   ]);
               });
+
+              
   
     </script>
     

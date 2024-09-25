@@ -1,39 +1,4 @@
 
-var options1 = {
-  series: [44, 55, 41, 17, 15, 25, 30, 20, 10, 15, 12],
-  chart: {
-  type: 'donut',
-  height: 350 
-},
-labels: ['Cavinti', 'Pagsanjan', 'Lumban', 'Kalayaan', 'Paete', 'Pakil', 'Pangil', 'Siniloan', 'Mabitac', 'Famy', 'Sta. Maria'],
-title: {
-  text: 'Number of Complaints per Area', // Your chart title// Alignment of the title (options: 'left', 'center', 'right')
-  offsetY: 10, // Offset for the title position
-  style: {
-    fontSize: '16px', // Title font size
-    fontWeight: 'bold', // Title font weight
-    color: '#263238' // Title font color
-  }
-},
-responsive: [{
-  breakpoint: 480,
-  options: {
-    chart: {
-      width: 200
-    },
-    
-    
-    legend: {
-      position: 'bottom'
-    }
-    
-  }
-}]
-};
-
-var chart = new ApexCharts(document.querySelector("#pieChart"), options1);
-chart.render();
-
       
 //bar
 var options = {

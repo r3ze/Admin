@@ -58,6 +58,13 @@
             console.log(totalNewComplaints)
         });
     }
+    function updateInProgressComplaintsCount() {
+        database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
+            .then(response => {
+                const totalAssignedComplaints = response.documents.filter(complaint => complaint.status === 'In Progress').length;
+                document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
+            });
+        }
 
     // Function to update the count of assigned complaints
     function updateAssignedComplaintsCount() {
@@ -183,7 +190,7 @@ function formatDateRange(startDateStr, endDateStr) {
 
       
             cancelComplaintButton = `<button class="btn btn-danger cancelComplaintButton" id="cancelComplaintButton" type="button" data-selected-complaint="${doc.$id}">
-                            Cancel Complaint
+                            Invalidate Complaint
                           </button>`;
         
       
@@ -220,6 +227,9 @@ if (doc.crew_name) {
             case 'In Progress':
                 statusBadgeClass = 'badge bg-secondary';
                 break;
+            case 'Invalidated':
+                    statusBadgeClass = 'badge bg-secondary';
+                    break;
             default:
                 statusBadgeClass = 'badge bg-secondary';
         }
@@ -341,7 +351,7 @@ if (doc.crew_name) {
                         </div>
                         
                          <div class="mb-3 row">
-                        <label for="resolutionDate" class="col-sm-3 col-form-label">Date Assigned</label>
+                        <label for="resolutionDate" class="col-sm-3 col-form-label">Estimated Resolution Date</label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control" id="resolutionDate" disabled value="${formattedResolutionDate}">
                         </div>

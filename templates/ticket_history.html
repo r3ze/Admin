@@ -113,198 +113,215 @@ Map
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
           <div class="mt-3">
             <h2>Ticket History</h2>
-            
+            <!-- Date Filter -->
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <input type="date" id="startDate" class="form-control" placeholder="Start Date">
+              </div>
+              <div class="col-md-3">
+                <input type="date" id="endDate" class="form-control" placeholder="End Date">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary" id="filterButton">Filter</button>
+                <button class="btn btn-secondary" id="clearFilterButton">Clear Filter</button>
+              </div>
+            </div>
             <div id="tableContainer">
-              <table
-                id="example"
-                class="mt-3 complaints-table table table-striped"
-                style="
-                  border-collapse: separate;
-                  border-spacing: 0;
-                  border-radius: 10px;
-                  overflow: hidden;
-                  background-color: #ededed;
-                  width: 100%;
-                "
-              >
-                <thead>
-                  <tr>
-                    
-                    <th scope="col">Ticket ID</th>
-                    <th scope="col">Consumer</th>
-                    <th scope="col">Complaint</th>
+                <table
+                  id="example"
+                  class="mt-3 complaints-table table table-striped"
+                  style="
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    background-color: #ededed;
+                    width: 100%;
+                  "
+                >
+                  <thead>
+                    <tr>
+                      
+                      <th scope="col">Ticket ID</th>
+                      <th scope="col">Consumer</th>
+                      <th scope="col">Complaint</th>
 
-                    <th scope="col">Image</th>
-                    <th scope="col">Status</th>
+                      <th scope="col">Image</th>
+                      <th scope="col">Status</th>
 
-                    <td scope = "col" >Action</td>
-                  </tr>
-                </thead>
-              <tbody class="table-group-divider">
-          {% for ticket in tickets %}
-          <tr>
-            <td>{{ ticket['$id'] }}</td>
-            <td>{{ ticket['consumer_name'] }}</td>
-            <td>{{ ticket['description'] }}</td>
+                      <td scope = "col" >Action</td>
+                    </tr>
+                  </thead>
+                <tbody class="table-group-divider">
+            {% for ticket in tickets %}
+            <tr>
+              <td>{{ ticket['$id'] }}</td>
+              <td>{{ ticket['consumer_name'] }}</td>
+              <td>{{ ticket['description'] }}</td>
 
-            <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-            <td>{{ ticket['status'] }}</td>
+              <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+              <td>{{ ticket['status'] }}</td>
 
-            <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
-              View Details
-            </button></td>
+              <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
+                View Details
+              </button></td>
+          
+            </tr>
+          <!--Modal for ticket info-->
+  <div class="modal fade ticket-modal" id="modal-{{ticket['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{ticket['$id']}}" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3 row">
+              <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="ticketID" disabled value="{{ ticket['$id'] }}">
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="consumer" disabled value="{{ ticket['consumer_name'] }}">
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="complaintType" disabled value="{{ ticket['description'] }}">
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
+              <div class="col-sm-9">
+                {% if ticket['additionalDetails'] %}
+                <input type="text" class="form-control" id="complaintType" disabled value="{{ ticket['additionalDetails'] }}">
+                {% else %}
+                <input type="text" class="form-control" id="complaintType" disabled value="No additional details provided.">
+                {% endif %}
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="address" class="col-sm-3 col-form-label">Address</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="address" disabled value="{{ ticket['locationName'] }}">
+              </div>
+            </div>
+    
+            <div class="mb-3 row">
+              <label for="image" class="col-sm-3 col-form-label">Image</label>
+              <div class="col-sm-9">
+                <a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="complaintStatus" disabled value="{{ ticket['status'] }}">
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="dateCreated" disabled value="{{ ticket['formattedCreatedAt'] }}">
+              </div>
+            </div>
+            {% if ticket['status'] == 'Resolved' %}
+            <div class="mb-3 row">
+                <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
+                <div class="col-sm-9">   
+                    <input type="text" class="form-control" id="dateAssigned" disabled value="{{ ticket['formattedAssignedAt'] }}">
+                </div>
+            </div>
+                   
+
+    
+
+            <div class="mb-3 row">
+              <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
+              <div class="col-sm-9">
+                {% if ticket['priority'] == 'High' %}
+                <input type="text" class="form-control" id="Priority" disabled value="High">
+                {% elif ticket['priority'] == 'Medium' %}
+                <input type="text" class="form-control" id="Priority" disabled value="Medium">
+                {% else %}
+                <input type="text" class="form-control" id="Priority" disabled value="Low">
+                {% endif %}
+              </div>
+            </div>
         
-          </tr>
-         <!--Modal for ticket info-->
-<div class="modal fade ticket-modal" id="modal-{{ticket['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{ticket['$id']}}" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="staticBackdropLabel">Ticket Details</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form>
-          <div class="mb-3 row">
-            <label for="ticketID" class="col-sm-3 col-form-label">Ticket ID</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="ticketID" disabled value="{{ ticket['$id'] }}">
+            <div class="mb-3 row">
+                <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
+                </div>
             </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="consumer" class="col-sm-3 col-form-label">Consumer</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="consumer" disabled value="{{ ticket['consumer_name'] }}">
+        {% elif ticket['status'] == 'Withdrawn' %}
+            <div class="mb-3 row">
+                <label for="dateWithdrawn" class="col-sm-3 col-form-label">Date Withdrawn</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="dateWithdrawn" disabled value="{{ ticket['formattedWithdrawnAt'] }}">
+                </div>
             </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="complaintType" class="col-sm-3 col-form-label">Complaint Type</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="complaintType" disabled value="{{ ticket['description'] }}">
+        
+            <div class="mb-3 row">
+                <label for="withdrawnReason" class="col-sm-3 col-form-label">Reason for Withdrawal</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="withdrawnReason" disabled value="{{ ticket['reason'] }}">
+                </div>
             </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="complaintType" class="col-sm-3 col-form-label">Additional Details</label>
-            <div class="col-sm-9">
-              {% if ticket['additionalDetails'] %}
-              <input type="text" class="form-control" id="complaintType" disabled value="{{ ticket['additionalDetails'] }}">
-              {% else %}
-              <input type="text" class="form-control" id="complaintType" disabled value="No additional details provided.">
+        {% elif ticket['status'] == 'Invalidated' %}
+            <div class="mb-3 row">
+                <label for="dateCanceled" class="col-sm-3 col-form-label">Date Canceled</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="dateCanceled" disabled value="{{ ticket['formattedCanceledAt'] }}">
+                </div>
+            </div>
+        
+            <div class="mb-3 row">
+                <label for="cancelReason" class="col-sm-3 col-form-label">Reason for Cancellation</label> <!-- Updated label -->
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="cancelReason" disabled value="{{ ticket['cancellation_reason'] }}">
+                </div>
+            </div>
+        {% endif %}
+ 
+          
+          
+            <div class="mb-3 row">
+              <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ ticket['crew_name'] }}">
+              </div>
+            </div>
+
+            <div class="mb-3 row">
+              <label for="followUp" class="col-sm-3 col-form-label">Date Followed-up</label>
+              <div class="col-sm-9">
+                {% if ticket['followedUpAt'] %}
+                <input type="text" class="form-control" id="followUp" disabled value="{{ ticket['formattedFollowedUpAt'] }}">
+                {% else %}
+                <input type="text" class="form-control" id="followUp" disabled value="Not followed up by consumer">
+              </div>
               {% endif %}
             </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="address" class="col-sm-3 col-form-label">Address</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="address" disabled value="{{ ticket['locationName'] }}">
-            </div>
-          </div>
-  
-          <div class="mb-3 row">
-            <label for="image" class="col-sm-3 col-form-label">Image</label>
-            <div class="col-sm-9">
-              <a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a>
-            </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="complaintStatus" disabled value="{{ ticket['status'] }}">
-            </div>
-          </div>
-          <div class="mb-3 row">
-            <label for="dateCreated" class="col-sm-3 col-form-label">Date Reported</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="dateCreated" disabled value="{{ ticket['formattedCreatedAt'] }}">
-            </div>
-          </div>
-          {% if ticket['status'] == 'Resolved' %}
-          <div class="mb-3 row">
-              <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
-              <div class="col-sm-9">   
-                  <input type="text" class="form-control" id="dateAssigned" disabled value="{{ ticket['formattedAssignedAt'] }}">
-              </div>
-          </div>
-      
-          <div class="mb-3 row">
-              <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
-              <div class="col-sm-9">
-                  <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
-              </div>
-          </div>
-      {% elif ticket['status'] == 'Withdrawn' %}
-          <div class="mb-3 row">
-              <label for="dateWithdrawn" class="col-sm-3 col-form-label">Date Withdrawn</label>
-              <div class="col-sm-9">
-                  <input type="text" class="form-control" id="dateWithdrawn" disabled value="{{ ticket['formattedWithdrawnAt'] }}">
-              </div>
-          </div>
-      
-          <div class="mb-3 row">
-              <label for="withdrawnReason" class="col-sm-3 col-form-label">Reason for Withdrawal</label>
-              <div class="col-sm-9">
-                  <input type="text" class="form-control" id="withdrawnReason" disabled value="{{ ticket['reason'] }}">
-              </div>
-          </div>
-      {% elif ticket['status'] == 'Canceled' %}
-          <div class="mb-3 row">
-              <label for="dateCanceled" class="col-sm-3 col-form-label">Date Canceled</label>
-              <div class="col-sm-9">
-                  <input type="text" class="form-control" id="dateCanceled" disabled value="{{ ticket['formattedCanceledAt'] }}">
-              </div>
-          </div>
-      
-          <div class="mb-3 row">
-              <label for="cancelReason" class="col-sm-3 col-form-label">Reason for Cancellation</label> <!-- Updated label -->
-              <div class="col-sm-9">
-                  <input type="text" class="form-control" id="cancelReason" disabled value="{{ ticket['cancellation_reason'] }}">
-              </div>
-          </div>
-      {% endif %}
-      
-
-  
-
-          <div class="mb-3 row">
-            <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
-            <div class="col-sm-9">
-              {% if ticket['priority'] == 'High' %}
-              <input type="text" class="form-control" id="Priority" disabled value="High">
-              {% elif ticket['priority'] == 'Medium' %}
-              <input type="text" class="form-control" id="Priority" disabled value="Medium">
-              {% else %}
-              <input type="text" class="form-control" id="Priority" disabled value="Low">
-              {% endif %}
-            </div>
-          </div>
-         
-        
-          <div class="mb-3 row">
-            <label for="resolutionTeamName" class="col-sm-3 col-form-label">Resolution Team</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ ticket['crew_name'] }}">
-            </div>
-          </div>
-
-          <div class="mb-3 row">
-            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
-            <div class="col-sm-9">
-              <input type="text" class="form-control" id="followUp" disabled placeholder="{{ ticket['followUp'] }}">
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-          {% endfor %}
-        </tbody>
-              </table>
-            </div>
+            {% endfor %}
+          </tbody>
+                </table>
+              </div>
           </div>
         </div>
       </div>
@@ -392,5 +409,87 @@ Map
             $('#modalImage').attr('src', imageUrl);
         });
     </script>
+
+
+<!--Filter function-->
+<script>
+  document.getElementById('filterButton').addEventListener('click', function () {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+  
+    if (!startDate || !endDate) {
+      alert("Please select both a start and end date.");
+      return;
+    }
+  
+    // AJAX request to backend to fetch filtered tickets
+    fetch(`/filter-tickets?start_date=${startDate}&end_date=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('tbody.table-group-divider');
+        tbody.innerHTML = '';  // Clear existing table rows
+  
+        // Populate table with filtered data
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">No tickets found for the selected date range.</td></tr>';
+        } else {
+          data.forEach(ticket => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${ticket.$id}</td>
+              <td>${ticket.consumer_name}</td>
+              <td>${ticket.description}</td>
+              <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+              <td>${ticket.status}</td>
+              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  });
+  
+  document.getElementById('clearFilterButton').addEventListener('click', function () {
+    document.getElementById('startDate').value = '';  // Clear start date input
+    document.getElementById('endDate').value = '';    // Clear end date input
+  
+    // Fetch all tickets without any filtering by date, but filtering by status
+    fetch('/filter-tickets')
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('tbody.table-group-divider');
+        tbody.innerHTML = '';  // Clear existing table rows
+  
+        // Filter data for relevant statuses: Resolved, Withdrawn, Canceled
+        const filteredData = data.filter(ticket => 
+          ['Resolved', 'Withdrawn', 'Canceled'].includes(ticket.status)
+        );
+  
+        // Populate table with filtered data
+        if (filteredData.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">No tickets found with the selected statuses.</td></tr>';
+        } else {
+          filteredData.forEach(ticket => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${ticket.$id}</td>
+              <td>${ticket.consumer_name}</td>
+              <td>${ticket.description}</td>
+              <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+              <td>${ticket.status}</td>
+              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching all tickets:', error);
+      });
+  });
+  </script>
   </body>
 </html>

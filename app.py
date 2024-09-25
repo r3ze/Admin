@@ -51,6 +51,30 @@ def count_complaints_by_status(complaints):
         'cancelled_complaints': cancelled_complaints
     }
 
+@app.route('/get_common_complaints', methods=['GET'])
+def get_common_complaints():
+    try:
+        # Fetch all documents from the complaints collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Group complaints by type and count them
+        complaint_counts = {}
+        for complaint in response['documents']:
+            complaint_type = complaint.get('description', 'Unknown')  # Assuming 'type' is the field name for complaint type
+            if complaint_type in complaint_counts:
+                complaint_counts[complaint_type] += 1
+            else:
+                complaint_counts[complaint_type] = 1
+
+        # Return the counts as JSON
+        return jsonify(complaint_counts)
+
+    except Exception as e:
+        print(f"Error fetching common complaints: {str(e)}")
+        return jsonify({}), 500  # Return an empty response with error status
 
 
 #count users
@@ -153,6 +177,22 @@ def count_resolved_complaints():
         print(f"Error counting new complaints: {str(e)}")
         return 0  # Return 0 if there's an error
 
+# Count new complaints
+def count_inprogress_complaints():
+    try:
+        # Fetch all documents from the 'complaints' collection
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # Filter and count only complaints with status = 'New'
+        total_inprogress_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'In Progress')
+        
+        return total_inprogress_complaints
+    except Exception as e:
+        print(f"Error counting new complaints: {str(e)}")
+        return 0  # Return 0 if there's an error
 
 
 
@@ -172,6 +212,7 @@ def dashboard():
         total_new_complaints = count_new_complaints()
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
+        total_inprogress_complaints = count_inprogress_complaints()
         complaints_data = sorted_complaints[:7]  # Limiting to the first 7 complaints after sorting
 
         # Calculate priority and format dates
@@ -180,7 +221,7 @@ def dashboard():
             complaint['priority'] = calculate_priority(complaint)
         
         return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints, count_new_complaints = total_new_complaints,
-                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints)
+                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints, count_inprogress_complaints = total_inprogress_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -226,9 +267,16 @@ def get_complaints_data():
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-
+# Function to calculate priority
 # Function to calculate priority
 def calculate_priority(complaint):
+    # Check if the complaint has been followed up
+    followed_up_at = complaint.get('followedUpAt')
+    if followed_up_at:
+        # Automatically set high priority if a follow-up has been made
+        print("Complaint has been followed up. Setting priority to 'High'.")
+        return 'High'
+
     # Define severity based on complaint type
     severity_map = {
         'No Power': 'High',
@@ -248,20 +296,24 @@ def calculate_priority(complaint):
         'Low': 1
     }.get(severity, 2)
 
-    # Time-based prioritization (older complaints get higher priority)
-    submitted_at = complaint.get('createdAt')
-    if submitted_at:
-        time_submitted = datetime.fromisoformat(submitted_at).replace(tzinfo=timezone.utc)
-        hours_since_submission = (datetime.now(timezone.utc) - time_submitted).total_seconds() / 3600
-        time_score = min(int(hours_since_submission / 48), 3)  # Score based on age (max score 3)
+    # Time-based prioritization using resolution dates
+    resolution_start = complaint.get('resolutionStartDate')
+    resolution_end = complaint.get('resolutionEndDate')
+    
+    if resolution_start and resolution_end:
+        # Convert string dates to datetime objects
+        start_time = datetime.fromisoformat(resolution_start).replace(tzinfo=timezone.utc)
+        end_time = datetime.fromisoformat(resolution_end).replace(tzinfo=timezone.utc)
+        time_left = (end_time - datetime.now(timezone.utc)).total_seconds() / 3600  # Time left in hours
+        
+        if time_left <= 0:
+            time_score = 3  # Deadline has passed or is very near, set highest priority
+        else:
+            time_score = max(3 - int(time_left / 48), 0)  # Score based on how close to the deadline (max score 3)
     else:
         time_score = 0
 
-    # Location-based prioritization (higher priority for critical locations)
-    critical_locations = ['hospital', 'school']
-    complaint_location = complaint.get('locationName', '').lower()
-    location_score = 3 if any(loc in complaint_location for loc in critical_locations) else 0
- # NLP-based severity for 'Other' complaints
+    # NLP-based severity for 'Other' complaints
     if complaint_type == 'Others':
         additional_details = complaint.get('additionalDetails', '')  # Get additional details or an empty string if not present
         sentiment_scores = sia.polarity_scores(additional_details)
@@ -279,11 +331,25 @@ def calculate_priority(complaint):
             'Medium': 2,
             'Low': 1
         }.get(severity, 2)
+
+    # Check if complaint is older than 2 days and not assigned
+    created_at = complaint.get('createdAt')
+    status = complaint.get('status', '').lower()
+
+    if created_at and status != 'assigned':
+        created_time = datetime.fromisoformat(created_at).replace(tzinfo=timezone.utc)
+        hours_since_creation = (datetime.now(timezone.utc) - created_time).total_seconds() / 3600
+        
+        if hours_since_creation > 48:  # More than 2 days (48 hours)
+            print("Complaint older than 2 days and not assigned. Setting priority to 'High'.")
+            return 'High'
+
     # Total priority score
-    total_score = severity_score + time_score + location_score
-    print(severity_score, time_score, location_score)
+    total_score = severity_score + time_score
+    print(severity_score, time_score)
+
     # Determine priority level based on the score
-    if total_score >= 6:
+    if total_score >= 5:
         return 'High'
     elif total_score >= 3:
         return 'Medium'
@@ -341,6 +407,7 @@ def complaints():
         for complaint in sorted_complaints:
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
+            complaint['formattedFollowedUpAt'] = format_date(complaint.get('followedUpAt'))
             complaint['priority'] = calculate_priority(complaint)
 
               # Format resolution date range
@@ -353,9 +420,9 @@ def complaints():
         total_new_complaints = count_new_complaints()
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
-
+        total_inprogress_complaints = count_inprogress_complaints()
         return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users, count_new_complaints=total_new_complaints,
-                               count_assigned_complaints=total_assigned_complaints, count_resolved_complaints=total_resolved_complaints)
+                               count_assigned_complaints=total_assigned_complaints, count_resolved_complaints=total_resolved_complaints, count_inprogress_complaints = total_inprogress_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -609,7 +676,7 @@ def cancel_complaint():
             document_id=complaint_id,
             data={
                 'cancellation_reason': cancellation_reason,
-                'status': 'Canceled',  # Optionally update status as well
+                'status': 'Invalidated',  # Optionally update status as well
                 'canceledAt': cancelled_at
             }
         )
@@ -632,6 +699,36 @@ def log_history():
         return render_template("log-history.html", logs=sorted_logs)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/filter-logs')
+def filter_logs():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    try:
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=LOG_COLLECTION_ID
+        )
+        logs = response['documents']
+
+        # If start_date and end_date are provided, filter logs based on these dates
+        if start_date and end_date:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+
+            # Filter logs by date range
+            filtered_logs = [
+                log for log in logs if start_date_obj <= datetime.strptime(log['time_stamp'], '%Y-%m-%dT%H:%M:%S.%f%z').date() <= end_date_obj
+            ]
+        else:
+            filtered_logs = logs
+
+        # Return filtered logs in JSON format
+        return jsonify(filtered_logs)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
     
 @app.route('/user-management')
 def user_management():
@@ -703,6 +800,9 @@ def consumerHistory(user_id):
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
             complaint['formattedResolvedAt'] = format_date(complaint.get('resolvedAt'))
+            complaint['formattedWithdrawnAt'] = format_date(complaint.get('withdrawnAt'))
+            complaint['formattedCanceledAt'] = format_date(complaint.get('canceledAt'))
+            complaint['formattedFollowedUpAt'] = format_date(complaint.get('followedUpAt'))
             complaint['priority'] = calculate_priority(complaint)
 
         # Count complaints by status
@@ -728,6 +828,50 @@ def consumerHistory(user_id):
         print(f"Error: {e}")  # Print the error for debugging
         return jsonify({'error': str(e)}), 500
 
+@app.route('/filter-consumer-history')
+def filter_consumer_history():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    try:
+        # Fetch all consumer history records from the Appwrite database
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # If no start or end date, return tickets with relevant statuses
+        if not start_date or not end_date:
+            relevant_histories = [
+                doc for doc in response['documents']
+                if doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']
+            ]
+            return jsonify(relevant_histories)
+
+        # Parse the date strings into date objects
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        # Filter complaints by date range and status (Resolved, Withdrawn, and Canceled)
+        relevant_histories = []
+        for doc in response['documents']:
+            for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt']:
+                date_str = doc.get(attr)
+                if date_str:
+                    try:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f%z').date()
+                    except ValueError:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                    # Ensure status is in Resolved, Withdrawn, or Canceled and the date is within the range
+                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']:
+                        relevant_histories.append(doc)
+                        break
+
+        return jsonify(relevant_histories)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
 @app.route('/crew-history/<user_id>')
 def crewHistory(user_id):
@@ -762,6 +906,7 @@ def crewHistory(user_id):
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
             complaint['formattedResolvedAt'] = format_date(complaint.get('resolvedAt'))
+            complaint['formattedFollowedUpAt'] = format_date(complaint.get('followedUpAt'))
             complaint['priority'] = calculate_priority(complaint)
 
         # Count complaints by status for the crew member
@@ -781,6 +926,51 @@ def crewHistory(user_id):
         )
     except Exception as e:
         print(f"Error: {e}")  # Print the error for debugging
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/filter-crew-history')
+def filter_crew_history():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    try:
+        # Fetch all consumer history records from the Appwrite database
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # If no start or end date, return tickets with relevant statuses
+        if not start_date or not end_date:
+            relevant_histories = [
+                doc for doc in response['documents']
+                if doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']
+            ]
+            return jsonify(relevant_histories)
+
+        # Parse the date strings into date objects
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        # Filter complaints by date range and status (Resolved, Withdrawn, and Canceled)
+        relevant_histories = []
+        for doc in response['documents']:
+            for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt']:
+                date_str = doc.get(attr)
+                if date_str:
+                    try:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f%z').date()
+                    except ValueError:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                    # Ensure status is in Resolved, Withdrawn, or Canceled and the date is within the range
+                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']:
+                        relevant_histories.append(doc)
+                        break
+
+        return jsonify(relevant_histories)
+
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
@@ -807,6 +997,7 @@ def ticket_history():
             ticket['formattedResolvedAt'] = format_date(ticket.get('resolvedAt'))
             ticket['formattedWithdrawnAt'] = format_date(ticket.get('withdrawnAt'))
             ticket['formattedCanceledAt'] = format_date(ticket.get('canceledAt'))
+            ticket['formattedFollowedUpAt'] = format_date(ticket.get('followedUpAt'))
             ticket['priority'] = calculate_priority(ticket)
 
 
@@ -814,6 +1005,50 @@ def ticket_history():
         return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+@app.route('/filter-tickets')
+def filter_tickets():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    try:
+        # Fetch all complaints from the Appwrite database
+        response = database.list_documents(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID
+        )
+
+        # If no start or end date, return tickets with relevant statuses
+        if not start_date or not end_date:
+            relevant_tickets = [
+                doc for doc in response['documents']
+                if doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']
+            ]
+            return jsonify(relevant_tickets)
+
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        # Filter complaints by date range and status (Resolved, Withdrawn, and Canceled)
+        relevant_tickets = []
+        for doc in response['documents']:
+            for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt']:
+                date_str = doc.get(attr)
+                if date_str:
+                    try:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f%z').date()
+                    except ValueError:
+                        doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                    # Ensure status is in Resolved, Withdrawn, or Canceled and the date is within the range
+                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']:
+                        relevant_tickets.append(doc)
+                        break
+
+        return jsonify(relevant_tickets)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/maps')
 def map():

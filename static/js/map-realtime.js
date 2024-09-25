@@ -121,6 +121,7 @@ function addMarkerToMap(doc) {
               // Set the details of the clicked complaint in the modal
               document.getElementById('complaintType').textContent = doc.description || 'Unknown Type';
               document.getElementById('complaintAddress').textContent = doc.locationName;
+              document.getElementById('complaintStatus').textContent = doc.status;
              
               
               // Set the date reported and estimated resolution time
