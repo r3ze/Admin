@@ -51,5 +51,23 @@
       text-overflow: ellipsis;
       max-width: 100px; 
     }
-
-
+.select2-container{
+  z-index: 2050 !important;
+}
+    .select2-container .select2-selection--multiple {
+      min-height: 38px; /* Adjust this value as needed */
+      max-height: 150px; /* This limits the max height */
+    
+      padding: 4px;
+  }
+  
+  .select2-container .select2-selection--single {
+      min-height: 38px; /* Ensure single select also has appropriate height */
+      padding: 4px;
+  }
+  
+  .select2-dropdown {
+      max-height: 200px; /* Set a max height for the dropdown list */
+      overflow-y: auto; /* Enables scroll within the dropdown */
+  }
+  

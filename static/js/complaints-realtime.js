@@ -15,129 +15,175 @@
 
         const status = response.payload.status;
         console.log(status)
-        if (status === 'New') {
-        updateNewComplaintsCount();
-        updateAssignedComplaintsCount();
-        updateResolvedComplaintsCount();
-        console.log("new complaint");
-    } else if (status === 'Assigned') {
-        updateNewComplaintsCount();
-        updateAssignedComplaintsCount();
-        updateResolvedComplaintsCount();
-        console.log("assigned complaint");
-    } else if (status === 'Resolved') {
-        updateNewComplaintsCount();
-        updateAssignedComplaintsCount();
-        updateResolvedComplaintsCount();
-        console.log("resolved complaint");
-    }
+
 
         console.log('Real-time event received:', response);
         console.log('Event:', event);
         
         const table = $('#example').DataTable();
         if (event.includes('create')) {
-            console.log("Create event matched");
+            console.log("Create event matched", document.$id);
+            updateNewComplaintsCount();
+            updateAssignedComplaintsCount();
+            updateResolvedComplaintsCount();
+            updateInProgressComplaintsCount()
             addRowToTable(document);
         } else if (event.includes('update')) {
-            console.log("Update event matched");
+            updateNewComplaintsCount();
+            updateAssignedComplaintsCount();
+            updateResolvedComplaintsCount();
+            updateInProgressComplaintsCount()
+            console.log("Update event matched", document.$id);
             updateRowInTable(document, table);
         } else if (event.includes('delete')) {
     console.log("Delete event received with document ID:", document.$id);
+    updateNewComplaintsCount();
+    updateAssignedComplaintsCount();
+    updateResolvedComplaintsCount();
+    updateInProgressComplaintsCount()
     deleteRowFromTable(document.$id);
     }
     });
 
     // Function to update the count of new complaints
     function updateNewComplaintsCount() {
-    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-        .then(response => {
-            const totalNewComplaints = response.documents.filter(complaint => complaint.status === 'New').length;
-            document.getElementById('new_complaints_card').innerText = totalNewComplaints;
-            document.getElementById('unassigned_complaints_card').innerText = totalNewComplaints;
-            console.log(totalNewComplaints)
-        });
+        let totalNewComplaints = 0;
+        let lastDocumentId = null;
+    
+        function fetchComplaints() {
+            const queries = [
+                Appwrite.Query.equal("status", "New"),
+                Appwrite.Query.limit(20) // Fetch 20 documents at a time
+            ];
+    
+            if (lastDocumentId) {
+                queries.push(Appwrite.Query.cursorAfter(lastDocumentId));
+            }
+    
+            database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77', queries)
+                .then(response => {
+                    totalNewComplaints += response.documents.length;
+    
+                    // If there are more documents, fetch the next batch
+                    if (response.documents.length === 20) {
+                        lastDocumentId = response.documents[response.documents.length - 1].$id;
+                        fetchComplaints(); // Recursively fetch the next batch
+                    } else {
+                        // All documents fetched
+                        document.getElementById('new_complaints_card').innerText = totalNewComplaints;
+                        console.log(totalNewComplaints);
+                    }
+                });
+        }
+    
+        // Start fetching the complaints
+        fetchComplaints();
     }
     function updateInProgressComplaintsCount() {
-        database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-            .then(response => {
-                const totalAssignedComplaints = response.documents.filter(complaint => complaint.status === 'In Progress').length;
-                document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
-            });
+        let totalAssignedComplaints = 0;
+        let lastDocumentId = null;
+    
+        function fetchComplaints() {
+            const queries = [
+                Appwrite.Query.equal("status", "In Progress"),
+                Appwrite.Query.limit(20) // Fetch 20 documents at a time
+            ];
+    
+            if (lastDocumentId) {
+                queries.push(Appwrite.Query.cursorAfter(lastDocumentId));
+            }
+    
+            database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77', queries)
+                .then(response => {
+                    totalAssignedComplaints += response.documents.length;
+    
+                    // If there are more documents, fetch the next batch
+                    if (response.documents.length === 20) {
+                        lastDocumentId = response.documents[response.documents.length - 1].$id;
+                        fetchComplaints(); // Recursively fetch the next batch
+                    } else {
+                        // All documents fetched
+                        document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
+                    }
+                });
+        }
+    
+        // Start fetching the complaints
+        fetchComplaints();
+    }
+    
+
+// Function to update the count of assigned complaints
+function updateAssignedComplaintsCount() {
+    let totalAssignedComplaints = 0;
+    let lastDocumentId = null;
+
+    function fetchComplaints() {
+        const queries = [
+            Appwrite.Query.equal("status", "Assigned"),
+            Appwrite.Query.limit(20) // Fetch 20 documents at a time
+        ];
+
+        if (lastDocumentId) {
+            queries.push(Appwrite.Query.cursorAfter(lastDocumentId));
         }
 
-    // Function to update the count of assigned complaints
-    function updateAssignedComplaintsCount() {
-    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-        .then(response => {
-            const totalAssignedComplaints = response.documents.filter(complaint => complaint.status === 'Assigned').length;
-            document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
-        });
+        database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77', queries)
+            .then(response => {
+                totalAssignedComplaints += response.documents.length;
+
+                // If there are more documents, fetch the next batch
+                if (response.documents.length === 20) {
+                    lastDocumentId = response.documents[response.documents.length - 1].$id;
+                    fetchComplaints(); // Recursively fetch the next batch
+                } else {
+                    // All documents fetched
+                    document.getElementById('assigned_complaints_card').innerText = totalAssignedComplaints;
+                }
+            });
     }
+
+    // Start fetching the complaints
+    fetchComplaints();
+}
+
 
     // Function to update the count of resolved complaints
     function updateResolvedComplaintsCount() {
-    database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77')
-        .then(response => {
-            const totalResolvedComplaints = response.documents.filter(complaint => complaint.status === 'Resolved').length;
-            document.getElementById('resolved_complaints_card').innerText = totalResolvedComplaints;
-        });
-    }
-
-
-    function calculatePriority(complaint) {
-        // Define severity based on complaint type
-        const severityMap = {
-            'No Power': 'High',
-            'Loose Connection/Sparking of Wire': 'High',
-            'Low Voltage': 'Medium',
-            'Defective Meter': 'Medium',
-            'No Reading': 'Low',
-            'Detached Meter': 'Low'
-        };
-
-        // Severity-based prioritization
-        const complaintType = complaint.description || 'Other';
-        const severity = severityMap[complaintType] || 'Medium';
-        const severityScore = {
-            'High': 3,
-            'Medium': 2,
-            'Low': 1
-        }[severity] || 2;
-
-        // Time-based prioritization (older complaints get higher priority)
-            // Time-based prioritization 
-            const createdAt = complaint.createdAt;
-            let timeScore = 0;
-            if (createdAt) {
-                const timeSubmitted = new Date(createdAt); 
-        
-                // Get current time in UTC (you might want to fetch this from the server for better accuracy)
-                const nowUTC = new Date(); 
-                const offsetMinutes = nowUTC.getTimezoneOffset(); 
-                nowUTC.setMinutes(nowUTC.getMinutes() - offsetMinutes); 
-        
-                const hoursSinceSubmission = (nowUTC - timeSubmitted) / (1000 * 60 * 60);
-                timeScore = Math.min(Math.floor(hoursSinceSubmission / 48), 3);
+        let totalResolvedComplaints = 0;
+        let lastDocumentId = null;
+    
+        function fetchResolvedComplaints() {
+            const queries = [
+                Appwrite.Query.equal("status", "Resolved"),
+                Appwrite.Query.limit(20) // Fetch 20 documents at a time
+            ];
+    
+            if (lastDocumentId) {
+                queries.push(Appwrite.Query.cursorAfter(lastDocumentId));
             }
-
-        // Location-based prioritization (higher priority for critical locations)
-        const criticalLocations = ['hospital', 'school'];
-        const complaintLocation = (complaint.locationName || '').toLowerCase();
-        const locationScore = criticalLocations.some(loc => complaintLocation.includes(loc)) ? 3 : 0;
-
-        // Total priority score
-        const totalScore = severityScore + timeScore + locationScore;
-
-        // Determine priority level based on the score
-        if (totalScore >= 6) {
-            return 'High';
-        } else if (totalScore >= 3) {
-            return 'Medium';
-        } else {
-            return 'Low';
+    
+            database.listDocuments('66224a152d9f9a67af78', '6626029b134a98006f77', queries)
+                .then(response => {
+                    totalResolvedComplaints += response.documents.length;
+    
+                    // If there are more documents, fetch the next batch
+                    if (response.documents.length === 20) {
+                        lastDocumentId = response.documents[response.documents.length - 1].$id;
+                        fetchResolvedComplaints(); // Recursively fetch the next batch
+                    } else {
+                        // All documents fetched
+                        document.getElementById('resolved_complaints_card').innerText = totalResolvedComplaints;
+                    }
+                });
         }
+    
+        // Start fetching the resolved complaints
+        fetchResolvedComplaints();
     }
+    
+
+
 
     // Helper function to format the date range
 function formatDateRange(startDateStr, endDateStr) {
@@ -202,6 +248,14 @@ function formatDateRange(startDateStr, endDateStr) {
 // Call the formatDateRange function
         const formattedResolutionDate = (doc.resolutionEndDate && doc.resolutionEndDate) ? formatDateRange(resolutionStartDate, resolutionEndDate): "No date provided"
         const followedUp = doc.followedUpAt ? doc.followedUpAt: 'Not followed up by consumer'
+
+        let resolutionMembers = 'No crew members assigned yet.'; // Default message
+
+if (doc.resolution_members && doc.resolution_members.length > 0) {
+    resolutionMembers = doc.resolution_members.join(', '); // Join members into a single string
+}
+
+
 if (doc.crew_name) {
     resolutionTeamButton = cancelComplaintButton = `<button class="btn btn-danger cancelComplaintButton" id="cancelComplaintButton" type="button" data-selected-complaint="${doc.$id}">
     Cancel Complaint
@@ -250,7 +304,12 @@ if (doc.crew_name) {
             description: doc.description,
             createdAt: doc.createdAt,
             locationName: doc.locationName,
-            additionalDetails: doc.additionalDetails
+            additionalDetails: doc.additionalDetails,
+            followedUpAt: doc.followedUpAt,   
+    resolutionStartDate: doc.resolutionStartDate,  
+    resolutionEndDate: doc.resolutionEndDate,     
+    status: doc.status 
+            
         })
 
     })
@@ -358,7 +417,7 @@ if (doc.crew_name) {
                         </div>
 
                            <div class="mb-3 row">
-                            <label for="followUp" class="col-sm-3 col-form-label">Followed Up By Consumer</label>
+                            <label for="followUp" class="col-sm-3 col-form-label">Date Followed-up</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" id="followUp" disabled value="${followedUp}">
                             </div>
@@ -386,6 +445,13 @@ if (doc.crew_name) {
                                 <input type="text" class="form-control" id="resolutionTeamName" disabled value="${crew_name}">
                             </div>
                         </div>
+
+                         <div class="mb-3 row">
+    <label for="resolutionMembers" class="col-sm-3 col-form-label">Crew Members</label>
+    <div class="col-sm-9">
+        <input type="text" class="form-control" id="resolutionMembers" value="${resolutionMembers}" disabled>
+    </div>
+</div>
                      
 
                                  <div class="mb-3 row">
@@ -428,9 +494,9 @@ if (doc.crew_name) {
         <!-- Radio buttons for predefined reasons -->
         <div class="mb-3">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="cancelReasonOptions-${doc.$id}" id="reason1-${doc.$id}" value="Duplicate Complaint">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-${doc.$id}" id="reason1-${doc.$id}" value="Invalid Complaint">
             <label class="form-check-label" for="reason1-${doc.$id}">
-              Duplicate Complaint
+              Invalid Complaint
             </label>
           </div>
           <div class="form-check">
@@ -484,6 +550,30 @@ if (doc.crew_name) {
         var priority = $('#Priority').val();
         // Show the confirmation modal
         $('#confirmAssignModal').modal('show');
+
+        $('#crewMemberSelection').empty();
+         // Make an AJAX call to fetch the crew members for the selected team
+  $.ajax({
+    url: '/api/crew-members',  // Endpoint to fetch crew members for the selected team
+    method: 'GET',
+    data: { teamId: assignedCrew },  // Send the selected team's ID
+    dataType: 'json',
+    success: function(response) {
+        if (response.success) {
+            // Loop through the crew members and populate the select element
+            response.crewMembers.forEach(function(member) {
+                var option = new Option(member.name, member.id, false, false);
+                $('#crewMemberSelection').append(option);
+            });
+            $('#crewMemberSelection').trigger('change');  // Refresh the select2 dropdown
+        } else {
+            console.error('Error fetching crew members:', response.error);
+        }
+    },
+    error: function(xhr, status, error) {
+        console.error('AJAX Error:', error);
+    }
+});
     
         // Handle the confirm button click
         $('#confirmAssignButton').off('click').on('click', function () {
@@ -650,7 +740,8 @@ if (doc.crew_name) {
                 crew_name: userName,
                 resolutionStartDate: startDate,
                 resolutionEndDate: endDate,
-                priority: priority
+                priority: priority,
+                resolution_members: $('#crewMemberSelection').val()
             }),
             success: function(response) {
                 if (response.success) {
@@ -659,6 +750,8 @@ if (doc.crew_name) {
                         user: "Admin",
                         action: "Assigned tasks to " + userName
                     };
+                    var button = $('button[data-selected-complaint="' + complaintId + '"]');
+                        button.prop('disabled', true);  // Disable the button for that specific complaint
     
                     fetch('/log', {
                         method: 'POST',
@@ -767,7 +860,7 @@ if (doc.crew_name) {
             }
 
             // Fetch updated priority from the API
-            fetch('http://127.0.0.1:5000/calculate-priority', {
+            fetch('/calculate-priority', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -776,7 +869,12 @@ if (doc.crew_name) {
                     description: doc.description,
                     createdAt: doc.createdAt,
                     locationName: doc.locationName,
-                    additionalDetails: doc.additionalDetails
+                    additionalDetails: doc.additionalDetails,
+            followedUpAt: doc.followedUpAt,   
+    resolutionStartDate: doc.resolutionStartDate,  
+    resolutionEndDate: doc.resolutionEndDate,     
+    status: doc.status 
+                    
                 })
             })
             .then(response => response.json())
@@ -836,6 +934,7 @@ if (doc.crew_name) {
             const resolutionTeamInput = modalElement.querySelector('#resolutionTeamName');
             const followUpInput = modalElement.querySelector('#followUp');
             const resolutionDateInput = modalElement.querySelector('#resolutionDate')
+            const resolutionMembersInput = modalElement.querySelector('#resolutionMembers')
             if (ticketIDInput) ticketIDInput.value = doc.$id;
             if (consumerInput) consumerInput.value = doc.consumer_name;
             if (complaintTypeInput) complaintTypeInput.value = doc.description;
@@ -848,6 +947,7 @@ if (doc.crew_name) {
             if (complaintStatusInput) complaintStatusInput.value = doc.status;
             if (resolutionTeamInput) resolutionTeamInput.value = doc.crew_name;
             if (followUpInput) followUpInput.value = doc.followUp ? doc.followUp : "No";
+            if (resolutionMembersInput) resolutionMembersInput.value = doc.resolution_members ? doc.resolution_members:'No crew members assigned yet.'
         } else {
             console.log(`Modal with ID modal-${doc.$id} not found.`);
         }

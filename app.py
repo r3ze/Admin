@@ -3,6 +3,7 @@ from datetime import datetime
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 from appwrite.services.users import Users
+from appwrite.query import Query
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timezone
@@ -51,19 +52,17 @@ def count_complaints_by_status(complaints):
         'cancelled_complaints': cancelled_complaints
     }
 
+
 @app.route('/get_common_complaints', methods=['GET'])
 def get_common_complaints():
     try:
-        # Fetch all documents from the complaints collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
         # Group complaints by type and count them
         complaint_counts = {}
-        for complaint in response['documents']:
-            complaint_type = complaint.get('description', 'Unknown')  # Assuming 'type' is the field name for complaint type
+        for complaint in all_complaints:
+            complaint_type = complaint.get('description', 'Unknown')
             if complaint_type in complaint_counts:
                 complaint_counts[complaint_type] += 1
             else:
@@ -105,138 +104,117 @@ def count_complaints():
         print(f"Error counting users: {str(e)}")
         return 0  # Return 0 if there's an error
     
-# Count new complaints
-def count_new_user_complaints(consumer_id):
-    try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
 
-        # Filter and count only complaints with status = 'New'
-        total_new_user_complaints = sum(1 for complaint in response['documents'] if complaint.get('consumer_id') == consumer_id)
-        
-        return total_new_user_complaints
-    except Exception as e:
-        print(f"Error counting new complaints: {str(e)}")
-        return 0  # Return 0 if there's an error
-# Count new complaints
+
 def count_new_complaints():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter and count only complaints with status = 'New'
-        total_new_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'New')
+        # Filter and count complaints with status = 'New'
+        total_new_complaints = sum(1 for complaint in all_complaints if complaint.get('status') == 'New')
         
         return total_new_complaints
+
     except Exception as e:
         print(f"Error counting new complaints: {str(e)}")
-        return 0  # Return 0 if there's an error
+        return 0  # Return 0 in case of an error
     
 
     
 
-# Count new complaints
 def count_assigned_complaints():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter and count only complaints with status = 'New'
-        total_assigned_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'Assigned')
+        # Filter and count complaints with status = 'Assigned'
+        total_assigned_complaints = sum(1 for complaint in all_complaints if complaint.get('status') == 'Assigned')
         
         return total_assigned_complaints
+
     except Exception as e:
-        print(f"Error counting new complaints: {str(e)}")
-        return 0  # Return 0 if there's an error
+        print(f"Error counting assigned complaints: {str(e)}")
+        return 0  # Return 0 in case of an error
 
 
 
-# Count new complaints
 def count_resolved_complaints():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter and count only complaints with status = 'New'
-        total_resolved_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'Resolved')
+        # Filter and count complaints with status = 'Resolved'
+        total_resolved_complaints = sum(1 for complaint in all_complaints if complaint.get('status') == 'Resolved')
         
         return total_resolved_complaints
-    except Exception as e:
-        print(f"Error counting new complaints: {str(e)}")
-        return 0  # Return 0 if there's an error
 
-# Count new complaints
+    except Exception as e:
+        print(f"Error counting resolved complaints: {str(e)}")
+        return 0  # Return 0 in case of an error
+
 def count_inprogress_complaints():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter and count only complaints with status = 'New'
-        total_inprogress_complaints = sum(1 for complaint in response['documents'] if complaint.get('status') == 'In Progress')
+        # Filter and count complaints with status = 'In Progress'
+        total_inprogress_complaints = sum(1 for complaint in all_complaints if complaint.get('status') == 'In Progress')
         
         return total_inprogress_complaints
-    except Exception as e:
-        print(f"Error counting new complaints: {str(e)}")
-        return 0  # Return 0 if there's an error
 
+    except Exception as e:
+        print(f"Error counting in-progress complaints: {str(e)}")
+        return 0  # Return 0 in case of an error
 
 
 @app.route('/')
 def dashboard():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
-        # Assuming 'created_at' is a field in the document and sorting by it in descending order
-        sorted_complaints = sorted(response['documents'], key=lambda x: x['createdAt'], reverse=True)
-        
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
+
+        # Sort complaints by 'createdAt' field in descending order
+        sorted_complaints = sorted(all_complaints, key=lambda x: x['createdAt'], reverse=True)
+
         total_users = count_users()
         total_complaints = count_complaints()
         total_new_complaints = count_new_complaints()
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
         total_inprogress_complaints = count_inprogress_complaints()
-        complaints_data = sorted_complaints[:7]  # Limiting to the first 7 complaints after sorting
 
-        # Calculate priority and format dates
+        # Limiting to the first 7 complaints after sorting
+        complaints_data = sorted_complaints[:7]
+
+        # Calculate priority and format dates for each complaint
         for complaint in sorted_complaints:
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['priority'] = calculate_priority(complaint)
-        
-        return render_template("index.html", complaints=complaints_data, total_users=total_users, total_complaints=total_complaints, count_new_complaints = total_new_complaints,
-                               count_assigned_complaints = total_assigned_complaints, count_resolved_complaints = total_resolved_complaints, count_inprogress_complaints = total_inprogress_complaints)
+
+        return render_template(
+            "index.html", 
+            complaints=complaints_data, 
+            total_users=total_users, 
+            total_complaints=total_complaints, 
+            count_new_complaints=total_new_complaints,
+            count_assigned_complaints=total_assigned_complaints, 
+            count_resolved_complaints=total_resolved_complaints, 
+            count_inprogress_complaints=total_inprogress_complaints
+        )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/complaints_data')
 def get_complaints_data():
     try:
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
-        complaints_data = response['documents']
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
         processed_complaints = []
-        for complaint in complaints_data:
-            # Assuming 'location' is a string like "14.2811, 121.4575"
+        for complaint in all_complaints:
+            # Assuming 'Location' is a string like "14.2811, 121.4575"
             if 'Location' in complaint and complaint['Location']:
                 try:
                     # Split the location string and convert to float
@@ -247,17 +225,19 @@ def get_complaints_data():
                 latitude, longitude = None, None
 
             complaint_dict = {
+                'consumer_name': complaint['consumer_name'],
                 'complaint_description': complaint['description'],
-                'additionalDetails' : complaint['additionalDetails'],
+                'additionalDetails': complaint['additionalDetails'],
                 'city': complaint['city'],
                 'barangay': complaint['barangay'],
                 'location': complaint['locationName'],
-                'resolutionStartDate': complaint['resolutionStartDate'],
-                'resolutionEndDate' : complaint['resolutionEndDate'],
+                'resolutionStartDate': complaint.get('resolutionStartDate'),
+                'resolutionEndDate': complaint.get('resolutionEndDate'),
                 'date_reported': complaint['createdAt'],
                 'latitude': latitude,
                 'longitude': longitude,
-                'status': complaint['status']
+                'status': complaint['status'],
+                'followedUpAt': complaint.get('followedUpAt')
             }
             processed_complaints.append(complaint_dict)
 
@@ -377,23 +357,51 @@ def format_date_range(start_date_str, end_date_str):
     except Exception as e:
         print(f"Error formatting date range: {e}")
         return None
+def fetch_all_complaints_documents(database_id, collection_id):
+    all_documents = []
+    last_document_id = None
+    
+    while True:
+        if last_document_id:
+            # Use cursor for pagination
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id,
+                queries=[
+                    Query.cursor_after(last_document_id)
+                ]
+            )
+        else:
+            # First query without cursor
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id
+            )
+        
+        # Add the fetched documents to the list
+        all_documents.extend(response['documents'])
+
+        # If fewer documents than the default limit (25) are fetched, stop the loop
+        if len(response['documents']) < 25:
+            break
+
+        # Update the last document ID for the next batch
+        last_document_id = response['documents'][-1]['$id']
+
+    return all_documents
+
+
 @app.route('/complaints')
 def complaints():
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints and crew documents using pagination
+        all_complaints = fetch_all_complaints_documents(DATABASE_ID, COLLECTION_ID)
+        all_users = fetch_all_complaints_documents(DATABASE_ID, CREW_COLLECTION_ID)
 
-        user_response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=CREW_COLLECTION_ID
-        )
-
-        # Filter out complaints with 'resolved' status
+        # Filter out complaints with 'Resolved', 'Withdrawn', or 'Invalidated' status
         filtered_complaints = [
-            complaint for complaint in response['documents'] if complaint.get('status') != 'Resolved' and complaint.get('status')!='Withdrawn' and complaint.get('status')!='Canceled'
+            complaint for complaint in all_complaints 
+            if complaint.get('status') not in ['Resolved', 'Withdrawn', 'Invalidated']
         ]
 
         # Sort complaints by 'createdAt' field in descending order
@@ -410,22 +418,30 @@ def complaints():
             complaint['formattedFollowedUpAt'] = format_date(complaint.get('followedUpAt'))
             complaint['priority'] = calculate_priority(complaint)
 
-              # Format resolution date range
+            # Format resolution date range
             start_date = complaint.get('resolutionStartDate')
             end_date = complaint.get('resolutionEndDate')
             complaint['formattedResolutionDate'] = format_date_range(start_date, end_date)
 
-        users = user_response['documents']
+        # Fetch user details and complaint counts
+        users = all_users
         total_complaints = count_complaints()
         total_new_complaints = count_new_complaints()
         total_assigned_complaints = count_assigned_complaints()
         total_resolved_complaints = count_resolved_complaints()
         total_inprogress_complaints = count_inprogress_complaints()
-        return render_template("complaints.html", complaints=sorted_complaints, total_complaints=total_complaints, users=users, count_new_complaints=total_new_complaints,
-                               count_assigned_complaints=total_assigned_complaints, count_resolved_complaints=total_resolved_complaints, count_inprogress_complaints = total_inprogress_complaints)
+
+        return render_template("complaints.html", 
+                               complaints=sorted_complaints, 
+                               total_complaints=total_complaints, 
+                               users=users, 
+                               count_new_complaints=total_new_complaints,
+                               count_assigned_complaints=total_assigned_complaints, 
+                               count_resolved_complaints=total_resolved_complaints, 
+                               count_inprogress_complaints=total_inprogress_complaints)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    
 def format_date(iso_date):
     if iso_date:
         try:
@@ -459,6 +475,37 @@ def get_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500        
 
+@app.route('/api/crew-members', methods=['GET'])
+def get_crew_members():
+    team_id = request.args.get('teamId')
+
+    if not team_id:
+        return jsonify({'success': False, 'error': 'Team ID is required'}), 400
+
+    try:
+        # Log the received team_id for debugging
+        print(f"Fetching crew members for team ID: {team_id}")
+        
+        # Fetch the crew members for the selected team
+        team_document = database.get_document(
+            database_id=DATABASE_ID,
+            collection_id=CREW_COLLECTION_ID,
+            document_id=team_id
+        )
+        
+        # Check if the team_document exists
+        if not team_document:
+            return jsonify({'success': False, 'error': 'Team not found'}), 404
+
+        crew_members = team_document.get('crew_members', [])
+        response_data = [{'name': member} for member in crew_members]
+
+        return jsonify({'success': True, 'crewMembers': response_data}), 200
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error fetching crew members: {e}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
     
 @app.route('/update-status', methods=['POST'])
 def update_status():
@@ -480,7 +527,6 @@ def update_status():
         print(f"Error updating status: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500    
 
-
 @app.route('/update-crew', methods=['POST'])
 def update_crew():
     data = request.get_json()
@@ -490,8 +536,11 @@ def update_crew():
     resolutionStartDate = data.get('resolutionStartDate')
     resolutionEndDate = data.get('resolutionEndDate')
     priority = data.get('priority')
+    resolution_members = data.get('resolution_members')  # Get the selected crew members
+
     try:
         assigned_at = datetime.now().isoformat()
+        # Update the document with the new data, including resolution members
         database.update_document(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID,
@@ -501,16 +550,16 @@ def update_crew():
                 'crew_name': crew_name,
                 'assignedAt': assigned_at,
                 'crew_id': assigned_crew,
-                'resolutionStartDate':resolutionStartDate,
-                'resolutionEndDate':resolutionEndDate,
-                'priority': priority
+                'resolutionStartDate': resolutionStartDate,
+                'resolutionEndDate': resolutionEndDate,
+                'priority': priority,
+                'resolution_members': resolution_members  # Store selected crew members
             }
         )
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error updating status: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500        
-
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/crews/add', methods=['POST'])
 def add_crew_member():
@@ -519,6 +568,7 @@ def add_crew_member():
     email = data.get('email')
     password = data.get('password')
     team = data.get('team')
+    crew_members = data.get('crew_members', [])  # Get the crew members array
 
     # Validate the data
     if not email or not password or not team:
@@ -532,7 +582,7 @@ def add_crew_member():
             password=password
         )
 
-
+        # Create a new document in the crew collection, including the crew members array
         new_crew = database.create_document(
             database_id=DATABASE_ID,
             collection_id=CREW_COLLECTION_ID,
@@ -541,7 +591,8 @@ def add_crew_member():
                 'accountId': user['$id'],
                 'email': email,
                 'name_team': team,
-                'password': password
+                'password': password,
+                'crew_members': crew_members  # Store the crew members in the document
             }
         )
 
@@ -550,7 +601,6 @@ def add_crew_member():
         print(f"Error creating crew member: {e}")
         return jsonify({"error": "Error creating crew member."}), 500
         
-
 @app.route('/crews/update', methods=['POST'])
 def update_crew_member():
     data = request.get_json()
@@ -558,6 +608,7 @@ def update_crew_member():
     user_id = data.get('user_id')
     email = data.get('email')
     resolution_team = data.get('resolution_team')
+    crew_members = data.get('crew_members')  # Retrieve the updated crew members
 
     if not doc_id or not user_id:
         return jsonify({"error": "Document ID and User ID are required."}), 400
@@ -583,6 +634,10 @@ def update_crew_member():
         if resolution_team and resolution_team != document.get('name_team'):
             update_data['name_team'] = resolution_team
 
+        # Update crew members
+        if crew_members:
+            update_data['crew_members'] = crew_members
+
         # Perform the update only if there's data to update
         if update_data:
             database.update_document(
@@ -596,7 +651,7 @@ def update_crew_member():
 
     except Exception as e:
         print(f"Error updating crew member: {e}")
-        return jsonify({"error": "Error updating crew member."}), 500
+        return jsonify({"error": f"Error updating crew member: {str(e)}"}), 500
     
 @app.route('/consumer/update', methods=['POST'])
 def update_consumer():
@@ -686,15 +741,49 @@ def cancel_complaint():
         return jsonify({'success': False, 'error': str(e)}), 500    
 
 
+def fetch_all_log_documents(database_id, collection_id):
+    all_documents = []
+    last_document_id = None
+    
+    while True:
+        # Build the query parameters dynamically
+        if last_document_id:
+            # Use cursor for pagination
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id,
+                queries=[
+                    Query.cursor_after(last_document_id)
+                ]
+            )
+        else:
+            # First query without cursor
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id
+            )
+        
+        # Add the fetched documents to the list
+        all_documents.extend(response['documents'])
+
+        # If the number of documents fetched is less than the default limit, we've fetched everything
+        if len(response['documents']) < 25:  # Assuming the default batch size is 25
+            break
+
+        # Update the last document ID for the next batch
+        last_document_id = response['documents'][-1]['$id']
+
+    return all_documents
+
 
 @app.route('/log-history')
 def log_history():
     try:
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=LOG_COLLECTION_ID
-        )
-        sorted_logs = sorted(response['documents'], key=lambda x: x['time_stamp'], reverse=True)
+        # Fetch all documents in the collection
+        all_logs = fetch_all_log_documents(DATABASE_ID, LOG_COLLECTION_ID)
+        
+        # Sort the logs by 'time_stamp'
+        sorted_logs = sorted(all_logs, key=lambda x: x['time_stamp'], reverse=True)
         
         return render_template("log-history.html", logs=sorted_logs)
     except Exception as e:
@@ -730,31 +819,61 @@ def filter_logs():
         return jsonify({'error': str(e)}), 500
     
     
+
+
+def fetch_all_documents(database_id, collection_id):
+    all_documents = []
+    last_document_id = None
+    
+    while True:
+        if last_document_id:
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id,
+                queries=[
+                    Query.cursor_after(last_document_id)
+                ]
+            )
+        else:
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id
+            )
+        
+        all_documents.extend(response['documents'])
+        
+        if len(response['documents']) < 25:
+            break
+        
+        last_document_id = response['documents'][-1]['$id']
+
+    return all_documents
+
+
 @app.route('/user-management')
 def user_management():
     municipality = request.args.get('municipality')
+    
     try:
-        result = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=USER_COLLECTION_ID
-        )
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=LOG_COLLECTION_ID
-        )
+        # Fetch all user documents with pagination
+        users_list = fetch_all_documents(DATABASE_ID, USER_COLLECTION_ID)
 
-        sorted_logs = sorted(response['documents'], key=lambda x: x['time_stamp'], reverse=True)
-        
-        users_list = result['documents']
-        
+        # Filter users based on municipality if provided
         if municipality:
             users_list = [user for user in users_list if user.get('city') == municipality]
+
+        # Fetch all log documents with pagination
+        all_logs = fetch_all_documents(DATABASE_ID, LOG_COLLECTION_ID)
+        
+        # Sort logs by 'time_stamp' in descending order
+        sorted_logs = sorted(all_logs, key=lambda x: x['time_stamp'], reverse=True)
+
     except Exception as e:
         print(f"Error fetching users: {e}")
         users_list = []
+        sorted_logs = []
 
-    return render_template("user-management.html", users=users_list, municipality=municipality, logs = sorted_logs)
-
+    return render_template("user-management.html", users=users_list, municipality=municipality, logs=sorted_logs)
 @app.route('/crews')
 def crews():
   
@@ -776,15 +895,12 @@ def crews():
 @app.route('/user-history/<user_id>')
 def consumerHistory(user_id):
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
         # Filter complaints based on consumer_id
         filtered_complaints = [
-            complaint for complaint in response['documents']
+            complaint for complaint in all_complaints
             if complaint.get('consumer_id') == user_id
         ]
 
@@ -808,24 +924,20 @@ def consumerHistory(user_id):
         # Count complaints by status
         complaint_counts = count_complaints_by_status(filtered_complaints)
 
-        # Fetch user information
-        user_response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=CREW_COLLECTION_ID
-        )
-        users = user_response['documents']
+        # Fetch all users using pagination
+        all_users = fetch_all_documents(DATABASE_ID, CREW_COLLECTION_ID)
 
         return render_template(
             "consumer-history.html",
             complaints=sorted_complaints,
-            users=users,
+            users=all_users,
             total_complaints=complaint_counts['total_complaints'],
             resolved_complaints=complaint_counts['resolved_complaints'],
             pending_complaints=complaint_counts['pending_complaints'],
             cancelled_complaints=complaint_counts['cancelled_complaints']
         )
     except Exception as e:
-        print(f"Error: {e}")  # Print the error for debugging
+        print(f"Error: {e}")  # Log the error for debugging
         return jsonify({'error': str(e)}), 500
 
 @app.route('/filter-consumer-history')
@@ -872,25 +984,18 @@ def filter_consumer_history():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
 @app.route('/crew-history/<user_id>')
 def crewHistory(user_id):
     try:
-        # Fetch all documents from the 'complaints' collection
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Fetch crew information
-        user_response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=CREW_COLLECTION_ID
-        )
+        # Fetch all crew information using pagination
+        all_users = fetch_all_documents(DATABASE_ID, CREW_COLLECTION_ID)
 
         # Filter complaints based on crew_id
         filtered_complaints = [
-            complaint for complaint in response['documents']
+            complaint for complaint in all_complaints
             if complaint.get('crew_id') == user_id
         ]
 
@@ -901,7 +1006,7 @@ def crewHistory(user_id):
             reverse=True
         )
 
-        # Format date and calculate priority
+        # Format dates and calculate priority
         for complaint in sorted_complaints:
             complaint['formattedCreatedAt'] = format_date(complaint.get('createdAt'))
             complaint['formattedAssignedAt'] = format_date(complaint.get('assignedAt'))
@@ -912,8 +1017,8 @@ def crewHistory(user_id):
         # Count complaints by status for the crew member
         complaint_counts = count_complaints_by_status(filtered_complaints)
 
-        # Get the crew members
-        users = user_response['documents']
+        # Get the crew members (from paginated result)
+        users = all_users
 
         return render_template(
             "crew_history.html",
@@ -925,7 +1030,7 @@ def crewHistory(user_id):
             users=users
         )
     except Exception as e:
-        print(f"Error: {e}")  # Print the error for debugging
+        print(f"Error: {e}")  # Log the error for debugging
         return jsonify({'error': str(e)}), 500
     
 @app.route('/filter-crew-history')
@@ -974,23 +1079,51 @@ def filter_crew_history():
         return jsonify({'error': str(e)}), 500
 
 
+def fetch_all_ticket_history_documents(database_id, collection_id):
+    all_documents = []
+    last_document_id = None
+
+    while True:
+        # Fetch documents using cursor-based pagination
+        if last_document_id:
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id,
+                queries=[
+                    Query.cursor_after(last_document_id)
+                ]
+            )
+        else:
+            # First batch of documents (no cursor yet)
+            response = database.list_documents(
+                database_id=database_id,
+                collection_id=collection_id
+            )
+
+        # Append the fetched documents to the overall list
+        all_documents.extend(response['documents'])
+
+        # If fewer documents than the limit are returned, all documents have been fetched
+        if len(response['documents']) < 25:  # Default batch size is 25
+            break
+
+        # Set the cursor to the last document ID for the next query
+        last_document_id = response['documents'][-1]['$id']
+
+    return all_documents
 @app.route('/ticket-history')
 def ticket_history():
     try:
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all tickets using pagination
+        all_tickets = fetch_all_ticket_history_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter complaints to include only those with status 'Resolved' or 'Withdrawn'
+        # Filter complaints to include only those with status 'Resolved', 'Withdrawn', or 'Invalidated'
         relevant_tickets = [
-            doc for doc in response['documents'] 
-            if doc['status'] in ['Withdrawn', 'Resolved', 'Canceled']
+            doc for doc in all_tickets 
+            if doc['status'] in ['Withdrawn', 'Resolved', 'Invalidated']
         ]
 
-
-           
-        # Parse the createdAt, assignedAt, and resolvedAt fields into datetime objects
+        # Parse and format date fields
         for ticket in relevant_tickets:
             ticket['formattedCreatedAt'] = format_date(ticket.get('createdAt'))
             ticket['formattedAssignedAt'] = format_date(ticket.get('assignedAt'))
@@ -1000,8 +1133,7 @@ def ticket_history():
             ticket['formattedFollowedUpAt'] = format_date(ticket.get('followedUpAt'))
             ticket['priority'] = calculate_priority(ticket)
 
-
-
+        # Render the template with the formatted tickets
         return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1021,7 +1153,7 @@ def filter_tickets():
         if not start_date or not end_date:
             relevant_tickets = [
                 doc for doc in response['documents']
-                if doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']
+                if doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']
             ]
             return jsonify(relevant_tickets)
 

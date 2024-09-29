@@ -154,6 +154,7 @@
                             <th scope="col">ID</th>
                             <th scope="col">Email</th>
                             <th scope="col">Team</th>
+                            <th scope="col">Crew Members</th>
                             <th scope="col">Action</th>
                         
                         </tr>
@@ -164,6 +165,10 @@
                                     <td>{{ user['accountId'] }}</td>
                                     <td>{{ user['email'] }}</td>
                                     <td>{{ user['name_team'] }}</td>
+                                    <td>
+                                        {{ user['crew_members'] | length }} Members
+                                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#crewMembersModal-{{ user['accountId'] }}">View</button>
+                                    </td>
                                     <td>    
                                         <div class="dropdown">
                                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -186,21 +191,46 @@
                                                 <div class="modal-body">
                                                     <form id="editUserForm-{{ user['$id'] }}">
                                                         <input type="hidden" id="editUserId-{{ user['$id'] }}" value="{{ user['$id'] }}" />
+                                    
+                                                        <!-- Email Field -->
                                                         <div class="mb-3">
                                                             <label for="editUserEmail-{{ user['accountId'] }}" class="form-label">Email</label>
                                                             <input type="email" class="form-control" id="editUserEmail-{{ user['accountId'] }}" value="{{ user['email'] }}" placeholder="Enter email">
                                                         </div>
+                                    
+                                                        <!-- Resolution Team Field -->
                                                         <div class="mb-3">
                                                             <label for="editUserResolutionTeam-{{ user['accountId'] }}" class="form-label">Resolution Team</label>
                                                             <input type="text" class="form-control" id="editUserResolutionTeam-{{ user['accountId'] }}" value="{{ user['name_team'] }}" placeholder="Enter resolution team">
                                                         </div>
+                                    
+                                                        <!-- Crew Members Field (Updated with select2) -->
+                                                        <div class="mb-3">
+                                                            <label for="editUserCrewMembers-{{ user['accountId'] }}" class="form-label">Crew Members</label>
+                                                            <select id="editUserCrewMembers-{{ user['accountId'] }}" class="form-control" multiple="multiple">
+                                                                {% for member in user['crew_members'] %}
+                                                                    <option value="{{ member }}" selected>{{ member }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                    
+                                                        <!-- Add New Crew Member Input -->
+                                                        <div class="mb-3">
+                                                            <label for="newCrewMember-{{ user['accountId'] }}" class="form-label">Add New Crew Member</label>
+                                                            <input type="text" class="form-control" id="newCrewMember-{{ user['accountId'] }}" placeholder="Enter new crew member name or email">
+                                                            <button type="button" class="btn btn-sm btn-success mt-2" id="addCrewButton-{{ user['accountId'] }}">
+                                                                Add Crew Member
+                                                            </button>
+                                                        </div>
+                                    
+                                                        <!-- Display dynamically added members -->
+                                                        <ul id="newCrewList-{{ user['accountId'] }}" class="list-group mt-3">
+                                                        </ul>
                                                     </form>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <button type="button" class="btn btn-primary saveChangesButton"
-                                                            data-document-id="{{ user['$id'] }}" 
-                                                            data-user-id="{{ user['accountId'] }}">
+                                                    <button type="button" class="btn btn-primary saveChangesButton" data-document-id="{{ user['$id'] }}" data-user-id="{{ user['accountId'] }}">
                                                         Save changes
                                                     </button>
                                                 </div>
@@ -208,8 +238,44 @@
                                         </div>
                                     </div>
                                     
-                                    
                                 </tr>
+      
+        <!-- Modal to display crew members for each team -->
+        <div class="modal fade" id="crewMembersModal-{{ user['accountId'] }}" tabindex="-1" aria-labelledby="crewMembersModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="crewMembersModalLabel">Crew Members for {{ user['name_team'] }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            {% if user['crew_members'] %}
+                                {% for member in user['crew_members'] %}
+                                <div class="col-6 col-md-4">
+                                    <div class="card mb-3 shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-center">{{ member }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-warning text-center" role="alert">
+                                    No crew members assigned to this team.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
                             {% endfor %}
                         </tbody>
                         
@@ -236,13 +302,19 @@
                         <label for="addCrewEmail" class="form-label">Email</label>
                         <input type="email" class="form-control" id="addCrewEmail" required>
                     </div>
-                    
+
                     <!-- Resolution Team Dropdown -->
                     <div class="mb-3">
                         <label for="addCrewResolutionTeam" class="form-label">Resolution Team</label>
                         <input type="text" class="form-control" id="addCrewResolutionTeam" required>
                     </div>
-                    
+
+                    <!-- Add Crew Members (Comma-separated) -->
+                    <div class="mb-3">
+                        <label for="addCrewMembers" class="form-label">Crew Members (Comma-separated)</label>
+                        <input type="text" class="form-control" id="addCrewMembers" placeholder="e.g. John Doe, Jane Smith, Bob Johnson" required>
+                    </div>
+
                     <!-- Password Field -->
                     <div class="mb-3">
                         <label for="addCrewPassword" class="form-label">Password</label>
@@ -308,6 +380,8 @@
 <!-- DataTable -->
 <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     function redirectToDashboard() {
         window.location.href = "/";
@@ -377,77 +451,43 @@
 </script>
 
 <script>
-    document.getElementById('saveCrewButton').addEventListener('click', function() {
-    const email = document.getElementById('addCrewEmail').value;
-    const password = document.getElementById('addCrewPassword').value;
-    const confirmPassword = document.getElementById('addCrewConfirmPassword').value;
-    const team = document.getElementById('addCrewResolutionTeam').value;
+  $(document).ready(function() {
+    // Initialize select2 for multi-selects when the modal is shown
+    $('.modal').on('shown.bs.modal', function () {
+        $(this).find('select[multiple="multiple"]').select2({
+            width: '100%',
+            dropdownParent: $(this)  // Make sure the dropdown is appended within the modal
+        });
 
-    // Check if passwords match
-    if (password !== confirmPassword) {
-        alert('Passwords do not match.');
-        return;
-    }
-
-    // Prepare the data for submission
-    const data = {
-        email: email,
-        password: password,
-        team: team
-    };
-
-    // Send an AJAX request to create the new crew member
-    fetch('/crews/add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Hide the Add Crew Modal
-            var addCrewModal = new bootstrap.Modal(document.getElementById('addCrewModal'));
-            addCrewModal.hide();
-
-            // Show the Success Modal
-            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-            successModal.show();
-
-            // Optionally, refresh the page after the modal is closed
-            document.getElementById('successModal').addEventListener('hidden.bs.modal', function () {
-                location.reload();  // Reload page to show the new crew member
-            });
-        } else {
-            alert('Error adding crew member: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+        // Adjust the z-index of select2 container after initialization
+        $('.select2-container--open').css('z-index', '9999');
     });
 });
-
-</script>
-<!--Edit crew-->
+  </script>
 <script>
- document.querySelectorAll('.saveChangesButton').forEach(button => {
-    button.addEventListener('click', function () {
-        const docId = this.getAttribute('data-document-id');
-        const userId = this.getAttribute('data-user-id');
-        const email = document.getElementById(`editUserEmail-${userId}`).value;
-        const resolutionTeam = document.getElementById(`editUserResolutionTeam-${userId}`).value;
-
+    document.getElementById('saveCrewButton').addEventListener('click', function() {
+        const email = document.getElementById('addCrewEmail').value;
+        const password = document.getElementById('addCrewPassword').value;
+        const confirmPassword = document.getElementById('addCrewConfirmPassword').value;
+        const team = document.getElementById('addCrewResolutionTeam').value;
+        const crewMembers = document.getElementById('addCrewMembers').value.split(',').map(member => member.trim()); // Split by commas and trim spaces
+    
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            alert('Passwords do not match.');
+            return;
+        }
+    
         // Prepare the data for submission
         const data = {
-            doc_id: docId,
-            user_id: userId,
-            email: email,  // Always include email
-            resolution_team: resolutionTeam  // Always include resolution team
+            email: email,
+            password: password,
+            team: team,
+            crew_members: crewMembers  // Add the crew members array here
         };
-
-        // Send an AJAX request to update the crew member
-        fetch('/crews/update', {
+    
+        // Send an AJAX request to create the new crew member
+        fetch('/crews/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -457,24 +497,104 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Hide the Add Crew Modal
+                var addCrewModal = new bootstrap.Modal(document.getElementById('addCrewModal'));
+                addCrewModal.hide();
+    
                 // Show the Success Modal
-            var successModal = new bootstrap.Modal(document.getElementById('successEditModal'));
-            successModal.show();
-
-            // Optionally, refresh the page after the modal is closed
-            document.getElementById('successEditModal').addEventListener('hidden.bs.modal', function () {
-                location.reload();  // Reload page to show the new crew member
-            });
+                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+    
+                // Optionally, refresh the page after the modal is closed
+                document.getElementById('successModal').addEventListener('hidden.bs.modal', function () {
+                    location.reload();  // Reload page to show the new crew member
+                });
             } else {
-                alert('Error updating crew member: ' + data.error);
+                alert('Error adding crew member: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
         });
     });
-});
+    </script>
+<!--Edit crew-->
+<script>
+$(document).ready(function() {
 
+
+      // Handle adding a new crew member
+      document.querySelectorAll('[id^="addCrewButton-"]').forEach(button => {
+        button.addEventListener('click', function () {
+            const userId = this.id.split('-')[1];
+            const newCrewMember = document.getElementById(`newCrewMember-${userId}`).value;
+
+            if (newCrewMember) {
+                // Add new crew member to the crew list (display in UI)
+                const newListItem = `<li class="list-group-item">${newCrewMember}</li>`;
+                document.getElementById(`newCrewList-${userId}`).insertAdjacentHTML('beforeend', newListItem);
+
+                // Add new crew member to the select2 dropdown dynamically
+                const newOption = new Option(newCrewMember, newCrewMember, true, true);
+                $(`#editUserCrewMembers-${userId}`).append(newOption).trigger('change');
+
+                // Clear the input field
+                document.getElementById(`newCrewMember-${userId}`).value = '';
+            } else {
+                alert("Please enter a crew member's name or email.");
+            }
+        });
+    });
+
+    // Save changes functionality
+    document.querySelectorAll('.saveChangesButton').forEach(button => {
+        button.addEventListener('click', function () {
+            const docId = this.getAttribute('data-document-id');
+            const userId = this.getAttribute('data-user-id');
+            const email = document.getElementById(`editUserEmail-${userId}`).value;
+            const resolutionTeam = document.getElementById(`editUserResolutionTeam-${userId}`).value;
+
+            // Get selected crew members from the select2 dropdown
+            const crewMembers = $(`#editUserCrewMembers-${userId}`).val();
+
+            // Prepare the data for submission
+            const data = {
+                doc_id: docId,
+                user_id: userId,
+                email: email,
+                resolution_team: resolutionTeam,
+                crew_members: crewMembers  // Include selected crew members
+            };
+
+            // Send an AJAX request to update the crew member
+            fetch('/crews/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show the Success Modal
+                    var successModal = new bootstrap.Modal(document.getElementById('successEditModal'));
+                    successModal.show();
+
+                    // Optionally, refresh the page after the modal is closed
+                    document.getElementById('successEditModal').addEventListener('hidden.bs.modal', function () {
+                        location.reload();  // Reload page to show the updated crew member
+                    });
+                } else {
+                    alert('Error updating crew member: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+});
 </script>
 </body>
 </html>

@@ -61,7 +61,11 @@ function addMarkerToMap(doc) {
             description: doc.description,
             createdAt: doc.createdAt,
             locationName: doc.locationName,
-            additionalDetails: doc.additionalDetails
+            additionalDetails: doc.additionalDetails,
+            followedUpAt: doc.followedUpAt,   
+    resolutionStartDate: doc.resolutionStartDate,  
+    resolutionEndDate: doc.resolutionEndDate,     
+    status: doc.status 
         })
 
     })

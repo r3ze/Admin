@@ -353,31 +353,29 @@
                           <div class="mb-3 row">
                             <label for="followUp" class="col-sm-3 col-form-label">Date Followed-up</label>
                             <div class="col-sm-9">
-                              {% if complaint['followedUpAt'] %}
-                              <input type="text" class="form-control" id="followUp" disabled value="{{ complaint['formattedFollowedUpAt'] }}">
-                              {% else %}
-                              <input type="text" class="form-control" id="followUp" disabled value="Not followed up by consumer">
+                                {% if complaint['followedUpAt'] %}
+                                <input type="text" class="form-control" id="followUp" disabled value="{{ complaint['formattedFollowedUpAt'] }}">
+                                {% else %}
+                                <input type="text" class="form-control" id="followUp" disabled value="Not followed up by consumer">
+                                {% endif %}
                             </div>
-                            {% endif %}
-                          </div>
-                          
-
-
-                          <div class="mb-3 row">
+                        </div>
+                        
+                        <div class="mb-3 row">
                             <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
                             <div class="col-sm-9">
-                              {% if complaint['priority'] == 'High' %}
-                              <input type="hidden" class="form-control"  id="Priority" value="High">
-                              <input type=text" class="form-control" disabled value="High">
-                              {% elif complaint['priority'] == 'Medium' %}
-                              <input type="hidden" class="form-control" id="Priority" value="Medium">
-                              <input type=text" class="form-control" disabled value="Medium">
-                              {% else %}
-                              <input type="hidden" class="form-control" id="Priority" value="Low">
-                              <input type=text" class="form-control" disabled value="Low">
-                              {% endif %}
+                                {% if complaint['priority'] == 'High' %}
+                                <input type="hidden" class="form-control" id="Priority" value="High">
+                                <input type="text" class="form-control" disabled value="High">
+                                {% elif complaint['priority'] == 'Medium' %}
+                                <input type="hidden" class="form-control" id="Priority" value="Medium">
+                                <input type="text" class="form-control" disabled value="Medium">
+                                {% else %}
+                                <input type="hidden" class="form-control" id="Priority" value="Low">
+                                <input type="text" class="form-control" disabled value="Low">
+                                {% endif %}
                             </div>
-                          </div>
+                        </div>
                           <div class="mb-3 row">
                             <label for="complaintStatus" class="col-sm-3 col-form-label">Status</label>
                             <div class="col-sm-9">
@@ -391,6 +389,19 @@
 
                               <input type="text" class="form-control" id="resolutionTeamName" disabled value="{{ complaint['crew_name'] }}">
       
+                            </div>
+                          </div>
+
+                          <div class="mb-3 row">
+                            <label for="resolutionMembers" class="col-sm-3 col-form-label">Crew Members</label>
+                            <div class="col-sm-9">
+                              {% if complaint['resolution_members'] %}
+                                <input type="text" class="form-control" id="resolutionMembers" disabled 
+                                       value="{{ ', '.join(complaint['resolution_members']) }}">
+                              {% else %}
+                                <input type="text" class="form-control" id="resolutionMembers" disabled 
+                                       value="No crew members assigned yet.">
+                              {% endif %}
                             </div>
                           </div>
 
@@ -418,7 +429,7 @@
                                 <!-- Cancel Complaint Button -->
                               {% if complaint['status'] =='New' %}
                                 <button class="btn btn-danger" id="cancelComplaintButton" type="button" data-selected-complaint="{{complaint['$id']}}">
-                                  Invaidate Complaint
+                                  Invalidate Complaint
                                 </button>
                                 {% else %}
                                 <button class="btn btn-danger" id="cancelComplaintButton" disabled aria-disabled="true" aria-expanded="false" type="button" data-selected-complaint="{{complaint['$id']}}">
@@ -455,7 +466,7 @@
         <!-- Radio buttons for predefined reasons -->
         <div class="mb-3">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="cancelReasonOptions-{{complaint['$id']}}" id="reason1-{{complaint['$id']}}" value="Duplicate Complaint">
+            <input class="form-check-input" type="radio" name="cancelReasonOptions-{{complaint['$id']}}" id="reason1-{{complaint['$id']}}" value="Invalid Complaint">
             <label class="form-check-label" for="reason1-{{complaint['$id']}}">
               Invalid Complaint
             </label>
@@ -485,6 +496,9 @@
     </div>
   </div>
 </div>
+
+
+
 
 
                   {% endfor %}
@@ -536,7 +550,7 @@
             </div>
           </div>
 
- <!-- Confirmation Modal with Advanced Styling -->
+          <!-- Confirmation Modal with Advanced Styling -->
 <div class="modal fade" id="confirmAssignModal" tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content shadow-lg border-0 rounded-4">
@@ -554,6 +568,15 @@
         <p class="fs-6 text-muted">
           Please confirm the task assignment and set the estimated resolution date.
         </p>
+
+        <div class="form-group mb-3">
+          <label class="form-label fw-bold">
+              <i class="fas fa-users me-2 text-info"></i> Select Crew Members
+          </label>
+          <select id="crewMemberSelection" class="form-control" multiple="multiple" style="width:100%;" required>
+  
+          </select>
+        </div>
 
         <!-- Estimated Resolution Date and Time -->
         <div class="form-group mb-3">
@@ -585,7 +608,7 @@
     </div>
   </div>
 </div>
-
+ 
         
 
 
@@ -621,6 +644,17 @@
         <!--DataTable-->
         <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
         <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+      <script>
+        $(document).ready(function() {
+    $('#crewMemberSelection').select2({
+        placeholder: 'Select Crew Members',
+        allowClear: true
+    });
+});
+      </script>
+      
       <script>
         $(document).ready(function () {
           $("#example").DataTable({
@@ -659,6 +693,8 @@
 //function to assign crew
 $(document).ready(function() {
 
+
+
 // Fetch users when the page loads
 $.ajax({
  url: '/api/users',
@@ -696,6 +732,32 @@ $('.dropdown-menu').on('click', '.status-dropdown', function() {
  // Show the confirmation modal
  $('#confirmAssignModal').modal('show');
 
+  // Clear the previous crew members from the select element
+  $('#crewMemberSelection').empty();
+  
+  // Make an AJAX call to fetch the crew members for the selected team
+  $.ajax({
+        url: '/api/crew-members',  // Endpoint to fetch crew members for the selected team
+        method: 'GET',
+        data: { teamId: assignedCrew },  // Send the selected team's ID
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                // Loop through the crew members and populate the select element
+                response.crewMembers.forEach(function(member) {
+                    var option = new Option(member.name, member.id, false, false);
+                    $('#crewMemberSelection').append(option);
+                });
+                $('#crewMemberSelection').trigger('change');  // Refresh the select2 dropdown
+            } else {
+                console.error('Error fetching crew members:', response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', error);
+        }
+    });
+
 // Handle the confirm button click
 $('#confirmAssignButton').off('click').on('click', function () {
     // Close the confirmation modal
@@ -716,7 +778,7 @@ $('#confirmAssignButton').off('click').on('click', function () {
        url: '/update-crew',
        method: 'POST',
        contentType: 'application/json',
-       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName, resolutionStartDate: resolutionStartDate, resolutionEndDate: resolutionEndDate, priority: priority }),
+       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName, resolutionStartDate: resolutionStartDate, resolutionEndDate: resolutionEndDate, priority: priority,   resolution_members: $('#crewMemberSelection').val() }),
        success: function(response) {
            if (response.success) {
            
@@ -733,6 +795,9 @@ $('#confirmAssignButton').off('click').on('click', function () {
                        if (response.success) {
                         $('#modalBodyContent').text('Crew assigned successfully!');
                         $('#successModal').modal('show');;
+
+                        var button = $('button[data-selected-complaint="' + complaintId + '"]');
+                        button.prop('disabled', true);  // Disable the button for that specific complaint
 
   // Send an AJAX request to create the new crew member
 

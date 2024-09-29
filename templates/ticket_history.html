@@ -125,6 +125,9 @@ Map
                 <button class="btn btn-primary" id="filterButton">Filter</button>
                 <button class="btn btn-secondary" id="clearFilterButton">Clear Filter</button>
               </div>
+              <div class="cold-md-2 mt-2">
+                <button id="exportCsv" class="btn btn-success">Export to CSV</button>
+              </div>
             </div>
             <div id="tableContainer">
                 <table
@@ -148,6 +151,8 @@ Map
 
                       <th scope="col">Image</th>
                       <th scope="col">Status</th>
+                      
+                      
 
                       <td scope = "col" >Action</td>
                     </tr>
@@ -237,10 +242,16 @@ Map
                     <input type="text" class="form-control" id="dateAssigned" disabled value="{{ ticket['formattedAssignedAt'] }}">
                 </div>
             </div>
-                   
+                  
+        
+            <div class="mb-3 row">
+                <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
+                </div>
+            </div>
 
-    
-
+            
             <div class="mb-3 row">
               <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
               <div class="col-sm-9">
@@ -252,13 +263,6 @@ Map
                 <input type="text" class="form-control" id="Priority" disabled value="Low">
                 {% endif %}
               </div>
-            </div>
-        
-            <div class="mb-3 row">
-                <label for="dateResolved" class="col-sm-3 col-form-label">Date Resolved</label>
-                <div class="col-sm-9">
-                    <input type="text" class="form-control" id="dateResolved" disabled value="{{ ticket['formattedResolvedAt'] }}">
-                </div>
             </div>
         {% elif ticket['status'] == 'Withdrawn' %}
             <div class="mb-3 row">
@@ -276,7 +280,7 @@ Map
             </div>
         {% elif ticket['status'] == 'Invalidated' %}
             <div class="mb-3 row">
-                <label for="dateCanceled" class="col-sm-3 col-form-label">Date Canceled</label>
+                <label for="dateCanceled" class="col-sm-3 col-form-label">Date Invalidated</label>
                 <div class="col-sm-9">
                     <input type="text" class="form-control" id="dateCanceled" disabled value="{{ ticket['formattedCanceledAt'] }}">
                 </div>
@@ -491,5 +495,44 @@ Map
       });
   });
   </script>
+
+
+
+<!--export to csv-->
+<script>
+ document.getElementById('exportCsv').addEventListener('click', function () {
+    let table = document.getElementById('example');
+    let rows = table.querySelectorAll('tbody tr');
+    let csvContent = "Ticket ID,Consumer,Complaint,Status,Priority,Additional Details,Date Assigned,Date Resolved,Reason for Withdrawal,Cancellation Reason,Resolution Team\n";
+
+    rows.forEach(function (row) {
+        let ticketID = row.cells[0].textContent.trim();
+        let consumer = row.cells[1].textContent.trim();
+        let complaint = row.cells[2].textContent.trim();
+        let status = row.cells[4].textContent.trim();
+        
+        // Fetch modal details for each ticket using the ticket ID
+        let modal = document.getElementById(`modal-${ticketID}`);
+        let priority = modal.querySelector('#Priority') ? modal.querySelector('#Priority').value : 'N/A';
+        let additionalDetails = modal.querySelector('#complaintType') ? modal.querySelector('#complaintType').value : 'N/A';
+        let dateAssigned = modal.querySelector('#dateAssigned') ? modal.querySelector('#dateAssigned').value : 'N/A';
+        let dateResolved = modal.querySelector('#dateResolved') ? modal.querySelector('#dateResolved').value : 'N/A';
+        let withdrawnReason = modal.querySelector('#withdrawnReason') ? modal.querySelector('#withdrawnReason').value : 'N/A';
+        let cancelReason = modal.querySelector('#cancelReason') ? modal.querySelector('#cancelReason').value : 'N/A';
+        let resolutionTeam = modal.querySelector('#resolutionTeamName') ? modal.querySelector('#resolutionTeamName').value : 'N/A';
+
+        csvContent += `${ticketID},${consumer},${complaint},${status},${priority},${additionalDetails},${dateAssigned},${dateResolved},${withdrawnReason},${cancelReason},${resolutionTeam}\n`;
+    });
+
+    // Trigger the download
+    let blob = new Blob([csvContent], { type: 'text/csv' });
+    let link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'ticket_history.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
   </body>
 </html>

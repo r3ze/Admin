@@ -271,16 +271,24 @@ Map
       <!-- Modal Body -->
       <div class="modal-body p-4">
         
+        <!-- Consumer Name -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <h6 class="text-uppercase text-secondary fw-bold">
+              <i class="fas fa-user text-info me-2"></i> Consumer:
+            </h6>
+            <p id="complaintConsumerName" class="fs-5 text-dark"></p>
+          </div>
+        </div>
+        
         <!-- Complaint Type and Address -->
         <div class="row mb-4">
-        
           <div class="col-md-12">
             <h6 class="text-uppercase text-secondary fw-bold">
               <i class="fas fa-map-marker-alt text-info me-2"></i> Address:
             </h6>
             <p id="complaintAddress" class="fs-5 text-dark"></p>
           </div>
-       
         </div>
         
         <!-- Date Reported and Estimated Resolution Time -->
@@ -297,7 +305,6 @@ Map
             </h6>
             <p id="complaintDateReported" class="fs-6 text-muted"></p>
           </div>
-
         </div>
 
         <!-- Status and Priority -->
@@ -317,9 +324,6 @@ Map
         </div>
 
       </div>
-
- 
-
     </div>
   </div>
 </div>
@@ -488,7 +492,7 @@ Map
           '#0056b3', // Power outage (Stronger Blue)
           '#218838', // Defective Meter (Stronger Green)
           '#c82333', // Detached Meter (Stronger Orange)
-          '#c82333', // Loose Connection/Sparkling of Wire (Stronger Red)
+          '#550011', // Loose Connection/Sparkling of Wire (Stronger Red)
           '#5a189a', // Low Voltage (Stronger Purple)
           '#0a47a5', // No Reading (Stronger Dark Blue)
           '#6c757d'  // Others (Dark Gray)
@@ -605,6 +609,7 @@ Map
           // Bind the click event to show modal with complaint details
           marker.on('click', function() {
               // Set the details of the clicked complaint in the modal
+              document.getElementById('complaintConsumerName').textContent = complaint.consumer_name;
               document.getElementById('complaintType').textContent = complaint.complaint_description || 'Unknown Type';
               document.getElementById('complaintAddress').textContent = complaint.location;
               document.getElementById('complaintStatus').textContent = complaint.status;
@@ -624,7 +629,12 @@ fetch('/calculate-priority', {
             description: complaint.complaint_description,
             createdAt: complaint.date_reported,
             locationName: complaint.location,
-            additionalDetails: complaint.additionalDetails
+            additionalDetails: complaint.additionalDetails,
+            followedUpAt: complaint.followedUpAt,   
+    resolutionStartDate: complaint.resolutionStartDate,  
+    resolutionEndDate: complaint.resolutionEndDate,     
+    status: complaint.status 
+            
         })
 
     })
