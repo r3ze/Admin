@@ -133,6 +133,13 @@
       </div>
     </div>
 
+    <button type="button" onclick="logout()" 
+    class="list-group-item list-group-item-action mt-4"
+    style="color: #ff4c4c; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-sign-out-alt" style="margin-right: 8px; font-size: 20px;"></span>
+Log Out
+</button>
+
   </div>
 </div>
         <div class="col-lg-10 offset-lg-2" style="background-color: #f4f7fe; height: 100vh;">
@@ -383,6 +390,9 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+     function logout() {
+        window.location.href = "/login";
+    }
     function redirectToDashboard() {
         window.location.href = "/";
     }

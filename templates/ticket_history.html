@@ -107,6 +107,13 @@ Map
       </div>
     </div>
 
+    <button type="button" onclick="logout()" 
+    class="list-group-item list-group-item-action mt-4"
+    style="color: #ff4c4c; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-sign-out-alt" style="margin-right: 8px; font-size: 20px;"></span>
+Log Out
+</button>
+
   </div>
 </div>
 
@@ -251,6 +258,19 @@ Map
                 </div>
             </div>
 
+            <div class="mb-3 row">
+              <label for="resolutionMembers" class="col-sm-3 col-form-label">Crew Members</label>
+              <div class="col-sm-9">
+                {% if ticket['resolution_members'] %}
+                  <input type="text" class="form-control" id="resolutionMembers" disabled 
+                         value="{{ ', '.join(ticket['resolution_members']) }}">
+                {% else %}
+                  <input type="text" class="form-control" id="resolutionMembers" disabled 
+                         value="No crew members assigned yet.">
+                {% endif %}
+              </div>
+            </div>
+
             
             <div class="mb-3 row">
               <label for="Priority" class="col-sm-3 col-form-label">Priority</label>
@@ -363,6 +383,9 @@ Map
     <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
     <script src="/static/js/ticket-history.js"></script>
     <script>
+         function logout() {
+        window.location.href = "/login";
+      }
       function redirectToDashboard() {
         window.location.href = "/";
       }

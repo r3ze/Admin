@@ -31,9 +31,9 @@ CREW_TASK_COLLECTION_ID = '666e7ae0000bcb6167a4'
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['email']
         password = request.form['password']
-        if username == 'admin' and password == 'admin':
+        if username == 'admin@gmail.com' and password == 'admin':
             return redirect(url_for('dashboard'))
         else:
             return "Invalid credentials. Please try again."
@@ -795,29 +795,42 @@ def filter_logs():
     end_date = request.args.get('end_date')
 
     try:
+        # Fetch all log documents
         response = database.list_documents(
             database_id=DATABASE_ID,
             collection_id=LOG_COLLECTION_ID
         )
-        logs = response['documents']
 
-        # If start_date and end_date are provided, filter logs based on these dates
-        if start_date and end_date:
-            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+        # If no start or end date, return all logs
+        if not start_date or not end_date:
+            return jsonify(response['documents'])
 
-            # Filter logs by date range
-            filtered_logs = [
-                log for log in logs if start_date_obj <= datetime.strptime(log['time_stamp'], '%Y-%m-%dT%H:%M:%S.%f%z').date() <= end_date_obj
-            ]
-        else:
-            filtered_logs = logs
+        # Parse the date strings into date objects
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # Return filtered logs in JSON format
-        return jsonify(filtered_logs)
+        # Filter logs by date range
+        relevant_logs = []
+        for log in response['documents']:
+            time_stamp = log.get('time_stamp')
+            if time_stamp:
+                try:
+                    # First try parsing with timezone-aware format
+                    log_date = datetime.strptime(time_stamp, '%Y-%m-%dT%H:%M:%S.%f%z').date()
+                except ValueError:
+                    # Fallback to timezone-naive format
+                    log_date = datetime.strptime(time_stamp, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                # Check if the log date falls within the specified range
+                if start_date_obj <= log_date <= end_date_obj:
+                    relevant_logs.append(log)
+
+        # Return the filtered logs
+        return jsonify(relevant_logs)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+
     
 
 
@@ -976,7 +989,7 @@ def filter_consumer_history():
                         doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
                     # Ensure status is in Resolved, Withdrawn, or Canceled and the date is within the range
-                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Canceled']:
+                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']:
                         relevant_histories.append(doc)
                         break
 

@@ -708,6 +708,10 @@ if (doc.crew_name) {
                         
                         // Disable the "Cancel Complaint" button
                         const cancelButton = document.querySelector(`[data-selected-complaint="${complaintId}"]`);
+                        
+                        if (cancelButton && cancelButton.cancelModalInstance) {
+                            cancelButton.cancelModalInstance.hide(); // Close the modal
+                          }
                         if (cancelButton) {
                             cancelButton.disabled = true;
                             cancelButton.classList.remove('btn-danger');

@@ -130,6 +130,13 @@
         </div>
       </div>
     </div>
+    
+    <button type="button" onclick="logout()" 
+    class="list-group-item list-group-item-action mt-4"
+    style="color: #ff4c4c; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-sign-out-alt" style="margin-right: 8px; font-size: 20px;"></span>
+Log Out
+</button>
 
   </div>
 </div>
@@ -281,6 +288,9 @@
     function redirectToTicket() {
         window.location.href = "/complaints";
     }
+    function logout() {
+        window.location.href = "/login";
+      }
 
     function redirectToMap() {
         window.location.href = "/maps";

@@ -224,6 +224,13 @@ Map
         </div>
       </div>
     </div>
+    <button type="button" onclick="logout()" 
+    class="list-group-item list-group-item-action mt-4"
+    style="color: #ff4c4c; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
+<span class="fa fa-sign-out-alt" style="margin-right: 8px; font-size: 20px;"></span>
+Log Out
+</button>
+
 
   </div>
 </div>
@@ -414,6 +421,9 @@ Map
     function redirectToCrews() {
         window.location.href = "/crews";
     }
+    function logout() {
+        window.location.href = "/login";
+      }
 </script>
 <!--apprite realtime-->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
@@ -551,7 +561,7 @@ Map
                   markers.clearLayers();
                   
                   data.forEach(function(complaint) {
-                    if (complaint.latitude !== null && complaint.longitude !== null &&( complaint.status !== 'Resolved' && complaint.status !=='Withdrawn' && complaint.status !=='Canceled')) {
+                    if (complaint.latitude !== null && complaint.longitude !== null &&( complaint.status !== 'Resolved' && complaint.status !=='Withdrawn' && complaint.status !=='Invalidated')) {
           
           // Determine the appropriate class for the complaint type
           let markerClass = '';
