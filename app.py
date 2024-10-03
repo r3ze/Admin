@@ -4,10 +4,10 @@ from appwrite.client import Client
 from appwrite.services.databases import Databases
 from appwrite.services.users import Users
 from appwrite.query import Query
-import nltk
+
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timezone
-nltk.download('vader_lexicon') 
+# nltk.download('vader_lexicon') 
 sia = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
