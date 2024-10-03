@@ -254,7 +254,10 @@
               </thead>
               <tbody id="tableBody" class="table-group-divider">
                 {% for complaint in complaints %}
-                <tr id="{{complaint['$id']}}">
+                <div class="div" data-selected-crew="{{complaint['consumer_id']}}">
+
+                </div>
+                <tr id="{{complaint['$id']}}"  >
                   <td>{{ complaint['$id'] }}</td>
                   <td>{{ complaint['consumer_name'] }}</td>
                   <td>{{ complaint['description'] }}</td>
@@ -661,80 +664,96 @@ $.ajax({
 
   </body>
   <script>
+   document.addEventListener('DOMContentLoaded', function () {
+    // Add event listener for the filter button
     document.getElementById('filterButton').addEventListener('click', function () {
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-    
-      if (!startDate || !endDate) {
-        alert("Please select both a start and end date.");
-        return;
-      }
-    
-      // AJAX request to backend to fetch filtered history records
-      fetch(`/filter-consumer-history?start_date=${startDate}&end_date=${endDate}`)
-        .then(response => response.json())
-        .then(data => {
-          const tbody = document.querySelector('tbody.table-group-divider');
-          tbody.innerHTML = '';  // Clear existing table rows
-    
-          // Populate table with filtered data
-          if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">No records found for the selected date range.</td></tr>';
-          } else {
-            data.forEach(history => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${history.$id}</td>
-                <td>${history.consumer_name}</td>
-                <td>${history.description}</td>
-                <td>${history.status}</td>
-                    <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${history.$id}">View Details</button></td>
-              `;
-              tbody.appendChild(row);
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        const consumerDiv = document.querySelector('div[data-selected-crew]');
+        const consumer_id = consumerDiv ? consumerDiv.dataset.selectedCrew : null;
+
+        if (!consumer_id) {
+            console.error('Crew ID not found in any <tr> row.');
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            alert("Please select both a start and end date.");
+            return;
+        }
+
+        // AJAX request to backend to fetch filtered history records by date range and crew_id
+        fetch(`/filter-consumer-history/${consumer_id}?start_date=${startDate}&end_date=${endDate}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('tbody.table-group-divider');
+                tbody.innerHTML = '';  // Clear existing table rows
+
+                // Populate table with filtered data
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No records found for the selected date range.</td></tr>';
+                } else {
+                    data.forEach(history => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${history.$id}</td>
+                            <td>${history.consumer_name}</td>
+                            <td>${history.description}</td>
+                            <td>${history.status}</td>
+                            <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${history.$id}">View Details</button></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
             });
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-        });
     });
-  
+
+    // Add event listener for the clear filter button
     document.getElementById('clearFilterButton').addEventListener('click', function () {
-      document.getElementById('startDate').value = '';  // Clear start date input
-      document.getElementById('endDate').value = '';    // Clear end date input
-    
-      // Fetch all records without any filtering by date, but filtering by status
-      fetch('/filter-consumer-history')
-        .then(response => response.json())
-        .then(data => {
-          const tbody = document.querySelector('tbody.table-group-divider');
-          tbody.innerHTML = '';  // Clear existing table rows
-    
-          // Filter data for relevant statuses: Resolved, Withdrawn, Canceled
-          const filteredData = data.filter(history => 
-            ['Resolved', 'Withdrawn', 'Canceled'].includes(history.status)
-          );
-    
-          // Populate table with filtered data
-          if (filteredData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">No records found with the selected statuses.</td></tr>';
-          } else {
-            filteredData.forEach(history => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${history.$id}</td>
-                <td>${history.consumer_name}</td>
-                <td>${history.description}</td>
-                <td>${history.status}</td>
-                    <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${history.$id}">View Details</button></td>
-              `;
-              tbody.appendChild(row);
+        // Get the crew_id from the first <tr> element (or modify this to get from a specific row if necessary)
+          const consumerDiv = document.querySelector('div[data-selected-crew]');
+          const consumer_id = consumerDiv ? consumerDiv.dataset.selectedCrew : null;
+
+        if (!consumer_id) {
+            console.error('Crew ID not found in any <tr> row.');
+            return;
+        }
+
+        document.getElementById('startDate').value = '';  // Clear start date input
+        document.getElementById('endDate').value = '';    // Clear end date input
+
+        // Fetch all records without any filtering by date
+        fetch(`/filter-consumer-history/${consumer_id}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('tbody.table-group-divider');
+                tbody.innerHTML = '';  // Clear existing table rows
+
+                // Populate table with all records
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No records found.</td></tr>';
+                } else {
+                    data.forEach(history => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${history.$id}</td>
+                            <td>${history.consumer_name}</td>
+                            <td>${history.description}</td>
+                            <td>${history.status}</td>
+                            <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${history.$id}">View Details</button></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching all records:', error);
             });
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching all records:', error);
-        });
     });
+});
   </script>
 </html>

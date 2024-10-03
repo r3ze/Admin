@@ -113,13 +113,14 @@
            </div>
          </div>
        </div>
-   
+
        <button type="button" onclick="logout()" 
        class="list-group-item list-group-item-action mt-4"
        style="color: #ff4c4c; background-color: #1D1D42; padding: 12px 16px; font-weight: 600;">
  <span class="fa fa-sign-out-alt" style="margin-right: 8px; font-size: 20px;"></span>
  Log Out
 </button>
+   
      </div>
    </div>
    
@@ -165,7 +166,7 @@
                 width: 100%;
               "
             >
-            <thead>
+            <thead ">
               <tr>
                 <th scope="col">Ticket ID</th>
                 <th scope="col">Consumer</th>
@@ -176,9 +177,12 @@
                 <th scope="col">Action</th>
               </tr>
             </thead>
-            <tbody id="tableBody" class="table-group-divider">
+            <tbody id="tableBody" class="table-group-divider" >
               {% for complaint in complaints %}
-              <tr id="{{complaint['$id']}}">
+              <div class="div" data-selected-crew="{{complaint['crew_id']}}">
+
+              </div>
+              <tr id="{{complaint['$id']}}"  >
                 <td>{{ complaint['$id'] }}</td>
                 <td>{{ complaint['consumer_name'] }}</td>
                 <td>{{ complaint['description'] }}</td>
@@ -199,6 +203,7 @@
                   View Details
               </button></td>
               </tr>
+             
 
           <!--Modal for ticket info-->
           <div class="modal fade ticket-modal" id="modal-{{complaint['$id']}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel-{{complaint['$id']}}" aria-hidden="true">
@@ -615,78 +620,85 @@ $.ajax({
 <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
 <script src="/static/js/complaints-realtime.js"></script>
 <script>
+  document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('filterButton').addEventListener('click', function () {
     const start_date = document.getElementById('startDate').value;
     const end_date = document.getElementById('endDate').value;
+        // Get the crew_id from the <div> with data-selected-crew
+          const crewDiv = document.querySelector('div[data-selected-crew]');
+        const crew_id = crewDiv ? crewDiv.dataset.selectedCrew : null;
 
     if (!start_date || !end_date) {
-      alert("Please select both a start and end date.");
-      return;
+        alert("Please select both a start and end date.");
+        return;
     }
 
     // AJAX request to backend to fetch filtered crew history
-    fetch(`/filter-crew-history?start_date=${start_date}&end_date=${end_date}`)
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('tbody.table-group-divider');
-        tbody.innerHTML = '';  // Clear existing table rows
+    fetch(`/filter-crew-history/${crew_id}?start_date=${start_date}&end_date=${end_date}`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('tbody.table-group-divider');
+            tbody.innerHTML = '';  // Clear existing table rows
 
-        // Populate table with filtered data
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7">No complaints found for the selected date range.</td></tr>';
-        } else {
-          data.forEach(complaint => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${complaint.$id}</td>
-              <td>${complaint.consumer_name}</td>
-              <td>${complaint.description}</td>
+            // Populate table with filtered data
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No complaints found for the selected date range.</td></tr>';
+            } else {
+                data.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.$id}</td>
+                        <td>${complaint.consumer_name}</td>
+                        <td>${complaint.description}</td>
+                        <td>${complaint.status}</td>
+                        <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${complaint.$id}">View Details</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+});
 
-              <td>${complaint.status}</td>
-              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${complaint.$id}">View Details</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  });
+document.getElementById('clearFilterButton').addEventListener('click', function () {
+        // Get the crew_id from the <div> with data-selected-crew
+          const crewDiv = document.querySelector('div[data-selected-crew]');
+        const crew_id = crewDiv ? crewDiv.dataset.selectedCrew : null;
 
-  document.getElementById('clearFilterButton').addEventListener('click', function () {
     document.getElementById('startDate').value = '';  // Clear start date input
     document.getElementById('endDate').value = '';    // Clear end date input
-  
 
     // Fetch all complaints without any filtering by date
-    fetch('/filter-crew-history')
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('tbody.table-group-divider');
-        tbody.innerHTML = '';  // Clear existing table rows
+    fetch(`/filter-crew-history/${crew_id}`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('tbody.table-group-divider');
+            tbody.innerHTML = '';  // Clear existing table rows
 
-        // Populate table with all complaints
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7">No complaints found.</td></tr>';
-        } else {
-          data.forEach(complaint => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${complaint.$id}</td>
-              <td>${complaint.consumer_name}</td>
-              <td>${complaint.description}</td>
-              <td>${complaint.status}</td>
-              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${complaint.$id}">View Details</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching all complaints:', error);
-      });
-  });
+            // Populate table with all complaints
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No complaints found.</td></tr>';
+            } else {
+                data.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.$id}</td>
+                        <td>${complaint.consumer_name}</td>
+                        <td>${complaint.description}</td>
+                        <td>${complaint.status}</td>
+                        <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${complaint.$id}">View Details</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching all complaints:', error);
+        });
+});
+});
 </script>
 
 

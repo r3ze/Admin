@@ -492,7 +492,7 @@ Log Out
   
         // Filter data for relevant statuses: Resolved, Withdrawn, Canceled
         const filteredData = data.filter(ticket => 
-          ['Resolved', 'Withdrawn', 'Canceled'].includes(ticket.status)
+          ['Resolved', 'Withdrawn', 'Invalidated'].includes(ticket.status)
         );
   
         // Populate table with filtered data
