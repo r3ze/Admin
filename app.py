@@ -7,7 +7,7 @@ from appwrite.query import Query
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timezone
-# nltk.download('vader_lexicon') 
+nltk.download('vader_lexicon') 
 sia = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
