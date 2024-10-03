@@ -3,3 +3,4 @@ gunicorn==22.0.0
 portalocker==2.8.2
 waitress==3.0.0
 appwrite==5.0.2
+nltk==3.9.1
