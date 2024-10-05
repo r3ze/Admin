@@ -7,7 +7,7 @@ from appwrite.query import Query
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timezone
-nltk.download('vader_lexicon') 
+# nltk.download('vader_lexicon') 
 sia = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
@@ -1149,10 +1149,18 @@ def ticket_history():
             ticket['formattedFollowedUpAt'] = format_date(ticket.get('followedUpAt'))
             ticket['priority'] = calculate_priority(ticket)
 
+        # Sort tickets by date based on their status
+        relevant_tickets.sort(key=lambda x: (
+            x['resolvedAt'] if x['status'] == 'Resolved' else
+            x['withdrawnAt'] if x['status'] == 'Withdrawn' else
+            x['canceledAt'] if x['status'] == 'Invalidated' else None
+        ), reverse=True)  # Sort in descending order (most recent first)
+
         # Render the template with the formatted tickets
         return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 @app.route('/filter-tickets')
 def filter_tickets():
     start_date = request.args.get('start_date')

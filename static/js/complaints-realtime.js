@@ -718,6 +718,25 @@ if (doc.crew_name) {
                             cancelButton.classList.add('btn-secondary');
                             cancelButton.innerText = 'Complaint Canceled';  // Optional: update button text
                         }
+
+                                
+  const log_data = {
+    crew_id: complaintId, // Correct property assignment
+    user: "Admin",
+    action: "Invalidated a complaint"
+};
+
+  fetch('/log', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(log_data)
+    })
+    .then(response => response.json())
+    .catch(error => {
+        console.error('Error:', error);
+    });
                     } else {
                         alert('Failed to cancel the complaint. Please try again.');
                     }
