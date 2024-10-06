@@ -247,7 +247,7 @@ def get_complaints_data():
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# Function to calculate priority
+
 # Function to calculate priority
 def calculate_priority(complaint):
     # Check if the complaint has been followed up
@@ -507,19 +507,40 @@ def get_crew_members():
         print(f"Error fetching crew members: {e}")
         return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
     
-@app.route('/update-status', methods=['POST'])
-def update_status():
+
+@app.route('/update-priority', methods=['POST'])
+def update_priority():
     data = request.get_json()
     complaint_id = data.get('complaintId')
-    new_status = data.get('status')
-
+    priority = data.get('priority')
     try:
         database.update_document(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID,
             document_id=complaint_id,
             data={
-                'status': new_status
+                'priority':priority
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error updating status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500    
+
+    
+@app.route('/update-status', methods=['POST'])
+def update_status():
+    data = request.get_json()
+    complaint_id = data.get('complaintId')
+    new_status = data.get('status')
+    try:
+        database.update_document(
+            database_id=DATABASE_ID,
+            collection_id=COLLECTION_ID,
+            document_id=complaint_id,
+            data={
+                'status': new_status,
+
             }
         )
         return jsonify({'success': True})

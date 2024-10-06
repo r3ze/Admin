@@ -210,7 +210,6 @@ function formatDateRange(startDateStr, endDateStr) {
     // Function to add a row to the table
     function addRowToTable(doc) {
         const table = $('#example').DataTable(); 
-        console.log(table)
         const createdAt = new Date(doc.createdAt);
         const formattedDate = ('0' + createdAt.getUTCDate()).slice(-2) + '/' +
             ('0' + (createdAt.getUTCMonth() + 1)).slice(-2) + '/' +
@@ -287,11 +286,6 @@ if (doc.crew_name) {
             default:
                 statusBadgeClass = 'badge bg-secondary';
         }
-
-        
-        // Use DataTables API to add a new row
-    // Add the row and assign the ID
-    // Calculate priority
 
 
     // Call Flask API to calculate priority
@@ -429,8 +423,9 @@ if (doc.crew_name) {
                         <div class="mb-3 row">
                             <label for="priority" class="col-sm-3 col-form-label">Priority</label>
                             <div class="col-sm-9">
+                                
                                 <input type="hidden" class="form-control" id="Priority"  value="${priority}">
-                                <input type="text" class="form-control"  disabled value="${priority}">
+                                <input type="text" class="form-control" id="vPriority"  disabled value="${priority}">
                             </div>
                         </div>
                         <div class="mb-3 row">
@@ -542,215 +537,149 @@ if (doc.crew_name) {
     // Populate dropdowns for the specific complaint
     populateDropdown(`#dropdownMenu-${doc.$id}`);
 
- 
-    $(document).on('click', '.status-dropdown', function() {
-        const complaintId = $(this).data('complaint-id');
-        const assignedCrew = $(this).data('user-id');
-        const userName = $(this).data('user-name');
-        var priority = $('#Priority').val();
-        // Show the confirmation modal
-        $('#confirmAssignModal').modal('show');
 
-        $('#crewMemberSelection').empty();
-         // Make an AJAX call to fetch the crew members for the selected team
-  $.ajax({
-    url: '/api/crew-members',  // Endpoint to fetch crew members for the selected team
-    method: 'GET',
-    data: { teamId: assignedCrew },  // Send the selected team's ID
-    dataType: 'json',
-    success: function(response) {
-        if (response.success) {
-            // Loop through the crew members and populate the select element
-            response.crewMembers.forEach(function(member) {
-                var option = new Option(member.name, member.id, false, false);
-                $('#crewMemberSelection').append(option);
-            });
-            $('#crewMemberSelection').trigger('change');  // Refresh the select2 dropdown
-        } else {
-            console.error('Error fetching crew members:', response.error);
-        }
-    },
-    error: function(xhr, status, error) {
-        console.error('AJAX Error:', error);
+
     }
-});
+
     
-        // Handle the confirm button click
-        $('#confirmAssignButton').off('click').on('click', function () {
-            // Get the values from the modal inputs
-            const resolutionStartDate = $('#resolutionStartDate').val(); 
-            const resolutionEndDate = $('#resolutionEndDate').val();
-    
-            // Ensure that both dates are provided
-            if (!resolutionStartDate || !resolutionEndDate) {
-                alert("Please select both start and end dates");
+
+    document.addEventListener('click', function(event) {
+        // Check if the cancel complaint button was clicked
+        if (event.target && event.target.classList.contains('cancelComplaintButton')) {
+            event.preventDefault();
+            
+            // Get the complaint ID
+            const complaintId = event.target.getAttribute('data-selected-complaint');
+            console.log('Complaint ID:', complaintId);  // Log the complaint ID
+            
+            const cancelModalId = `#cancelModal-${complaintId}`;
+            console.log('Cancel Modal ID:', cancelModalId);  // Log the modal ID
+            
+            const cancelModalElement = document.querySelector(cancelModalId);
+            console.log('Cancel Modal Element:', cancelModalElement);  // Log the modal element
+            
+            if (!cancelModalElement) {
+                console.error('Modal not found in the DOM');  // If no modal element is found, log an error
+                return;  // Prevent further execution if the modal is not found
+            }
+            
+            const cancelModal = new bootstrap.Modal(cancelModalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            cancelModal.show();  // Show the modal
+
+            // Handle enabling/disabling the textarea based on the selected reason
+            const reasonRadios = document.querySelectorAll(`input[name="cancelReasonOptions-${complaintId}"]`);
+            const cancelReasonTextarea = document.getElementById(`cancelReason-${complaintId}`);
+
+            // Initially disable the textarea
+            cancelReasonTextarea.disabled = true;
+            
+            reasonRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === "Other") {
+                        cancelReasonTextarea.disabled = false; // Enable textarea when "Other" is selected
+                    } else {
+                        cancelReasonTextarea.disabled = true;  // Disable textarea for predefined reasons
+                        cancelReasonTextarea.value = '';  // Clear the textarea when disabled
+                    }
+                });
+            });
+        }
+
+        // Confirm cancel button logic
+        if (event.target && event.target.id === 'confirmCancelButton') {
+            event.preventDefault();
+            
+            const complaintId = event.target.getAttribute('cancel-complaint-id');
+            console.log('Complaint ID from confirm button:', complaintId);  // Log the complaint ID
+            
+            const selectedReason = document.querySelector(`input[name="cancelReasonOptions-${complaintId}"]:checked`).value;
+            let cancellationReason = selectedReason;
+            
+            if (selectedReason === 'Other') {
+                cancellationReason = document.getElementById(`cancelReason-${complaintId}`).value.trim();
+            }
+            
+            if (!cancellationReason) {
+                alert("Please provide a cancellation reason.");
                 return;
             }
-    
-            // Close the confirmation modal
-            $('#confirmAssignModal').modal('hide');
-    
-            // Make the AJAX call to update the crew assignment and dates
-            updateCrew(complaintId, assignedCrew, userName, resolutionStartDate, resolutionEndDate, priority)
-                .done(function(response) {
-                    $('#modalBodyContent').text('Crew assigned successfully!');
-                    $('#successModal').modal('show');
 
-                    var button = $('#dropdownMenuButton-' + complaintId);
-                    button.prop('disabled', true);            // Disable the button
-                    button.removeClass('btn-primary');        // Remove the primary class
-                    button.addClass('btn-secondary');         // Add the secondary class
-                    button.text(userName);             // Change button text
-    
-                    if (response.success) {
-                        updateStatus(complaintId, 'Assigned')
-                            .done(function(statusResponse) {
-                                if (!statusResponse.success) {
-                                    alert('Error updating status: ' + statusResponse.error);
-                                }
-                            });
-                    } else {
-                        alert('Error assigning crew: ' + response.error);
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    alert('AJAX error: ' + error);
-                });
-        });
+                    // Call the cancelComplaint function with the necessary data
+    cancelComplaint(complaintId, cancellationReason);
+
+
+        }
     });
-    
 
-    $(document).ready(function() {
-        document.addEventListener('click', function(event) {
-            // Check if the cancel complaint button was clicked
-            if (event.target && event.target.classList.contains('cancelComplaintButton')) {
-                event.preventDefault();
-                
-                // Get the complaint ID
-                const complaintId = event.target.getAttribute('data-selected-complaint');
-                console.log('Complaint ID:', complaintId);  // Log the complaint ID
-                
-                const cancelModalId = `#cancelModal-${complaintId}`;
-                console.log('Cancel Modal ID:', cancelModalId);  // Log the modal ID
-                
-                const cancelModalElement = document.querySelector(cancelModalId);
-                console.log('Cancel Modal Element:', cancelModalElement);  // Log the modal element
-                
-                if (!cancelModalElement) {
-                    console.error('Modal not found in the DOM');  // If no modal element is found, log an error
-                    return;  // Prevent further execution if the modal is not found
-                }
-                
-                const cancelModal = new bootstrap.Modal(cancelModalElement, {
-                    backdrop: 'static',
-                    keyboard: false
-                });
-                cancelModal.show();  // Show the modal
+
+    function cancelComplaint(complaintId, cancellationReason) {
+        // Send AJAX request to Flask backend
+        fetch('/cancel-complaint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                complaintId: complaintId,
+                cancellation_reason: cancellationReason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#cancelComplaintSuccessModal').modal('show');
     
-                // Handle enabling/disabling the textarea based on the selected reason
-                const reasonRadios = document.querySelectorAll(`input[name="cancelReasonOptions-${complaintId}"]`);
-                const cancelReasonTextarea = document.getElementById(`cancelReason-${complaintId}`);
+                // Close the modal upon successful cancellation
+                const cancelModalElement = document.querySelector(`#cancelModal-${complaintId}`);
+                const cancelModal = bootstrap.Modal.getInstance(cancelModalElement);
+                cancelModal.hide();  // Hide the modal
+                
+                // Disable the "Cancel Complaint" button
+                const cancelButton = document.querySelector(`#cancelComplaintButton[data-selected-complaint="${complaintId}"]`);
+        if (cancelButton && cancelButton.cancelModalInstance) {
+          cancelButton.cancelModalInstance.hide(); // Close the modal
+        }
+                if (cancelButton) {
+                    cancelButton.disabled = true;
+                    cancelButton.classList.remove('btn-danger');
+                    cancelButton.classList.add('btn-secondary');
+                    cancelButton.innerText = 'Complaint Canceled';  // Update button text
     
-                // Initially disable the textarea
-                cancelReasonTextarea.disabled = true;
-                
-                reasonRadios.forEach(radio => {
-                    radio.addEventListener('change', function() {
-                        if (this.value === "Other") {
-                            cancelReasonTextarea.disabled = false; // Enable textarea when "Other" is selected
-                        } else {
-                            cancelReasonTextarea.disabled = true;  // Disable textarea for predefined reasons
-                            cancelReasonTextarea.value = '';  // Clear the textarea when disabled
-                        }
-                    });
-                });
-            }
-    
-            // Confirm cancel button logic
-            if (event.target && event.target.id === 'confirmCancelButton') {
-                event.preventDefault();
-                
-                const complaintId = event.target.getAttribute('cancel-complaint-id');
-                console.log('Complaint ID from confirm button:', complaintId);  // Log the complaint ID
-                
-                const selectedReason = document.querySelector(`input[name="cancelReasonOptions-${complaintId}"]:checked`).value;
-                let cancellationReason = selectedReason;
-                
-                if (selectedReason === 'Other') {
-                    cancellationReason = document.getElementById(`cancelReason-${complaintId}`).value.trim();
-                }
-                
-                if (!cancellationReason) {
-                    alert("Please provide a cancellation reason.");
-                    return;
+                    // Disable the button and change its class to btn-secondary
+                    const dropdownButton = document.querySelector(`#dropdownMenuButton-${complaintId}`);
+                    dropdownButton.disabled = true;  // Disable the button
+                    dropdownButton.classList.remove('btn-primary');  // Remove the primary class
+                    dropdownButton.classList.add('btn-secondary');  // Add the secondary class
                 }
     
-                // Send AJAX request to Flask backend
-                fetch('/cancel-complaint', {
+                // Log action
+                const log_data = {
+                    crew_id: complaintId,  // Correct property assignment
+                    user: "Admin",
+                    action: "Invalidated a complaint"
+                };
+    
+                fetch('/log', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        complaintId: complaintId,
-                        cancellation_reason: cancellationReason
-                    })
+                    body: JSON.stringify(log_data)
                 })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Complaint successfully canceled.');
-    
-                        // Close the modal upon successful cancellation
-                        const cancelModalElement = document.querySelector(`#cancelModal-${complaintId}`);
-                        const cancelModal = bootstrap.Modal.getInstance(cancelModalElement);
-                        cancelModal.hide();  // Hide the modal
-                        
-                        // Disable the "Cancel Complaint" button
-                        const cancelButton = document.querySelector(`[data-selected-complaint="${complaintId}"]`);
-                        
-                        if (cancelButton && cancelButton.cancelModalInstance) {
-                            cancelButton.cancelModalInstance.hide(); // Close the modal
-                          }
-                        if (cancelButton) {
-                            cancelButton.disabled = true;
-                            cancelButton.classList.remove('btn-danger');
-                            cancelButton.classList.add('btn-secondary');
-                            cancelButton.innerText = 'Complaint Canceled';  // Optional: update button text
-                        }
-
-                                
-  const log_data = {
-    crew_id: complaintId, // Correct property assignment
-    user: "Admin",
-    action: "Invalidated a complaint"
-};
-
-  fetch('/log', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(log_data)
-    })
-    .then(response => response.json())
-    .catch(error => {
-        console.error('Error:', error);
-    });
-                    } else {
-                        alert('Failed to cancel the complaint. Please try again.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Failed to cancel the complaint. Please try again.');
             }
-        });
-    });
-    
-      
-      
-      
-
+        })
+        .catch(error => console.error('Error:', error));
     }
+    
 
     function updateCrew(complaintId, assignedCrew, userName, startDate, endDate, priority) {
         return $.ajax({
@@ -816,6 +745,7 @@ if (doc.crew_name) {
             success: function(users) {
                 var dropdownMenu = $(dropdownSelector);
 
+                
                 users.forEach(function(user) {
                     var listItem = `<li>
                         <a class="dropdown-item status-dropdown" href="#" data-user-id="${user['$id']}" data-complaint-id="${dropdownMenu.attr('id').split('-')[1]}"
@@ -836,7 +766,7 @@ if (doc.crew_name) {
     function updateRowInTable(doc, dataTable) {
         // Find the row by document ID
         const rowIndex = dataTable.row(`#${doc.$id}`).index();
-
+        console.log(rowIndex)
         // If the row exists in the DataTable
         if (rowIndex !== null && rowIndex !== undefined) {
             // Format the createdAt date
@@ -878,6 +808,12 @@ if (doc.crew_name) {
                 case 'In Progress':
                     statusBadgeClass = 'badge bg-secondary';
                     break;
+                case 'Withdrawn':
+                    statusBadgeClass = 'badge bg-secondary';
+                    break;
+                    case 'Invalidated':
+                        statusBadgeClass = 'badge bg-secondary';
+                        break;
                 default:
                     statusBadgeClass = 'badge bg-secondary';
             }
@@ -903,6 +839,7 @@ if (doc.crew_name) {
             .then(response => response.json())
             .then(data => {
                 const priority = data.priority;
+                
 
                 // Define the class for priority badge based on the calculated priority
                 let priorityBadgeClass = '';
@@ -933,6 +870,7 @@ if (doc.crew_name) {
 
                 // Update the existing modal content
                 updateModalContent(doc, formattedDate, formattedTime, assignedDate, assignedTime, resolutionStartDate, resolutionEndDate,  formattedResolutionDate);
+
             })
             .catch(error => {
                 console.error('Error calculating priority:', error);
@@ -944,6 +882,27 @@ if (doc.crew_name) {
 
     // Helper function to update the modal content
     function updateModalContent(doc, formattedDate, formattedTime, assignedDate, assignedTime, resolutionStartDate, resolutionEndDate, formattedResolutionDate) {
+        // Fetch updated priority from the API
+        fetch('/calculate-priority', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                description: doc.description,
+                createdAt: doc.createdAt,
+                locationName: doc.locationName,
+                additionalDetails: doc.additionalDetails,
+        followedUpAt: doc.followedUpAt,   
+resolutionStartDate: doc.resolutionStartDate,  
+resolutionEndDate: doc.resolutionEndDate,     
+status: doc.status 
+                
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+        const priority = data.priority;
         const modalElement = document.getElementById(`modal-${doc.$id}`);
         if (modalElement) {
             const ticketIDInput = modalElement.querySelector('#ticketID');
@@ -958,6 +917,8 @@ if (doc.crew_name) {
             const followUpInput = modalElement.querySelector('#followUp');
             const resolutionDateInput = modalElement.querySelector('#resolutionDate')
             const resolutionMembersInput = modalElement.querySelector('#resolutionMembers')
+            const priorityInput = modalElement.querySelector('#vPriority')
+            const priorityInputV = modalElement.querySelector('#Priority')
             if (ticketIDInput) ticketIDInput.value = doc.$id;
             if (consumerInput) consumerInput.value = doc.consumer_name;
             if (complaintTypeInput) complaintTypeInput.value = doc.description;
@@ -966,7 +927,8 @@ if (doc.crew_name) {
             if (dateCreatedInput) dateCreatedInput.value = `${formattedDate} ${formattedTime}`;
             if (dateAssignedInput) dateAssignedInput.value = assignedDate + (assignedTime ? ' ' + assignedTime : '');
             if (resolutionDateInput) resolutionDateInput.value = formattedResolutionDate;
-
+            if(priorityInput) priorityInput.value = priority;
+            if(priorityInputV) priorityInputV.value = priority;
             if (complaintStatusInput) complaintStatusInput.value = doc.status;
             if (resolutionTeamInput) resolutionTeamInput.value = doc.crew_name;
             if (followUpInput) followUpInput.value = doc.followUp ? doc.followUp : "No";
@@ -974,6 +936,10 @@ if (doc.crew_name) {
         } else {
             console.log(`Modal with ID modal-${doc.$id} not found.`);
         }
+    })
+    .catch(error => {
+        console.error('Error calculating priority:', error);
+    });
     }
 
 
@@ -989,3 +955,89 @@ if (doc.crew_name) {
     }
     }
 
+    $(document).on('click', '.status-dropdown', function() {
+        const complaintId = $(this).data('complaint-id');
+        const assignedCrew = $(this).data('user-id');
+        const userName = $(this).data('user-name');
+        var priority = $('#Priority').val();
+        // Show the confirmation modal
+        $('#confirmAssignModal').modal('show');
+
+        $('#crewMemberSelection').empty();
+         // Make an AJAX call to fetch the crew members for the selected team
+  $.ajax({
+    url: '/api/crew-members',  // Endpoint to fetch crew members for the selected team
+    method: 'GET',
+    data: { teamId: assignedCrew },  // Send the selected team's ID
+    dataType: 'json',
+    success: function(response) {
+        if (response.success) {
+            // Loop through the crew members and populate the select element
+            response.crewMembers.forEach(function(member) {
+                var option = new Option(member.name, member.id, false, false);
+                $('#crewMemberSelection').append(option);
+            });
+            $('#crewMemberSelection').trigger('change');  // Refresh the select2 dropdown
+        } else {
+            console.error('Error fetching crew members:', response.error);
+        }
+    },
+    error: function(xhr, status, error) {
+        console.error('AJAX Error:', error);
+    }
+});
+    
+        // Handle the confirm button click
+        $('#confirmAssignButton').off('click').on('click', function () {
+            // Get the values from the modal inputs
+            const resolutionStartDate = $('#resolutionStartDate').val(); 
+            const resolutionEndDate = $('#resolutionEndDate').val();
+    
+            // Ensure that both dates are provided
+            if (!resolutionStartDate || !resolutionEndDate) {
+                alert("Please select both start and end dates");
+                return;
+            }
+    
+            // Close the confirmation modal
+            $('#confirmAssignModal').modal('hide');
+    
+            // Make the AJAX call to update the crew assignment and dates
+            updateCrew(complaintId, assignedCrew, userName, resolutionStartDate, resolutionEndDate, priority)
+                .done(function(response) {
+                    $('#modalBodyContent').text('Crew assigned successfully!');
+                    $('#successModal').modal('show');
+
+                    var button = $('#dropdownMenuButton-' + complaintId);
+                    button.prop('disabled', true);            // Disable the button
+                    button.removeClass('btn-primary');        // Remove the primary class
+                    button.addClass('btn-secondary');         // Add the secondary class
+                    button.text(userName);             // Change button text
+    
+                    if (response.success) {
+                        updateStatus(complaintId, 'Assigned', priority)
+                            .done(function(statusResponse) {
+                                if (!statusResponse.success) {
+                                    alert('Error updating status: ' + statusResponse.error);
+                                }
+                            });
+                             $.ajax({
+                                url: '/update-priority',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ complaintId: complaintId, priority: priority })
+                               
+                                
+                            });
+              
+                        }
+                    
+                    else {
+                        alert('Error assigning crew: ' + response.error);
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    alert('AJAX error: ' + error);
+                });
+        });
+    });

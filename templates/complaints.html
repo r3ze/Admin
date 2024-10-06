@@ -374,13 +374,13 @@
                             <div class="col-sm-9">
                                 {% if complaint['priority'] == 'High' %}
                                 <input type="hidden" class="form-control" id="Priority" value="High">
-                                <input type="text" class="form-control" disabled value="High">
+                                <input type="text" class="form-control" id="vPriority" disabled value="High">
                                 {% elif complaint['priority'] == 'Medium' %}
                                 <input type="hidden" class="form-control" id="Priority" value="Medium">
-                                <input type="text" class="form-control" disabled value="Medium">
+                                <input type="text" class="form-control" id="vPriority" disabled value="Medium">
                                 {% else %}
                                 <input type="hidden" class="form-control" id="Priority" value="Low">
-                                <input type="text" class="form-control" disabled value="Low">
+                                <input type="text" class="form-control" id="vPriority" disabled value="Low">
                                 {% endif %}
                             </div>
                         </div>
@@ -589,7 +589,7 @@
         <!-- Estimated Resolution Date and Time -->
         <div class="form-group mb-3">
           <label for="resolutionStartDate" class="form-label fw-bold">
-            <i class="fas fa-calendar-alt me-2 text-primary"></i> Estimated Resolution Start Date
+            <i class="fas fa-calendar-alt me-2 text-primary"></i>Resolution Start Date
           </label>
           <input type="date" class="form-control" id="resolutionStartDate" required />
         </div>
@@ -612,6 +612,26 @@
         <button type="button" class="btn btn-primary" id="confirmAssignButton">
           <i class="fas fa-check-circle me-1"></i> Confirm
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Complaint Success Modal -->
+<div class="modal fade" id="cancelComplaintSuccessModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="successModalLabel">Complaint Invalidated</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Complaint has been successfully invalidated.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -704,11 +724,6 @@
 
       
     <script>
-  
-//function to assign crew
-$(document).ready(function() {
-
-
 
 // Fetch users when the page loads
 $.ajax({
@@ -738,131 +753,6 @@ $.ajax({
 });
 
 
-$('.dropdown-menu').on('click', '.status-dropdown', function() {
-   var complaintId = $(this).data('complaint-id');
-   var assignedCrew = $(this).data('user-id');
-   var userName = $(this).data('user-name'); // Get the selected crew's name
-  
-   var newClass = "btn-secondary";
- // Show the confirmation modal
- $('#confirmAssignModal').modal('show');
-
-  // Clear the previous crew members from the select element
-  $('#crewMemberSelection').empty();
-  
-  // Make an AJAX call to fetch the crew members for the selected team
-  $.ajax({
-        url: '/api/crew-members',  // Endpoint to fetch crew members for the selected team
-        method: 'GET',
-        data: { teamId: assignedCrew },  // Send the selected team's ID
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                // Loop through the crew members and populate the select element
-                response.crewMembers.forEach(function(member) {
-                    var option = new Option(member.name, member.id, false, false);
-                    $('#crewMemberSelection').append(option);
-                });
-                $('#crewMemberSelection').trigger('change');  // Refresh the select2 dropdown
-            } else {
-                console.error('Error fetching crew members:', response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('AJAX Error:', error);
-        }
-    });
-
-// Handle the confirm button click
-$('#confirmAssignButton').off('click').on('click', function () {
-    // Close the confirmation modal
-    $('#confirmAssignModal').modal('hide');
-
-     // Get the values from the modal inputs
-     var resolutionStartDate = $('#resolutionStartDate').val(); // Correct way to get input value
-      var resolutionEndDate = $('#resolutionEndDate').val(); // Correct way to get input value
-    var priority = $('#Priority').val();
-        if (!resolutionStartDate || !resolutionEndDate) {
-            alert("Please select both start and end dates");
-            return;
-        }
-
-    
-
-   $.ajax({
-       url: '/update-crew',
-       method: 'POST',
-       contentType: 'application/json',
-       data: JSON.stringify({ complaintId: complaintId, assigned_crew: assignedCrew, crew_name: userName, resolutionStartDate: resolutionStartDate, resolutionEndDate: resolutionEndDate, priority: priority,   resolution_members: $('#crewMemberSelection').val() }),
-       success: function(response) {
-           if (response.success) {
-           
-           
-               // After crew assignment, update the status
-               var newStatus = "Assigned";
-            
-               $.ajax({
-                   url: '/update-status',
-                   method: 'POST',
-                   contentType: 'application/json',
-                   data: JSON.stringify({ complaintId: complaintId, status: newStatus }),
-                   success: function(response) {
-                       if (response.success) {
-                        $('#modalBodyContent').text('Crew assigned successfully!');
-                        $('#successModal').modal('show');;
-
-                        var button = $('button[data-selected-complaint="' + complaintId + '"]');
-                        button.prop('disabled', true);  // Disable the button for that specific complaint
-
-  // Send an AJAX request to create the new crew member
-
-  const log_data = {
-    crew_id: assignedCrew, // Correct property assignment
-    user: "Admin",
-    action: "Assigned tasks to " + userName, // Concatenation issue fixed
-};
-
-  fetch('/log', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(log_data)
-    })
-    .then(response => response.json())
-    .catch(error => {
-        console.error('Error:', error);
-    });
-
-   // Disable the button and change its class to btn-secondary
-   var button = $('#dropdownMenuButton-' + complaintId);
-                        button.prop('disabled', true);            // Disable the button
-                        button.removeClass('btn-primary');        // Remove the primary class
-                        button.addClass('btn-secondary');         // Add the secondary class
-                        button.text(userName);             // Change button text
-
-                      
-                           // Update with new status
-                       } else {
-                           alert('Error updating status: ' + response.error);
-                       }
-                   },
-                   error: function(xhr, status, error) {
-                       alert('AJAX error: ' + error);
-                   }
-               });
-           } else {
-               alert('Error assigning crew: ' + response.error);
-           }
-       },
-       error: function(xhr, status, error) {
-           alert('AJAX error: ' + error);
-       }
-   });
-  });
-   
-
-});
 document.querySelectorAll('#cancelComplaintButton').forEach(button => {
   button.addEventListener('click', function(event) {
     event.preventDefault();
@@ -927,7 +817,7 @@ document.querySelectorAll('#confirmCancelButton').forEach(button => {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('Complaint successfully canceled.');
+        $('#cancelComplaintSuccessModal').modal('show');
 
         
 
@@ -940,7 +830,15 @@ document.querySelectorAll('#confirmCancelButton').forEach(button => {
           cancelButton.disabled = true;
           cancelButton.classList.remove('btn-danger');
           cancelButton.classList.add('btn-secondary');
-          cancelButton.innerText = 'Complaint Canceled'; // Optional: update button text
+          cancelButton.innerText = 'Complaint Invalidated'; // Optional: update button text
+
+             // Disable the button and change its class to btn-secondary
+   var button = $('#dropdownMenuButton-' + complaintId);
+                        button.prop('disabled', true);            // Disable the button
+                        button.removeClass('btn-primary');        // Remove the primary class
+                        button.addClass('btn-secondary');         // Add the secondary class
+                            // Change button text
+
         }
 
         
@@ -974,7 +872,7 @@ document.querySelectorAll('#confirmCancelButton').forEach(button => {
 
 
 
-});
+
     </script>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
 <script src="/static/js/complaints-realtime.js"></script>
