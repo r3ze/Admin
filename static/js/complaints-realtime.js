@@ -43,6 +43,7 @@
     updateInProgressComplaintsCount()
     deleteRowFromTable(document.$id);
     }
+    
     });
 
     // Function to update the count of new complaints
@@ -839,6 +840,22 @@ if (doc.crew_name) {
             .then(response => response.json())
             .then(data => {
                 const priority = data.priority;
+
+                if(doc.priority!==priority){
+                $.ajax({
+                    url: '/update-priority',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ complaintId: doc.$id, priority: priority }),
+                    success: function(response) {
+                        console.log("Priority successfully updated:", response);
+                        // Optionally update the UI with the new priority
+                    },
+                    error: function(error) {
+                        console.error("Error updating priority:", error);
+                    }
+                });
+            }
                 
 
                 // Define the class for priority badge based on the calculated priority
@@ -1015,7 +1032,7 @@ status: doc.status
                     button.text(userName);             // Change button text
     
                     if (response.success) {
-                        updateStatus(complaintId, 'Assigned', priority)
+                        updateStatus(complaintId, 'Assigned')
                             .done(function(statusResponse) {
                                 if (!statusResponse.success) {
                                     alert('Error updating status: ' + statusResponse.error);

@@ -17,10 +17,7 @@
        rel="stylesheet"
        href="https://cdn.datatables.net/2.0.6/css/dataTables.bootstrap5.css"
      />
-     <link
-       rel="stylesheet"
-       href="https//cdn.datatables.net/2.0.6/css/dataTables.dataTables.min.css"
-     />
+
     <title>Ticket History</title>
   </head>
   <body>
@@ -172,7 +169,15 @@ Log Out
               <td>{{ ticket['description'] }}</td>
 
               <td><a href="#" class="view-image" data-image="{{ ticket['image'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-              <td>{{ ticket['status'] }}</td>
+              <td class="status-cell"  style="padding: 10px;">
+                {% if ticket['status'] == 'Withdrawn' %}
+                  <span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Withdrawn</span>
+                {% elif ticket['status'] == 'Resolved' %}
+                  <span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>
+                  {% elif ticket['status'] == 'Invalidated' %}
+                  <span class="badge bg-danger" style="padding: 5px 10px; border-radius: 20px;">Invalidated</span>
+                {% endif %}
+              </td>
 
               <td ><button type="button" class="btn btn-primary" data-bs-toggle="modal"  data-bs-target="#modal-{{ticket['$id']}}">
                 View Details
@@ -478,83 +483,90 @@ Log Out
 
 <!--Filter function-->
 <script>
-  document.getElementById('filterButton').addEventListener('click', function () {
+document.getElementById('filterButton').addEventListener('click', function () {
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
-  
+
     if (!startDate || !endDate) {
-      alert("Please select both a start and end date.");
-      return;
+        alert("Please select both a start and end date.");
+        return;
     }
-  
-    // AJAX request to backend to fetch filtered tickets
+
     fetch(`/filter-tickets?start_date=${startDate}&end_date=${endDate}`)
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('tbody.table-group-divider');
-        tbody.innerHTML = '';  // Clear existing table rows
-  
-        // Populate table with filtered data
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6">No tickets found for the selected date range.</td></tr>';
-        } else {
-          data.forEach(ticket => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${ticket.$id}</td>
-              <td>${ticket.consumer_name}</td>
-              <td>${ticket.description}</td>
-              <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-              <td>${ticket.status}</td>
-              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  });
-  
-  document.getElementById('clearFilterButton').addEventListener('click', function () {
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('tbody.table-group-divider');
+            tbody.innerHTML = '';  // Clear existing table rows
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No tickets found for the selected date range.</td></tr>';
+            } else {
+                data.forEach(ticket => {
+                    const row = document.createElement('tr');
+                    const statusBadge = getStatusBadge(ticket.status); // Use helper function
+                    row.innerHTML = `
+                        <td>${ticket.$id}</td>
+                        <td>${ticket.consumer_name}</td>
+                        <td>${ticket.description}</td>
+                        <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+                        <td>${statusBadge}</td>
+                        <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+});
+
+document.getElementById('clearFilterButton').addEventListener('click', function () {
     document.getElementById('startDate').value = '';  // Clear start date input
     document.getElementById('endDate').value = '';    // Clear end date input
-  
-    // Fetch all tickets without any filtering by date, but filtering by status
+
     fetch('/filter-tickets')
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('tbody.table-group-divider');
-        tbody.innerHTML = '';  // Clear existing table rows
-  
-        // Filter data for relevant statuses: Resolved, Withdrawn, Canceled
-        const filteredData = data.filter(ticket => 
-          ['Resolved', 'Withdrawn', 'Invalidated'].includes(ticket.status)
-        );
-  
-        // Populate table with filtered data
-        if (filteredData.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6">No tickets found with the selected statuses.</td></tr>';
-        } else {
-          filteredData.forEach(ticket => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${ticket.$id}</td>
-              <td>${ticket.consumer_name}</td>
-              <td>${ticket.description}</td>
-              <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
-              <td>${ticket.status}</td>
-              <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching all tickets:', error);
-      });
-  });
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('tbody.table-group-divider');
+            tbody.innerHTML = '';  // Clear existing table rows
+
+            const filteredData = data.filter(ticket =>
+                ['Resolved', 'Withdrawn', 'Invalidated'].includes(ticket.status)
+            );
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No tickets found with the selected statuses.</td></tr>';
+            } else {
+                filteredData.forEach(ticket => {
+                    const row = document.createElement('tr');
+                    const statusBadge = getStatusBadge(ticket.status); // Use helper function
+                    row.innerHTML = `
+                        <td>${ticket.$id}</td>
+                        <td>${ticket.consumer_name}</td>
+                        <td>${ticket.description}</td>
+                        <td><a href="#" class="view-image" data-image="${ticket.image}" data-bs-toggle="modal" data-bs-target="#imageModal">View</a></td>
+                        <td>${statusBadge}</td> 
+                        <td><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-${ticket.$id}">View Details</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching all tickets:', error);
+        });
+});
+
+// Helper function to get status badge HTML
+function getStatusBadge(status) {
+    const statusMap = {
+        'Withdrawn': `<span class="badge bg-secondary" style="padding: 5px 10px; border-radius: 20px;">Withdrawn</span>`,
+        'Resolved': `<span class="badge bg-success" style="padding: 5px 10px; border-radius: 20px;">Resolved</span>`,
+        'Invalidated': `<span class="badge bg-danger" style="padding: 5px 10px; border-radius: 20px;">Invalidated</span>`
+    };
+    return statusMap[status] || '';
+}
   </script>
 
 

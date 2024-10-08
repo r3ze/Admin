@@ -172,6 +172,7 @@ Log Out
                             <th scope="col">Municipality</th>
                             <th scope="col">Barangay</th>
                             <th scope="col">House/Block/Lot No. / Street / Subdivision/Village *</th>
+                            <th scope="col">Date Registered</th>
                             <th scope="col">Action</th>
                         </tr>
                         </thead>
@@ -184,6 +185,7 @@ Log Out
                                 <td>{{ user['city'] }} </td>
                                 <td>{{ user['barangay'] }} </td>
                                 <td>{{ user['street'] }} </td>
+                                <td>{{ user['formattedRegisteredAt'] }} </td>
                                 <td> 
                                     <div class="dropdown">
                                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

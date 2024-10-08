@@ -43,7 +43,7 @@ def count_complaints_by_status(complaints):
     total_complaints = len(complaints)
     resolved_complaints = sum(1 for complaint in complaints if complaint.get('status') == 'Resolved')
     pending_complaints = sum(1 for complaint in complaints if complaint.get('status') in ['In Progress', 'New', 'Assigned'])  # Assuming these statuses are "pending"
-    cancelled_complaints = sum(1 for complaint in complaints if complaint.get('status') == 'Withdrawn')
+    cancelled_complaints = sum(1 for complaint in complaints if complaint.get('status') == 'Invalidated')
 
     return {
         'total_complaints': total_complaints,
@@ -892,15 +892,22 @@ def user_management():
         # Fetch all user documents with pagination
         users_list = fetch_all_documents(DATABASE_ID, USER_COLLECTION_ID)
 
-        # Filter users based on municipality if provided
+        # Filter users based on municipality and activation status
         if municipality:
-            users_list = [user for user in users_list if user.get('city') == municipality]
+            users_list = [user for user in users_list if user.get('city') == municipality and user.get('activated') == True]
+        else:
+            # Filter for activated users only
+            users_list = [user for user in users_list if user.get('activated') == True]
 
         # Fetch all log documents with pagination
         all_logs = fetch_all_documents(DATABASE_ID, LOG_COLLECTION_ID)
         
         # Sort logs by 'time_stamp' in descending order
         sorted_logs = sorted(all_logs, key=lambda x: x['time_stamp'], reverse=True)
+        
+        for user in users_list:
+            user['formattedRegisteredAt'] = format_date(user.get('dateRegistered'))
+
 
     except Exception as e:
         print(f"Error fetching users: {e}")
@@ -1194,7 +1201,7 @@ def filter_tickets():
             collection_id=COLLECTION_ID
         )
 
-        # If no start or end date, return tickets with relevant statuses
+        # Filter tickets by status if no date range is provided
         if not start_date or not end_date:
             relevant_tickets = [
                 doc for doc in response['documents']
@@ -1202,12 +1209,14 @@ def filter_tickets():
             ]
             return jsonify(relevant_tickets)
 
+        # Parse the start and end dates
         start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # Filter complaints by date range and status (Resolved, Withdrawn, and Canceled)
+        # Filter complaints by date range and status (Resolved, Withdrawn, Invalidated)
         relevant_tickets = []
         for doc in response['documents']:
+            date_str = None
             for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt']:
                 date_str = doc.get(attr)
                 if date_str:
@@ -1216,7 +1225,7 @@ def filter_tickets():
                     except ValueError:
                         doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
-                    # Ensure status is in Resolved, Withdrawn, or Canceled and the date is within the range
+                    # Ensure status and date range match the criteria
                     if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']:
                         relevant_tickets.append(doc)
                         break
