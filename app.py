@@ -684,7 +684,7 @@ def update_consumer():
     account_number = data.get('account_number')
     municipality = data.get('municipality')
     barangay = data.get('barangay')
-    street = data.get('street')
+
     if not doc_id or not user_id:
         return jsonify({"error": "Document ID and User ID are required."}), 400
 
@@ -719,9 +719,6 @@ def update_consumer():
 
         if barangay and barangay != document.get('barangay'):
             update_data['barangay'] = barangay
-
-        if street and street != document.get('street'):
-            update_data['street'] = street
 
         # Perform the update only if there's data to update
         if update_data:
@@ -810,43 +807,40 @@ def log_history():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
+
 @app.route('/filter-logs')
 def filter_logs():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
     try:
-        # Fetch all log documents
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=LOG_COLLECTION_ID
-        )
+        # Fetch all log documents with pagination
+        all_logs = fetch_all_log_documents(DATABASE_ID, LOG_COLLECTION_ID)
 
         # If no start or end date, return all logs
         if not start_date or not end_date:
-            return jsonify(response['documents'])
+            return jsonify(all_logs)
 
-        # Parse the date strings into date objects
+        # Parse date strings
         start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
 
         # Filter logs by date range
         relevant_logs = []
-        for log in response['documents']:
+        for log in all_logs:
             time_stamp = log.get('time_stamp')
             if time_stamp:
                 try:
-                    # First try parsing with timezone-aware format
+                    # First, try timezone-aware parsing
                     log_date = datetime.strptime(time_stamp, '%Y-%m-%dT%H:%M:%S.%f%z').date()
                 except ValueError:
-                    # Fallback to timezone-naive format
+                    # Fallback for timezone-naive format
                     log_date = datetime.strptime(time_stamp, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
-                # Check if the log date falls within the specified range
+                # Check if log date is within range
                 if start_date_obj <= log_date <= end_date_obj:
                     relevant_logs.append(log)
 
-        # Return the filtered logs
         return jsonify(relevant_logs)
 
     except Exception as e:
@@ -987,30 +981,26 @@ def filter_consumer_history(user_id):
     end_date = request.args.get('end_date')
 
     try:
-        # Fetch all consumer history records from the Appwrite database
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all consumer complaints using pagination
+        all_complaints = fetch_all_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter by crew_id (only show complaints related to this crew member)
+        # Filter complaints by consumer_id
         filtered_histories = [
-            doc for doc in response['documents']
+            doc for doc in all_complaints
             if doc.get('consumer_id') == user_id
         ]
 
-        # If no start or end date is provided, return all complaints for the crew member
+        # If no date range is provided, return all complaints for this consumer
         if not start_date or not end_date:
             return jsonify(filtered_histories)
 
-        # Parse the date strings into date objects
+        # Parse start and end dates
         start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # Filter complaints by date range
+        # Filter complaints by date range on 'createdAt' field
         relevant_histories = []
         for doc in filtered_histories:
-            # Assuming we're using 'createdAt' as the primary date field for filtering
             date_str = doc.get('createdAt')
             if date_str:
                 try:
@@ -1018,7 +1008,7 @@ def filter_consumer_history(user_id):
                 except ValueError:
                     doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
-                # Check if the complaint falls within the specified date range
+                # Include complaints that fall within the date range
                 if start_date_obj <= doc_date <= end_date_obj:
                     relevant_histories.append(doc)
 
@@ -1188,52 +1178,43 @@ def ticket_history():
         return render_template("ticket_history.html", tickets=relevant_tickets)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 @app.route('/filter-tickets')
 def filter_tickets():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
     try:
-        # Fetch all complaints from the Appwrite database
-        response = database.list_documents(
-            database_id=DATABASE_ID,
-            collection_id=COLLECTION_ID
-        )
+        # Fetch all ticket history documents (same as ticket_history route)
+        all_tickets = fetch_all_ticket_history_documents(DATABASE_ID, COLLECTION_ID)
 
-        # Filter tickets by status if no date range is provided
-        if not start_date or not end_date:
-            relevant_tickets = [
-                doc for doc in response['documents']
-                if doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']
-            ]
-            return jsonify(relevant_tickets)
+        # Parse the start and end dates if provided
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date() if start_date else None
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date() if end_date else None
 
-        # Parse the start and end dates
-        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
-
-        # Filter complaints by date range and status (Resolved, Withdrawn, Invalidated)
+        # Filter tickets based on status and date range
         relevant_tickets = []
-        for doc in response['documents']:
-            date_str = None
-            for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt']:
-                date_str = doc.get(attr)
+        for doc in all_tickets:
+            if doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']:
+                # Check if a date range is specified and filter accordingly
+                date_str = next((doc.get(attr) for attr in ['resolvedAt', 'withdrawnAt', 'canceledAt'] if doc.get(attr)), None)
                 if date_str:
                     try:
                         doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f%z').date()
                     except ValueError:
                         doc_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
-                    # Ensure status and date range match the criteria
-                    if start_date_obj <= doc_date <= end_date_obj and doc.get('status') in ['Resolved', 'Withdrawn', 'Invalidated']:
-                        relevant_tickets.append(doc)
-                        break
+                    # Filter by date range if start and end dates are provided
+                    if start_date_obj and end_date_obj:
+                        if start_date_obj <= doc_date <= end_date_obj:
+                            relevant_tickets.append(doc)
+                    else:
+                        relevant_tickets.append(doc)  # No date range, include all with matching status
 
         return jsonify(relevant_tickets)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/maps')

@@ -269,7 +269,7 @@
                       </div>
                     </div>
 
-                    {% if complaint['status'] == 'New' or complaint['status'] =='Assigned' or complaint['status'] =='Resolved' %}
+                    {% if complaint['status'] == 'New' or complaint['status'] =='Assigned' or complaint['status'] =='Resolved' or complaint['status'] =='In Progress' %}
                     <div class="mb-3 row">
                       <label for="dateAssigned" class="col-sm-3 col-form-label">Date Assigned</label>
                       <div class="col-sm-9">
@@ -308,6 +308,14 @@
                        
                       </div>
                     </div>
+
+                    <div class="mb-3 row">
+                      <label for="resolutionImage" class="col-sm-3 col-form-label">Proof of Resolution</label>
+                      <div class="col-sm-9">
+                        <a href="#" id="resolutionImage" class="view-resolution-image" data-image="{{ complaint['resolutionImage'] }}" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#resolutionImageModal">View</a>
+                      </div>
+                    </div>
+
 
                     
                     {% elif complaint['status'] =='Withdrawn' %}
@@ -363,6 +371,18 @@
                       </div>
                     </div>
 
+                    <div class="mb-3 row">
+                      <label for="resolutionMembers" class="col-sm-3 col-form-label">Crew Members</label>
+                      <div class="col-sm-9">
+                        {% if complaint['resolution_members'] %}
+                          <input type="text" class="form-control" id="resolutionMembers" disabled 
+                                 value="{{ ', '.join(complaint['resolution_members']) }}">
+                        {% else %}
+                          <input type="text" class="form-control" id="resolutionMembers" disabled 
+                                 value="No crew members assigned">
+                        {% endif %}
+                      </div>
+                    </div>
 
 
                    
@@ -453,6 +473,45 @@ id="confirmAssignButton">Confirm</button>
         </div>
     </div>
 
+     <!-- Modal for displaying the image -->
+     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="imageModalLabel">Complaint Image</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <div class="col-lg-12">
+                      <img id="modalImage" src="" alt="Complaint Image" class="img-fluid">
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+          </div>
+      </div>
+    </div>
+    
+    <div class="modal fade" id="resolutionImageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-center" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="imageModalLabel">Resolution Image</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <div class="col-lg-12">
+                      <img id="resolutionModalImage" src="" alt="Complaint Image" class="img-fluid">
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+          </div>
+      </div>
+    </div>  
+
 
     <!--CHange route-->
     <script>
@@ -489,6 +548,14 @@ id="confirmAssignButton">Confirm</button>
     <!--DataTable-->
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.6/js/dataTables.bootstrap5.js"></script>
+  
+    <script>
+      $(document).on('click', '.view-resolution-image', function(event) {
+event.preventDefault();
+var imageUrl = $(this).data('image'); // Corrected data attribute access
+$('#resolutionModalImage').attr('src', imageUrl);
+});
+</script>
   <script>
     $(document).ready(function () {
       $("#example").DataTable({

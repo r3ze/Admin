@@ -171,7 +171,6 @@ Log Out
                             <th scope="col">Account Number</th>
                             <th scope="col">Municipality</th>
                             <th scope="col">Barangay</th>
-                            <th scope="col">House/Block/Lot No. / Street / Subdivision/Village *</th>
                             <th scope="col">Date Registered</th>
                             <th scope="col">Action</th>
                         </tr>
@@ -184,7 +183,7 @@ Log Out
                                 <td>{{ user['account_number'] }}</td>
                                 <td>{{ user['city'] }} </td>
                                 <td>{{ user['barangay'] }} </td>
-                                <td>{{ user['street'] }} </td>
+
                                 <td>{{ user['formattedRegisteredAt'] }} </td>
                                 <td> 
                                     <div class="dropdown">
@@ -231,11 +230,7 @@ Log Out
                                                     <label for="editBarangay-{{ user['accountId'] }}" class="form-label">Barangay</label>
                                                     <input type="text" class="form-control" id="editBarangay-{{ user['accountId'] }}" value="{{ user['barangay'] }}" placeholder="Barangay">
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label for="editStreet-{{ user['accountId'] }}" class="form-label">Street</label>
-                                                    <input type="text" class="form-control" id="editStreet-{{ user['accountId'] }}" value="{{ user['street'] }}" placeholder="Street">
-                                                </div>
-                                         
+
                                             </form>
                                         </div>
                                         <div class="modal-footer">
@@ -362,7 +357,7 @@ Log Out
            const account_number = document.getElementById(`editAccountNumber-${userId}`).value;
            const municipality = document.getElementById(`editMunicipality-${userId}`).value;
            const barangay = document.getElementById(`editBarangay-${userId}`).value;
-           const street = document.getElementById(`editStreet-${userId}`).value;
+
            const email = document.getElementById(`editUserEmail-${userId}`).value;
          
    
@@ -375,7 +370,7 @@ Log Out
                account_number: account_number,
                municipality: municipality,
                barangay: barangay,
-               street: street,
+
                
            };
    
